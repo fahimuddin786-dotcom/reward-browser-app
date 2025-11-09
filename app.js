@@ -9,6 +9,9 @@ let currentTitle = '';
 let isVideoPlaying = false;
 let videoStartTime = null;
 
+// Track watched videos - ek video sirf ek baar
+let watchedVideos = JSON.parse(localStorage.getItem('watchedVideos')) || [];
+
 // Enhanced YouTube Search
 async function searchRealYouTubeVideos(query) {
     try {
@@ -93,20 +96,27 @@ function displayRealVideos(videos, query) {
         const title = video.snippet.title;
         const channel = video.snippet.channelTitle;
         const points = calculatePoints(title, index);
+        const isWatched = watchedVideos.includes(videoId);
         
         html += `
             <div class="video-card" onclick="selectVideoForEarning('${videoId}', ${points}, '${title.replace(/'/g, "\\'")}', '${channel.replace(/'/g, "\\'")}')">
                 <div class="thumbnail">
                     <img src="${thumbnail}" alt="${title}" onerror="this.src='https://via.placeholder.com/300/667eea/ffffff?text=YouTube+Short'">
                     <div class="duration">SHORT</div>
-                    <div class="points-badge">+${points} pts</div>
+                    ${isWatched ? 
+                        '<div class="watched-badge">✅ WATCHED</div>' : 
+                        '<div class="points-badge">+' + points + ' pts</div>'
+                    }
                     <div class="youtube-badge">YouTube</div>
                 </div>
                 <div class="video-details">
                     <h4 class="video-title">${title}</h4>
                     <div class="video-meta">
                         <span class="channel">📺 ${channel}</span>
-                        <span class="watch-now">▶️ Watch to Earn</span>
+                        ${isWatched ? 
+                            '<span class="watch-now">✅ Already Earned</span>' : 
+                            '<span class="watch-now">▶️ Watch to Earn</span>'
+                        }
                     </div>
                 </div>
             </div>
@@ -119,6 +129,12 @@ function displayRealVideos(videos, query) {
 
 // Select video for earning points
 function selectVideoForEarning(videoId, points, title, channel) {
+    // Check if video already watched
+    if (watchedVideos.includes(videoId)) {
+        showNotification('❌ You have already earned points for this video! Watch a different video.', 'warning');
+        return;
+    }
+    
     currentVideoId = videoId;
     currentPoints = points;
     currentTitle = title;
@@ -144,7 +160,7 @@ function selectVideoForEarning(videoId, points, title, channel) {
                     <p class="channel-preview">📺 ${channel}</p>
                     <div class="points-preview">
                         <span class="points-value">+${points} Points</span>
-                        <span class="points-condition">on video completion</span>
+                        <span class="points-condition">on 1 minute complete watch</span>
                     </div>
                 </div>
             </div>
@@ -159,11 +175,15 @@ function selectVideoForEarning(videoId, points, title, channel) {
                         </div>
                         <div class="step">
                             <span class="step-number">2</span>
-                            <span class="step-text">Watch the YouTube video completely</span>
+                            <span class="step-text">Watch the YouTube video for 1 minute completely</span>
                         </div>
                         <div class="step">
                             <span class="step-number">3</span>
-                            <span class="step-text">Points automatically added after video ends</span>
+                            <span class="step-text">Points automatically added after 1 minute</span>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">4</span>
+                            <span class="step-text">If you leave early, no points will be given</span>
                         </div>
                     </div>
                 </div>
@@ -172,7 +192,7 @@ function selectVideoForEarning(videoId, points, title, channel) {
                     <button onclick="startVideoEarning('${videoId}', ${points}, '${title.replace(/'/g, "\\'")}')" class="earn-btn">
                         🎬 Start Earning ${points} Points
                     </button>
-                    <p class="action-note">YouTube video will open and play automatically</p>
+                    <p class="action-note">Video will play on this page - must watch for 1 minute</p>
                 </div>
             </div>
         </div>
@@ -186,13 +206,31 @@ function startVideoEarning(videoId, points, title) {
     // Show video player interface
     showVideoPlayerInterface(videoId, points, title);
     
-    // Open YouTube video in new tab (actual video playback)
-    setTimeout(() => {
-        window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
-    }, 1000);
+    // Show YouTube player in same page
+    showYouTubePlayer(videoId);
     
     // Start video tracking
     startVideoTracking(videoId, points, title);
+}
+
+// Show YouTube player in same page
+function showYouTubePlayer(videoId) {
+    document.querySelector('.youtube-player-placeholder').innerHTML = `
+        <div class="youtube-iframe-container">
+            <iframe 
+                width="100%" 
+                height="300" 
+                src="https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>
+        </div>
+        <div class="video-timer">
+            <p>⏰ <strong>Video must play for 1 minute to earn points</strong></p>
+            <p>Don't close this page - points will be awarded automatically</p>
+        </div>
+    `;
 }
 
 // Show video player interface
@@ -208,8 +246,8 @@ function showVideoPlayerInterface(videoId, points, title) {
                 <div class="youtube-player-placeholder">
                     <div class="player-loading">
                         <div class="loading-spinner"></div>
-                        <h4>Opening YouTube Video...</h4>
-                        <p>Video will open in new tab. Keep this window open.</p>
+                        <h4>Loading YouTube Video...</h4>
+                        <p>Video will play on this page. Keep it open for 1 minute.</p>
                     </div>
                 </div>
             </div>
@@ -232,9 +270,6 @@ function showVideoPlayerInterface(videoId, points, title) {
                 </div>
                 
                 <div class="tracking-controls">
-                    <button onclick="simulateVideoCompletion(${points}, '${title.replace(/'/g, "\\'")}')" class="simulate-btn">
-                        ⏩ Simulate Video Completion (Testing)
-                    </button>
                     <button onclick="cancelEarning()" class="cancel-btn">
                         ❌ Cancel Earning
                     </button>
@@ -242,17 +277,18 @@ function showVideoPlayerInterface(videoId, points, title) {
             </div>
             
             <div class="instructions-panel">
-                <h4>📱 Instructions:</h4>
+                <h4>📱 Important Instructions:</h4>
                 <div class="instruction-list">
-                    <div class="instruction">1. YouTube video opened in new tab</div>
-                    <div class="instruction">2. Watch the video completely</div>
-                    <div class="instruction">3. Return here after watching</div>
-                    <div class="instruction">4. Click "I Watched Complete Video"</div>
+                    <div class="instruction">✅ Video is playing on this page</div>
+                    <div class="instruction">✅ Watch the video for complete 1 minute</div>
+                    <div class="instruction">❌ Don't close or minimize this page</div>
+                    <div class="instruction">❌ Don't refresh or go back</div>
+                    <div class="instruction">💰 Points automatically after 1 minute</div>
                 </div>
                 
-                <button onclick="confirmVideoWatched(${points}, '${title.replace(/'/g, "\\'")}')" class="confirm-btn">
-                    ✅ I Watched Complete Video
-                </button>
+                <div class="warning-note">
+                    <strong>⚠️ Warning:</strong> If you leave this page, you won't get points!
+                </div>
             </div>
         </div>
     `;
@@ -261,7 +297,7 @@ function showVideoPlayerInterface(videoId, points, title) {
 // Start video tracking
 function startVideoTracking(videoId, points, title) {
     let trackingTime = 0;
-    const maxTrackingTime = 60; // 1 minute max tracking
+    const maxTrackingTime = 60; // 1 minute required
     
     const trackingInterval = setInterval(() => {
         trackingTime++;
@@ -269,7 +305,7 @@ function startVideoTracking(videoId, points, title) {
         
         if (trackingTime >= maxTrackingTime) {
             clearInterval(trackingInterval);
-            autoCompleteVideo(points, title);
+            completeVideoEarning(points, title, true);
         }
     }, 1000);
     
@@ -288,36 +324,22 @@ function updateTrackingProgress(current, max) {
         const percentage = (current / max) * 100;
         progressFill.style.width = `${percentage}%`;
         
+        const timeLeft = max - current;
+        
         if (current < 10) {
-            progressText.innerHTML = `⏳ Video should be playing... (${current}s/${max}s)`;
-            statusText.innerHTML = '🎬 Video opened in YouTube';
+            progressText.innerHTML = `⏳ Video started... (${current}s/60s) - ${timeLeft}s left`;
+            statusText.innerHTML = '🎬 Video playing...';
         } else if (current < 30) {
-            progressText.innerHTML = `📺 Video should be halfway... (${current}s/${max}s)`;
-            statusText.innerHTML = '⏱️ Video in progress...';
+            progressText.innerHTML = `📺 Video in progress... (${current}s/60s) - ${timeLeft}s left`;
+            statusText.innerHTML = '⏱️ Keep watching...';
+        } else if (current < 50) {
+            progressText.innerHTML = `✅ Halfway done... (${current}s/60s) - ${timeLeft}s left`;
+            statusText.innerHTML = '💰 Almost there...';
         } else {
-            progressText.innerHTML = `✅ Video should be ending soon... (${current}s/${max}s)`;
-            statusText.innerHTML = '💰 Almost time for points!';
+            progressText.innerHTML = `🎉 Almost done... (${current}s/60s) - ${timeLeft}s left`;
+            statusText.innerHTML = '⚡ Points coming soon!';
         }
     }
-}
-
-// Confirm video watched manually
-function confirmVideoWatched(points, title) {
-    if (confirm(`Confirm you watched the complete video to earn ${points} points?`)) {
-        completeVideoEarning(points, title);
-    }
-}
-
-// Simulate video completion (for testing)
-function simulateVideoCompletion(points, title) {
-    if (confirm(`Simulate video completion and earn ${points} points?`)) {
-        completeVideoEarning(points, title);
-    }
-}
-
-// Auto complete video after tracking time
-function autoCompleteVideo(points, title) {
-    completeVideoEarning(points, title, true);
 }
 
 // Complete video earning process
@@ -325,6 +347,12 @@ function completeVideoEarning(points, title, isAuto = false) {
     // Clean up tracking
     if (window.videoTrackingInterval) {
         clearInterval(window.videoTrackingInterval);
+    }
+    
+    // Add to watched videos list
+    if (currentVideoId && !watchedVideos.includes(currentVideoId)) {
+        watchedVideos.push(currentVideoId);
+        localStorage.setItem('watchedVideos', JSON.stringify(watchedVideos));
     }
     
     // Add points
@@ -363,14 +391,15 @@ function showEarningSuccess(points, title, isAuto = false) {
                     <span class="detail-value">${parseInt(localStorage.getItem('userPoints')) || 100}</span>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Method:</span>
-                    <span class="detail-value">${isAuto ? 'Auto-completed' : 'Manual confirmation'}</span>
+                    <span class="detail-label">Watch Time:</span>
+                    <span class="detail-value">1 minute complete</span>
                 </div>
             </div>
             
             <div class="success-message">
-                <p>✅ <strong>Video watching verified!</strong></p>
+                <p>✅ <strong>1 minute watch time verified!</strong></p>
                 <p>Your points have been added to your wallet.</p>
+                <p>This video is now marked as watched.</p>
             </div>
             
             <div class="success-actions">
@@ -390,8 +419,8 @@ function cancelEarning() {
     if (window.videoTrackingInterval) {
         clearInterval(window.videoTrackingInterval);
     }
+    showNotification('❌ Points earning cancelled - no points added', 'warning');
     searchVideos();
-    showNotification('❌ Points earning cancelled', 'warning');
 }
 
 // Points system
@@ -407,20 +436,20 @@ function earnPoints(points, videoTitle, isYouTube = false) {
         points: points,
         isYouTube: isYouTube,
         timestamp: new Date().toLocaleString(),
-        method: 'video_completion'
+        method: '1_minute_complete_watch'
     });
     localStorage.setItem('watchHistory', JSON.stringify(watchHistory));
     
     updateWallet();
     
     if (isYouTube) {
-        showNotification(`✅ +${points} Points earned for watching video!`, 'success');
+        showNotification(`✅ +${points} Points earned for 1 minute watch!`, 'success');
     }
     
     return userPoints;
 }
 
-// Demo videos fallback (keep existing)
+// Demo videos fallback
 const YOUTUBE_VIDEOS = [
     {
         id: 'demo1',
@@ -460,19 +489,27 @@ function displayVideos(videos) {
     `;
     
     videos.forEach(video => {
+        const isWatched = watchedVideos.includes(video.id);
+        
         html += `
-            <div class="video-card" onclick="playDemoVideo('${video.id}', ${video.points}, '${video.title.replace(/'/g, "\\'")}', '${video.channel.replace(/'/g, "\\'")}')">
+            <div class="video-card" onclick="selectVideoForEarning('${video.id}', ${video.points}, '${video.title.replace(/'/g, "\\'")}', '${video.channel.replace(/'/g, "\\'")}')">
                 <div class="thumbnail">
                     <img src="${video.thumbnail}" alt="${video.title}">
                     <div class="duration">${video.duration}</div>
-                    <div class="points-badge">+${video.points} pts</div>
+                    ${isWatched ? 
+                        '<div class="watched-badge">✅ WATCHED</div>' : 
+                        '<div class="points-badge">+' + video.points + ' pts</div>'
+                    }
                     <div class="demo-badge">Demo</div>
                 </div>
                 <div class="video-details">
                     <h4 class="video-title">${video.title}</h4>
                     <div class="video-meta">
                         <span class="channel">📺 ${video.channel}</span>
-                        <span class="watch-now">▶️ Watch Demo</span>
+                        ${isWatched ? 
+                            '<span class="watch-now">✅ Already Earned</span>' : 
+                            '<span class="watch-now">▶️ Watch Demo</span>'
+                        }
                     </div>
                 </div>
             </div>
@@ -483,44 +520,10 @@ function displayVideos(videos) {
     resultsDiv.innerHTML = html;
 }
 
-// Demo video player
-function playDemoVideo(videoId, points, title, channel) {
-    document.getElementById('videoResults').innerHTML = `
-        <div class="demo-video-container">
-            <div class="player-header">
-                <button onclick="searchVideos()" class="back-btn">← Back to Search</button>
-                <h3>🎬 Demo Video</h3>
-                <div class="api-badge demo">Demo System</div>
-            </div>
-            
-            <div class="demo-player-section">
-                <div class="demo-video-placeholder">
-                    <div class="demo-player">
-                        <div class="play-icon">▶</div>
-                        <h4>${title}</h4>
-                        <p>Channel: ${channel}</p>
-                        <div class="demo-stats">
-                            <div>💰 Points: ${points}</div>
-                            <div>🎯 Demo Video Player</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="demo-earn-section">
-                    <button onclick="earnPoints(${points}, '${title.replace(/'/g, "\\'")}', false)" class="demo-earn-btn">
-                        ✅ Earn ${points} Points (Demo)
-                    </button>
-                    <p class="demo-note">In real mode, you would watch actual YouTube video</p>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
 // Utility functions
 function calculatePoints(title, index) {
-    const basePoints = 10; // Fixed 10 points per video
-    const bonus = Math.floor(Math.random() * 3); // 0-2 bonus points
+    const basePoints = 10;
+    const bonus = Math.floor(Math.random() * 3);
     return basePoints + bonus;
 }
 
@@ -574,8 +577,18 @@ function showEarnings() {
     `;
 }
 
+// Development function to reset watched videos
+function resetWatchedVideos() {
+    if (confirm('Reset all watched videos? This will allow you to earn points again for watched videos.')) {
+        watchedVideos = [];
+        localStorage.removeItem('watchedVideos');
+        showNotification('✅ Watched videos reset successfully!', 'success');
+        searchVideos();
+    }
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     updateWallet();
-    console.log('🎯 Reward Browser initialized with real video earning system');
+    console.log('🎯 Reward Browser initialized with 1-minute watch system');
 });
