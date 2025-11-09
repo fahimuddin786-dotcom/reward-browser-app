@@ -1,177 +1,166 @@
 // YouTube API Configuration
 const YOUTUBE_API_KEY = 'AIzaSyBATxf5D7ZDeiQ61dbEdzEd4Tq72N713Y8';
 
-// YouTube Player State Management
-let currentPlayer = null;
+// App State Management
+let isMining = false;
+let miningSeconds = 0;
+let miningInterval;
+let userPoints = 1010;
+let watchedVideos = 24;
+let referrals = 3;
+
+// YouTube Video State
 let currentVideoId = null;
 let currentPoints = 0;
 let currentTitle = '';
-let isVideoPlaying = false;
-let videoStartTime = null;
+let videoTrackingInterval = null;
+let watchedVideoIds = JSON.parse(localStorage.getItem('watchedVideos')) || [];
 
-// Track watched videos - ek video sirf ek baar
-let watchedVideos = JSON.parse(localStorage.getItem('watchedVideos')) || [];
+// Initialize App
+document.addEventListener('DOMContentLoaded', function() {
+    updateUI();
+    console.log('🎯 TapEarn App Initialized with YouTube Videos');
+});
 
-// Referral System
-let referralData = JSON.parse(localStorage.getItem('referralData')) || {
-    referralCode: generateReferralCode(),
-    referredUsers: [],
-    totalEarnings: 0,
-    referralCount: 0
-};
-
-// Mining System
-let miningData = JSON.parse(localStorage.getItem('miningData')) || {
-    isMining: false,
-    startTime: null,
-    elapsedTime: 0,
-    totalMiningPoints: 0,
-    miningSessions: 0
-};
-
-let miningInterval = null;
-
-// Generate random referral code
-function generateReferralCode() {
-    return 'REF' + Math.random().toString(36).substr(2, 6).toUpperCase();
-}
-
-// Mining System Functions
-function startMining() {
-    if (miningData.isMining) {
-        showNotification('⛏️ Mining already in progress!', 'info');
-        return;
-    }
-
-    miningData.isMining = true;
-    miningData.startTime = Date.now();
-    miningData.elapsedTime = 0;
-    localStorage.setItem('miningData', JSON.stringify(miningData));
-
-    // Update UI
-    document.getElementById('startMiningBtn').style.display = 'none';
-    document.getElementById('stopMiningBtn').style.display = 'block';
-    document.getElementById('miningProgress').style.display = 'block';
-    document.getElementById('miningStatus').textContent = 'ON';
-    document.getElementById('miningStatus').style.color = '#4CAF50';
-
-    showNotification('⛏️ Mining started! Keep this tab open to earn points.', 'success');
-
-    // Start mining interval
-    miningInterval = setInterval(updateMining, 1000);
-}
-
-function stopMining() {
-    if (!miningData.isMining) return;
-
-    miningData.isMining = false;
-    const sessionTime = Math.floor((Date.now() - miningData.startTime) / 1000);
-    miningData.elapsedTime += sessionTime;
+// Update UI
+function updateUI() {
+    document.getElementById('walletPoints').textContent = formatNumber(userPoints);
+    document.getElementById('totalPoints').textContent = formatNumber(userPoints);
+    document.getElementById('videosWatched').textContent = watchedVideos;
+    document.getElementById('totalReferrals').textContent = referrals;
     
-    // Calculate points for this session (5 points per minute)
-    const sessionPoints = Math.floor(sessionTime / 60) * 5;
-    if (sessionPoints > 0) {
-        miningData.totalMiningPoints += sessionPoints;
-        earnPoints(sessionPoints, 'Mining Session', false);
-    }
-
-    localStorage.setItem('miningData', JSON.stringify(miningData));
-    clearInterval(miningInterval);
-
-    // Update UI
-    document.getElementById('startMiningBtn').style.display = 'block';
-    document.getElementById('stopMiningBtn').style.display = 'none';
-    document.getElementById('miningStatus').textContent = 'OFF';
-    document.getElementById('miningStatus').style.color = '#FF6B6B';
-
-    showNotification(`⏹️ Mining stopped. Earned ${sessionPoints} points this session!`, 'info');
-}
-
-function updateMining() {
-    if (!miningData.isMining) return;
-
-    const currentTime = Date.now();
-    const elapsedSeconds = Math.floor((currentTime - miningData.startTime) / 1000);
-    const totalElapsed = miningData.elapsedTime + elapsedSeconds;
-
     // Update mining time display
-    const hours = Math.floor(totalElapsed / 3600);
-    const minutes = Math.floor((totalElapsed % 3600) / 60);
-    const seconds = totalElapsed % 60;
-    
+    const hours = Math.floor(miningSeconds / 3600);
+    const minutes = Math.floor((miningSeconds % 3600) / 60);
+    const seconds = miningSeconds % 60;
     document.getElementById('miningTime').textContent = 
         `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
 
-    // Calculate points per hour (300 points per hour = 5 points per minute)
-    const pointsPerHour = 300;
-    document.getElementById('miningPoints').textContent = pointsPerHour;
+// Format numbers with commas
+function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
 
-    // Update progress (1 hour = 3600 seconds)
-    const progress = Math.min((totalElapsed % 3600) / 3600 * 100, 100);
-    document.getElementById('miningProgressFill').style.width = `${progress}%`;
-    document.getElementById('miningProgressText').textContent = 
-        `Mining in progress: ${Math.round(progress)}%`;
-
-    // Check if 1 hour completed
-    if (totalElapsed >= 3600) {
-        completeMiningSession();
+// Toggle Mining
+function toggleMining() {
+    if (isMining) {
+        stopMining();
+    } else {
+        startMining();
     }
 }
 
-function completeMiningSession() {
-    const bonusPoints = 50; // Bonus for completing 1 hour
-    miningData.totalMiningPoints += bonusPoints;
-    miningData.miningSessions++;
-    miningData.elapsedTime = 0;
+// Start Mining
+function startMining() {
+    if (isMining) return;
     
-    earnPoints(bonusPoints, '1-Hour Mining Bonus', false);
-    showNotification(`🎉 1-Hour Mining Complete! You earned ${bonusPoints} bonus points!`, 'success');
-
-    // Reset for next session
-    miningData.startTime = Date.now();
-    localStorage.setItem('miningData', JSON.stringify(miningData));
+    isMining = true;
+    const miningCard = document.querySelector('.main-feature-card');
+    miningCard.classList.add('mining-active');
+    document.getElementById('miningStatusText').textContent = 'Mining Active - 5 pts/min';
+    document.getElementById('miningStatusText').style.color = '#FFD700';
+    document.getElementById('miningRate').textContent = '300/hr';
+    
+    miningInterval = setInterval(() => {
+        miningSeconds++;
+        
+        // Add 5 points every minute
+        if (miningSeconds % 60 === 0) {
+            userPoints += 5;
+            updateUI();
+            showNotification('⛏️ +5 Points from Mining!', 'success');
+        }
+        
+        // Add bonus every hour
+        if (miningSeconds % 3600 === 0) {
+            userPoints += 50;
+            updateUI();
+            showNotification('🎉 +50 Bonus Points! 1 Hour Complete!', 'success');
+        }
+        
+        updateUI();
+    }, 1000);
+    
+    showNotification('⛏️ Mining Started! Earning 5 points per minute...', 'success');
 }
 
-function initializeMining() {
-    if (miningData.isMining) {
-        // Mining was running when page was closed, resume it
-        const timeSinceStart = Math.floor((Date.now() - miningData.startTime) / 1000);
-        miningData.elapsedTime += timeSinceStart;
-        
-        // Start mining again
-        miningData.startTime = Date.now();
-        localStorage.setItem('miningData', JSON.stringify(miningData));
-        
-        document.getElementById('startMiningBtn').style.display = 'none';
-        document.getElementById('stopMiningBtn').style.display = 'block';
-        document.getElementById('miningProgress').style.display = 'block';
-        document.getElementById('miningStatus').textContent = 'ON';
-        document.getElementById('miningStatus').style.color = '#4CAF50';
-        
-        miningInterval = setInterval(updateMining, 1000);
-        showNotification('⛏️ Mining resumed from previous session!', 'info');
+// Stop Mining
+function stopMining() {
+    if (!isMining) return;
+    
+    isMining = false;
+    clearInterval(miningInterval);
+    const miningCard = document.querySelector('.main-feature-card');
+    miningCard.classList.remove('mining-active');
+    document.getElementById('miningStatusText').textContent = 'Click to start mining';
+    document.getElementById('miningStatusText').style.color = '';
+    
+    showNotification('⏹️ Mining Stopped. Points saved!', 'info');
+}
+
+// Claim Boost
+function claimBoost() {
+    userPoints += 100;
+    updateUI();
+    showNotification('🚀 +100 Points! Boost claimed successfully!', 'success');
+}
+
+// Show Video Section with YouTube Search
+function showVideoSection() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="video-section">
+            <div class="search-container">
+                <input type="text" id="youtubeSearchInput" placeholder="Search YouTube Shorts..." value="trending shorts">
+                <button onclick="searchYouTubeVideos()">🔍 Search</button>
+            </div>
+            <div id="videoResultsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading YouTube videos...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    searchYouTubeVideos();
+}
+
+// Search YouTube Videos
+async function searchYouTubeVideos() {
+    const query = document.getElementById('youtubeSearchInput').value.trim() || 'trending shorts';
+    const container = document.getElementById('videoResultsContainer');
+    
+    container.innerHTML = `
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Searching YouTube for "${query}"...</p>
+        </div>
+    `;
+
+    try {
+        const videos = await searchRealYouTubeVideos(query);
+        displayYouTubeVideos(videos, query);
+    } catch (error) {
+        console.error('YouTube search failed:', error);
+        container.innerHTML = `
+            <div class="welcome-message">
+                <h3>❌ YouTube Search Failed</h3>
+                <p>Using demo videos instead...</p>
+                <button onclick="showDemoVideos()" style="background: #4CAF50; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; margin-top: 10px;">
+                    Show Demo Videos
+                </button>
+            </div>
+        `;
     }
-
-    // Update mining stats
-    updateMiningStats();
 }
 
-function updateMiningStats() {
-    document.getElementById('miningTime').textContent = 
-        `${Math.floor(miningData.elapsedTime / 3600).toString().padStart(2, '0')}:${Math.floor((miningData.elapsedTime % 3600) / 60).toString().padStart(2, '0')}:${(miningData.elapsedTime % 60).toString().padStart(2, '0')}`;
-    
-    document.getElementById('miningPoints').textContent = '300';
-    document.getElementById('miningStatus').textContent = miningData.isMining ? 'ON' : 'OFF';
-    document.getElementById('miningStatus').style.color = miningData.isMining ? '#4CAF50' : '#FF6B6B';
-}
-
-// Enhanced YouTube Search
+// Search Real YouTube Videos
 async function searchRealYouTubeVideos(query) {
     try {
         console.log('🔍 Searching YouTube for:', query);
         
         const response = await fetch(
-            `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoDuration=short&q=${encodeURIComponent(query)}&maxResults=12&key=${YOUTUBE_API_KEY}`
+            `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoDuration=short&q=${encodeURIComponent(query)}&maxResults=8&key=${YOUTUBE_API_KEY}`
         );
         
         if (!response.ok) {
@@ -188,58 +177,18 @@ async function searchRealYouTubeVideos(query) {
         return data.items;
     } catch (error) {
         console.error('❌ YouTube API Error:', error.message);
-        showNotification('⚠️ Using demo videos temporarily', 'warning');
-        return searchSimulatedVideos(query);
+        throw error;
     }
 }
 
-// Enhanced search function
-async function searchVideos() {
-    const query = document.getElementById('searchInput').value.trim();
-    const resultsDiv = document.getElementById('videoResults');
-    
-    if (!query) {
-        resultsDiv.innerHTML = '<div class="error">⚠️ Please enter a search term</div>';
-        return;
-    }
-
-    resultsDiv.innerHTML = `
-        <div class="loading">
-            <div class="spinner"></div>
-            <p>🔍 Searching YouTube Shorts for "${query}"...</p>
-            <small>Finding videos for points earning</small>
-        </div>
-    `;
-
-    try {
-        const videos = await searchRealYouTubeVideos(query);
-        
-        if (videos && videos.length > 0) {
-            displayRealVideos(videos, query);
-        } else {
-            throw new Error('No videos found');
-        }
-    } catch (error) {
-        console.error('Search failed:', error);
-        const simulatedVideos = searchSimulatedVideos(query);
-        displayVideos(simulatedVideos);
-    }
-}
-
-// Display real YouTube videos
-function displayRealVideos(videos, query) {
-    const resultsDiv = document.getElementById('videoResults');
+// Display YouTube Videos
+function displayYouTubeVideos(videos, query) {
+    const container = document.getElementById('videoResultsContainer');
     
     let html = `
-        <div class="results-header">
-            <h3>🎥 Found ${videos.length} YouTube Shorts</h3>
-            <div class="api-badge live">Real YouTube</div>
-            <button onclick="showReferralSystem()" class="referral-btn">👥 Refer & Earn</button>
-        </div>
-        <div class="points-system-info">
-            <div class="info-card">
-                <strong>🎯 Points System:</strong> Watch video completely to earn points!
-            </div>
+        <div style="margin-bottom: 15px; text-align: center;">
+            <h3>🎥 YouTube Shorts</h3>
+            <p style="font-size: 12px; opacity: 0.8;">Found ${videos.length} videos for "${query}"</p>
         </div>
         <div class="videos-grid">
     `;
@@ -250,26 +199,22 @@ function displayRealVideos(videos, query) {
         const title = video.snippet.title;
         const channel = video.snippet.channelTitle;
         const points = calculatePoints(title, index);
-        const isWatched = watchedVideos.includes(videoId);
+        const isWatched = watchedVideoIds.includes(videoId);
         
         html += `
             <div class="video-card" onclick="selectVideoForEarning('${videoId}', ${points}, '${title.replace(/'/g, "\\'")}', '${channel.replace(/'/g, "\\'")}')">
                 <div class="thumbnail">
                     <img src="${thumbnail}" alt="${title}" onerror="this.src='https://via.placeholder.com/300/667eea/ffffff?text=YouTube+Short'">
-                    <div class="duration">SHORT</div>
-                    ${isWatched ? 
-                        '<div class="watched-badge">✅ WATCHED</div>' : 
-                        '<div class="points-badge">+' + points + ' pts</div>'
-                    }
+                    <div class="points-badge">+${points} pts</div>
                     <div class="youtube-badge">YouTube</div>
                 </div>
                 <div class="video-details">
                     <h4 class="video-title">${title}</h4>
                     <div class="video-meta">
-                        <span class="channel">📺 ${channel}</span>
+                        <span class="channel">${channel}</span>
                         ${isWatched ? 
-                            '<span class="watch-now">✅ Already Earned</span>' : 
-                            '<span class="watch-now">▶️ Watch to Earn</span>'
+                            '<span class="watch-now">✅ Earned</span>' : 
+                            '<span class="watch-now">▶️ Watch</span>'
                         }
                     </div>
                 </div>
@@ -278,14 +223,51 @@ function displayRealVideos(videos, query) {
     });
     
     html += '</div>';
-    resultsDiv.innerHTML = html;
+    container.innerHTML = html;
 }
 
-// Select video for earning points
+// Show Demo Videos Fallback
+function showDemoVideos() {
+    const demoVideos = [
+        {
+            id: { videoId: 'demo1' },
+            snippet: {
+                title: '🎵 Trending Music Short 2024',
+                thumbnails: { 
+                    medium: { url: 'https://via.placeholder.com/300/FF6B6B/FFFFFF?text=Music+Short' },
+                    default: { url: 'https://via.placeholder.com/300/FF6B6B/FFFFFF?text=Music+Short' }
+                },
+                channelTitle: 'Music Channel'
+            }
+        },
+        {
+            id: { videoId: 'demo2' },
+            snippet: {
+                title: '😂 Funny Comedy Skit',
+                thumbnails: { 
+                    medium: { url: 'https://via.placeholder.com/300/4ECDC4/FFFFFF?text=Comedy+Short' },
+                    default: { url: 'https://via.placeholder.com/300/4ECDC4/FFFFFF?text=Comedy+Short' }
+                },
+                channelTitle: 'Comedy Central'
+            }
+        }
+    ];
+    
+    displayYouTubeVideos(demoVideos, 'demo videos');
+}
+
+// Calculate Points for Video
+function calculatePoints(title, index) {
+    const basePoints = 10;
+    const bonus = Math.floor(Math.random() * 6);
+    return basePoints + bonus;
+}
+
+// Select Video for Earning
 function selectVideoForEarning(videoId, points, title, channel) {
     // Check if video already watched
-    if (watchedVideos.includes(videoId)) {
-        showNotification('❌ You have already earned points for this video! Watch a different video.', 'warning');
+    if (watchedVideoIds.includes(videoId)) {
+        showNotification('❌ You have already earned points for this video!', 'warning');
         return;
     }
     
@@ -293,118 +275,27 @@ function selectVideoForEarning(videoId, points, title, channel) {
     currentPoints = points;
     currentTitle = title;
     
-    document.getElementById('videoResults').innerHTML = `
-        <div class="video-selection-container">
-            <div class="selection-header">
-                <button onclick="searchVideos()" class="back-btn">← Back to Search</button>
-                <h3>🎯 Earn Points</h3>
-                <button onclick="showReferralSystem()" class="referral-btn-small">👥 Refer</button>
-            </div>
-            
-            <div class="video-preview-card">
-                <div class="preview-thumbnail">
-                    <img src="https://i.ytimg.com/vi/${videoId}/hqdefault.jpg" alt="${title}">
-                    <div class="preview-overlay">
-                        <div class="play-icon-large">▶</div>
-                        <p>YouTube Short</p>
-                    </div>
-                </div>
-                
-                <div class="video-info-preview">
-                    <h4>${title}</h4>
-                    <p class="channel-preview">📺 ${channel}</p>
-                    <div class="points-preview">
-                        <span class="points-value">+${points} Points</span>
-                        <span class="points-condition">on 1 minute complete watch</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="earn-points-section">
-                <div class="earn-instructions">
-                    <h4>📋 How to Earn Points:</h4>
-                    <div class="instruction-steps">
-                        <div class="step">
-                            <span class="step-number">1</span>
-                            <span class="step-text">Click "Start Earning" button</span>
-                        </div>
-                        <div class="step">
-                            <span class="step-number">2</span>
-                            <span class="step-text">Watch the YouTube video for 1 minute completely</span>
-                        </div>
-                        <div class="step">
-                            <span class="step-number">3</span>
-                            <span class="step-text">Points automatically added after 1 minute</span>
-                        </div>
-                        <div class="step">
-                            <span class="step-number">4</span>
-                            <span class="step-text">If you leave early, no points will be given</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="earn-action">
-                    <button onclick="startVideoEarning('${videoId}', ${points}, '${title.replace(/'/g, "\\'")}')" class="earn-btn">
-                        🎬 Start Earning ${points} Points
-                    </button>
-                    <p class="action-note">Video will play on this page - must watch for 1 minute</p>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-// Start video earning process
-function startVideoEarning(videoId, points, title) {
-    console.log('🎬 Starting video earning process:', videoId, points);
-    
-    // Show video player interface
-    showVideoPlayerInterface(videoId, points, title);
-    
-    // Show YouTube player in same page
-    showYouTubePlayer(videoId);
-    
-    // Start video tracking
-    startVideoTracking(videoId, points, title);
-}
-
-// Show YouTube player in same page
-function showYouTubePlayer(videoId) {
-    document.querySelector('.youtube-player-placeholder').innerHTML = `
-        <div class="youtube-iframe-container">
-            <iframe 
-                width="100%" 
-                height="300" 
-                src="https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1" 
-                frameborder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowfullscreen>
-            </iframe>
-        </div>
-        <div class="video-timer">
-            <p>⏰ <strong>Video must play for 1 minute to earn points</strong></p>
-            <p>Don't close this page - points will be awarded automatically</p>
-        </div>
-    `;
-}
-
-// Show video player interface
-function showVideoPlayerInterface(videoId, points, title) {
-    document.getElementById('videoResults').innerHTML = `
+    document.getElementById('appContent').innerHTML = `
         <div class="video-player-interface">
             <div class="player-header">
-                <button onclick="searchVideos()" class="back-btn">← Back to Search</button>
-                <h3>🎬 Earning Points...</h3>
+                <button onclick="showVideoSection()" class="back-btn">← Back to Search</button>
+                <h3>🎯 Earn Points</h3>
             </div>
             
-            <div class="video-player-container">
-                <div class="youtube-player-placeholder">
-                    <div class="player-loading">
-                        <div class="loading-spinner"></div>
-                        <h4>Loading YouTube Video...</h4>
-                        <p>Video will play on this page. Keep it open for 1 minute.</p>
-                    </div>
-                </div>
+            <div class="youtube-iframe-container">
+                <iframe 
+                    width="100%" 
+                    height="100%" 
+                    src="https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+            
+            <div class="video-timer">
+                <p>⏰ <strong>Watch for 1 minute to earn ${points} points</strong></p>
+                <p style="font-size: 12px;">Don't close this page - points awarded automatically</p>
             </div>
             
             <div class="tracking-section">
@@ -425,7 +316,7 @@ function showVideoPlayerInterface(videoId, points, title) {
                 </div>
                 
                 <div class="tracking-controls">
-                    <button onclick="cancelEarning()" class="cancel-btn">
+                    <button onclick="cancelVideoEarning()" class="cancel-btn">
                         ❌ Cancel Earning
                     </button>
                 </div>
@@ -447,32 +338,31 @@ function showVideoPlayerInterface(videoId, points, title) {
             </div>
         </div>
     `;
+    
+    // Start video tracking
+    startVideoTracking();
 }
 
-// Start video tracking
-function startVideoTracking(videoId, points, title) {
+// Start Video Tracking
+function startVideoTracking() {
     let trackingTime = 0;
     const maxTrackingTime = 60; // 1 minute required
     
-    const trackingInterval = setInterval(() => {
+    videoTrackingInterval = setInterval(() => {
         trackingTime++;
-        updateTrackingProgress(trackingTime, maxTrackingTime);
+        updateVideoTrackingProgress(trackingTime, maxTrackingTime);
         
         if (trackingTime >= maxTrackingTime) {
-            clearInterval(trackingInterval);
-            completeVideoEarning(points, title, true);
+            clearInterval(videoTrackingInterval);
+            completeVideoEarning();
         }
     }, 1000);
-    
-    // Store tracking interval for cleanup
-    window.videoTrackingInterval = trackingInterval;
 }
 
-// Update tracking progress
-function updateTrackingProgress(current, max) {
+// Update Video Tracking Progress
+function updateVideoTrackingProgress(current, max) {
     const progressFill = document.getElementById('progressFill');
     const progressText = document.getElementById('progressText');
-    const statusIndicator = document.getElementById('statusIndicator');
     const statusText = document.getElementById('statusText');
     
     if (progressFill && progressText) {
@@ -497,53 +387,47 @@ function updateTrackingProgress(current, max) {
     }
 }
 
-// Complete video earning process
-function completeVideoEarning(points, title, isAuto = false) {
-    // Clean up tracking
-    if (window.videoTrackingInterval) {
-        clearInterval(window.videoTrackingInterval);
-    }
-    
+// Complete Video Earning
+function completeVideoEarning() {
     // Add to watched videos list
-    if (currentVideoId && !watchedVideos.includes(currentVideoId)) {
-        watchedVideos.push(currentVideoId);
-        localStorage.setItem('watchedVideos', JSON.stringify(watchedVideos));
+    if (currentVideoId && !watchedVideoIds.includes(currentVideoId)) {
+        watchedVideoIds.push(currentVideoId);
+        localStorage.setItem('watchedVideos', JSON.stringify(watchedVideoIds));
     }
     
     // Add points
-    earnPoints(points, title, true);
+    userPoints += currentPoints;
+    watchedVideos++;
+    updateUI();
     
     // Show success message
-    showEarningSuccess(points, title, isAuto);
+    showEarningSuccess();
 }
 
-// Show earning success
-function showEarningSuccess(points, title, isAuto = false) {
-    document.getElementById('videoResults').innerHTML = `
+// Show Earning Success
+function showEarningSuccess() {
+    document.getElementById('appContent').innerHTML = `
         <div class="earning-success">
-            <div class="success-animation">
-                <div class="success-icon">🎉</div>
-                <div class="confetti"></div>
-            </div>
+            <div class="success-icon">🎉</div>
             
             <h3>Points Earned Successfully!</h3>
             
             <div class="points-earned-large">
-                +${points} Points
+                +${currentPoints} Points
             </div>
             
             <div class="success-details">
                 <div class="detail-item">
                     <span class="detail-label">Video:</span>
-                    <span class="detail-value">${title}</span>
+                    <span class="detail-value">${currentTitle}</span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Points Added:</span>
-                    <span class="detail-value">+${points}</span>
+                    <span class="detail-value">+${currentPoints}</span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Total Points:</span>
-                    <span class="detail-value">${parseInt(localStorage.getItem('userPoints')) || 100}</span>
+                    <span class="detail-value">${userPoints}</span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Watch Time:</span>
@@ -551,279 +435,219 @@ function showEarningSuccess(points, title, isAuto = false) {
                 </div>
             </div>
             
-            <div class="success-message">
-                <p>✅ <strong>1 minute watch time verified!</strong></p>
-                <p>Your points have been added to your wallet.</p>
-                <p>This video is now marked as watched.</p>
-            </div>
-            
             <div class="success-actions">
-                <button onclick="searchVideos()" class="continue-btn">
+                <button onclick="showVideoSection()" class="continue-btn">
                     🔍 Watch More Videos
                 </button>
-                <button onclick="showEarnings()" class="wallet-btn">
-                    💰 Check My Wallet
-                </button>
-                <button onclick="showReferralSystem()" class="referral-btn-success">
-                    👥 Refer & Earn Bonus
+                <button onclick="showDashboard()" class="continue-btn" style="background: #667eea;">
+                    🏠 Back to Dashboard
                 </button>
             </div>
         </div>
     `;
+    
+    showNotification(`✅ +${currentPoints} Points earned for 1 minute watch!`, 'success');
 }
 
-// Cancel earning process
-function cancelEarning() {
-    if (window.videoTrackingInterval) {
-        clearInterval(window.videoTrackingInterval);
+// Cancel Video Earning
+function cancelVideoEarning() {
+    if (videoTrackingInterval) {
+        clearInterval(videoTrackingInterval);
     }
     showNotification('❌ Points earning cancelled - no points added', 'warning');
-    searchVideos();
+    showVideoSection();
 }
 
-// Points system
-function earnPoints(points, videoTitle, isYouTube = false) {
-    let userPoints = parseInt(localStorage.getItem('userPoints')) || 100;
+// Show Tasks
+function showTasks() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="welcome-message">
+            <h3>📋 Daily Tasks</h3>
+            <div style="text-align: left; margin: 15px 0;">
+                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <span>Watch 5 videos</span>
+                    <button onclick="completeTask('videos')" style="background: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">+25 pts</button>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <span>Refer 1 friend</span>
+                    <button onclick="completeTask('referral')" style="background: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">+50 pts</button>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 10px 0;">
+                    <span>Mine for 1 hour</span>
+                    <button onclick="completeTask('mining')" style="background: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">+50 pts</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Complete Task
+function completeTask(task) {
+    let points = 0;
+    switch(task) {
+        case 'videos':
+            points = 25;
+            break;
+        case 'referral':
+            points = 50;
+            break;
+        case 'mining':
+            points = 50;
+            break;
+    }
+    
     userPoints += points;
-    localStorage.setItem('userPoints', userPoints);
-    
-    // Save watch history
-    const watchHistory = JSON.parse(localStorage.getItem('watchHistory')) || [];
-    watchHistory.push({
-        videoTitle: videoTitle,
-        points: points,
-        isYouTube: isYouTube,
-        timestamp: new Date().toLocaleString(),
-        method: '1_minute_complete_watch'
-    });
-    localStorage.setItem('watchHistory', JSON.stringify(watchHistory));
-    
-    updateWallet();
-    
-    if (isYouTube) {
-        showNotification(`✅ +${points} Points earned for 1 minute watch!`, 'success');
-    }
-    
-    return userPoints;
+    updateUI();
+    showNotification(`✅ +${points} Points! Task completed!`, 'success');
+    showTasks();
 }
 
-// Referral System Functions
+// Show Referral System
 function showReferralSystem() {
-    document.getElementById('videoResults').innerHTML = `
-        <div class="referral-system-container">
-            <div class="referral-header">
-                <button onclick="searchVideos()" class="back-btn">← Back to Videos</button>
-                <h2>👥 Referral System</h2>
-                <div class="referral-badge">Earn Bonus</div>
-            </div>
-            
-            <div class="referral-stats">
-                <div class="stat-card">
-                    <div class="stat-number">${referralData.referralCount}</div>
-                    <div class="stat-label">Referred Friends</div>
+    document.getElementById('appContent').innerHTML = `
+        <div class="welcome-message">
+            <h3>👥 Refer & Earn</h3>
+            <div style="margin: 15px 0;">
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <div style="font-size: 14px; opacity: 0.8; margin-bottom: 5px;">Your Referral Code</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #FFD700; letter-spacing: 2px;">TAPEARN123</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-number">${referralData.totalEarnings}</div>
-                    <div class="stat-label">Bonus Points</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">${50}</div>
-                    <div class="stat-label">Points Per Referral</div>
-                </div>
-            </div>
-            
-            <div class="referral-code-section">
-                <h3>🎯 Your Referral Code</h3>
-                <div class="referral-code-display">
-                    <span class="referral-code">${referralData.referralCode}</span>
-                    <button onclick="copyReferralCode()" class="copy-btn">📋 Copy</button>
-                </div>
-                <p class="referral-note">Share this code with friends to earn 50 points each!</p>
-            </div>
-            
-            <div class="referral-instructions">
-                <h4>💰 How Referral System Works:</h4>
-                <div class="instruction-steps">
-                    <div class="step">
-                        <span class="step-number">1</span>
-                        <span class="step-text">Share your referral code with friends</span>
-                    </div>
-                    <div class="step">
-                        <span class="step-number">2</span>
-                        <span class="step-text">Friends use your code when signing up</span>
-                    </div>
-                    <div class="step">
-                        <span class="step-number">3</span>
-                        <span class="step-text">You get 50 points for each friend who joins</span>
-                    </div>
-                    <div class="step">
-                        <span class="step-number">4</span>
-                        <span class="step-text">Friends also get 25 bonus points</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="referral-share-section">
-                <h4>📤 Share Your Referral Link:</h4>
-                <div class="share-buttons">
-                    <button onclick="shareOnTelegram()" class="share-btn telegram">
-                        📱 Telegram
-                    </button>
-                    <button onclick="shareOnWhatsApp()" class="share-btn whatsapp">
-                        💬 WhatsApp
-                    </button>
-                    <button onclick="copyReferralLink()" class="share-btn copy">
-                        🔗 Copy Link
-                    </button>
-                </div>
-            </div>
-            
-            <div class="referral-history">
-                <h4>📊 Referral History</h4>
-                ${referralData.referredUsers.length > 0 ? 
-                    `<div class="referral-list">
-                        ${referralData.referredUsers.map(user => `
-                            <div class="referral-item">
-                                <span class="user-name">${user.name}</span>
-                                <span class="referral-date">${user.date}</span>
-                                <span class="referral-points">+50 pts</span>
-                            </div>
-                        `).join('')}
-                    </div>` :
-                    `<div class="no-referrals">
-                        <p>No referrals yet. Share your code to start earning!</p>
-                    </div>`
-                }
+                <button onclick="copyReferralCode()" style="background: #2196F3; color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; width: 100%; margin-bottom: 10px;">
+                    📋 Copy Code
+                </button>
+                <button onclick="addReferral()" style="background: #4CAF50; color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; width: 100%;">
+                    👥 + Add Referral
+                </button>
             </div>
         </div>
     `;
 }
 
+// Add Referral
+function addReferral() {
+    referrals++;
+    userPoints += 50;
+    updateUI();
+    showNotification('🎉 +50 Points! New referral added!', 'success');
+    showDashboard();
+}
+
+// Copy Referral Code
 function copyReferralCode() {
-    navigator.clipboard.writeText(referralData.referralCode);
-    showNotification('✅ Referral code copied to clipboard!', 'success');
+    navigator.clipboard.writeText('TAPEARN123');
+    showNotification('✅ Referral code copied!', 'success');
 }
 
-function copyReferralLink() {
-    const referralLink = `https://reward-earn-app.netlify.app/?ref=${referralData.referralCode}`;
-    navigator.clipboard.writeText(referralLink);
-    showNotification('✅ Referral link copied! Share it with friends.', 'success');
-}
-
-function shareOnTelegram() {
-    const text = `Join Earn Points and earn money by watching videos! Use my referral code: ${referralData.referralCode} - ${window.location.href}?ref=${referralData.referralCode}`;
-    window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`, '_blank');
-}
-
-function shareOnWhatsApp() {
-    const text = `Join Earn Points and earn money by watching videos! Use my referral code: ${referralData.referralCode}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + window.location.href + '?ref=' + referralData.referralCode)}`, '_blank');
-}
-
-// Check for referral code on page load
-function checkReferralCode() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const refCode = urlParams.get('ref');
-    
-    if (refCode && refCode !== referralData.referralCode) {
-        // This is a new user with referral code
-        showNotification(`🎉 Welcome! You used referral code: ${refCode}. You get 25 bonus points!`, 'success');
-        
-        // Add bonus points
-        let userPoints = parseInt(localStorage.getItem('userPoints')) || 100;
-        userPoints += 25;
-        localStorage.setItem('userPoints', userPoints);
-        updateWallet();
-        
-        // Remove referral parameter from URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
-}
-
-// Demo videos fallback
-const YOUTUBE_VIDEOS = [
-    {
-        id: 'demo1',
-        title: '🎵 Trending Music Short 2024',
-        thumbnail: 'https://via.placeholder.com/300/FF6B6B/FFFFFF?text=Music+Short',
-        duration: '0:30',
-        points: 8,
-        channel: 'Music Channel'
-    },
-    {
-        id: 'demo2', 
-        title: '😂 Funny Comedy Skit',
-        thumbnail: 'https://via.placeholder.com/300/4ECDC4/FFFFFF?text=Comedy+Short',
-        duration: '0:45',
-        points: 7,
-        channel: 'Comedy Central'
-    }
-];
-
-function searchSimulatedVideos(query) {
-    const searchTerm = query.toLowerCase();
-    const filteredVideos = YOUTUBE_VIDEOS.filter(video => 
-        video.title.toLowerCase().includes(searchTerm)
-    );
-    return filteredVideos.length > 0 ? filteredVideos : YOUTUBE_VIDEOS;
-}
-
-function displayVideos(videos) {
-    const resultsDiv = document.getElementById('videoResults');
-    
-    let html = `
-        <div class="results-header">
-            <h3>🎥 Demo Videos - ${videos.length} Results</h3>
-            <div class="api-badge demo">Demo Mode</div>
-            <button onclick="showReferralSystem()" class="referral-btn">👥 Refer & Earn</button>
-        </div>
-        <div class="videos-grid">
-    `;
-    
-    videos.forEach(video => {
-        const isWatched = watchedVideos.includes(video.id);
-        
-        html += `
-            <div class="video-card" onclick="selectVideoForEarning('${video.id}', ${video.points}, '${video.title.replace(/'/g, "\\'")}', '${video.channel.replace(/'/g, "\\'")}')">
-                <div class="thumbnail">
-                    <img src="${video.thumbnail}" alt="${video.title}">
-                    <div class="duration">${video.duration}</div>
-                    ${isWatched ? 
-                        '<div class="watched-badge">✅ WATCHED</div>' : 
-                        '<div class="points-badge">+' + video.points + ' pts</div>'
-                    }
-                    <div class="demo-badge">Demo</div>
+// Show Skills
+function showSkills() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="welcome-message">
+            <h3>⚡ Skills</h3>
+            <p>Upgrade your mining power and earning rate!</p>
+            <div style="text-align: left; margin: 15px 0;">
+                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <span>Mining Speed</span>
+                    <button onclick="upgradeSkill('mining')" style="background: #FFA726; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">Upgrade</button>
                 </div>
-                <div class="video-details">
-                    <h4 class="video-title">${video.title}</h4>
-                    <div class="video-meta">
-                        <span class="channel">📺 ${video.channel}</span>
-                        ${isWatched ? 
-                            '<span class="watch-now">✅ Already Earned</span>' : 
-                            '<span class="watch-now">▶️ Watch Demo</span>'
-                        }
-                    </div>
+                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <span>Video Rewards</span>
+                    <button onclick="upgradeSkill('video')" style="background: #FFA726; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">Upgrade</button>
                 </div>
             </div>
-        `;
-    });
-    
-    html += '</div>';
-    resultsDiv.innerHTML = html;
+        </div>
+    `;
 }
 
-// Utility functions
-function calculatePoints(title, index) {
-    const basePoints = 10;
-    const bonus = Math.floor(Math.random() * 3);
-    return basePoints + bonus;
+// Upgrade Skill
+function upgradeSkill(skill) {
+    if (userPoints >= 100) {
+        userPoints -= 100;
+        updateUI();
+        showNotification('⚡ Skill upgraded! Earning rate increased!', 'success');
+    } else {
+        showNotification('❌ Not enough points! Need 100 points.', 'warning');
+    }
 }
 
-function updateWallet() {
-    const userPoints = parseInt(localStorage.getItem('userPoints')) || 100;
-    document.querySelector('.wallet span').textContent = `💰 ${userPoints} Points`;
+// Show Account
+function showAccount() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="welcome-message">
+            <h3>👤 Account</h3>
+            <div style="text-align: left; margin: 15px 0;">
+                <div style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size: 12px; opacity: 0.8;">Username</div>
+                    <div style="font-weight: bold;">TapEarn User</div>
+                </div>
+                <div style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size: 12px; opacity: 0.8;">Level</div>
+                    <div style="font-weight: bold; color: #CD7F32;">Bronze</div>
+                </div>
+                <div style="padding: 10px 0;">
+                    <div style="font-size: 12px; opacity: 0.8;">Member Since</div>
+                    <div style="font-weight: bold;">2024</div>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
+// Show Cashier
+function showCashier() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="welcome-message">
+            <h3>💰 Cashier</h3>
+            <p>Redeem your points for rewards!</p>
+            <div style="text-align: left; margin: 15px 0;">
+                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <span>Amazon Gift Card</span>
+                    <button onclick="redeemReward('amazon')" style="background: #FFA726; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">1000 pts</button>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <span>PayPal Cash</span>
+                    <button onclick="redeemReward('paypal')" style="background: #FFA726; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">5000 pts</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Redeem Reward
+function redeemReward(reward) {
+    let cost = reward === 'amazon' ? 1000 : 5000;
+    if (userPoints >= cost) {
+        userPoints -= cost;
+        updateUI();
+        showNotification(`🎉 Reward redeemed successfully! ${reward.toUpperCase()} gift card sent!`, 'success');
+    } else {
+        showNotification(`❌ Not enough points! Need ${cost} points.`, 'warning');
+    }
+}
+
+// Show Dashboard
+function showDashboard() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="welcome-message">
+            <div class="stats-grid-mini">
+                <div class="stat-card-mini">
+                    <span class="stat-number-mini">${formatNumber(userPoints)}</span>
+                    <span class="stat-label-mini">Total Points</span>
+                </div>
+                <div class="stat-card-mini">
+                    <span class="stat-number-mini">${watchedVideos}</span>
+                    <span class="stat-label-mini">Videos</span>
+                </div>
+                <div class="stat-card-mini">
+                    <span class="stat-number-mini">${referrals}</span>
+                    <span class="stat-label-mini">Referrals</span>
+                </div>
+            </div>
+            <p class="welcome-note">Start mining or complete tasks to earn more points!</p>
+        </div>
+    `;
+}
+
+// Notification System
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
@@ -834,60 +658,9 @@ function showNotification(message, type = 'info') {
         </div>
     `;
     document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 4000);
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 4000);
 }
-
-function showEarnings() {
-    const userPoints = parseInt(localStorage.getItem('userPoints')) || 100;
-    const watchHistory = JSON.parse(localStorage.getItem('watchHistory')) || [];
-    const youtubeVideos = watchHistory.filter(item => item.isYouTube).length;
-    
-    document.getElementById('videoResults').innerHTML = `
-        <div class="earnings-container">
-            <h3>💸 Your Earnings</h3>
-            <div class="total-points">${userPoints} Points</div>
-            
-            <div class="earnings-stats">
-                <div class="stat-card">
-                    <div class="stat-number">${watchHistory.length}</div>
-                    <div class="stat-label">Videos Watched</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">${youtubeVideos}</div>
-                    <div class="stat-label">YouTube Videos</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">${miningData.totalMiningPoints}</div>
-                    <div class="stat-label">Mining Points</div>
-                </div>
-            </div>
-            
-            <div class="earnings-actions">
-                <button onclick="searchVideos()" class="continue-earning-btn">
-                    🔍 Continue Earning Points
-                </button>
-                <button onclick="showReferralSystem()" class="referral-btn-large">
-                    👥 Refer & Earn Bonus
-                </button>
-            </div>
-        </div>
-    `;
-}
-
-// Development function to reset watched videos
-function resetWatchedVideos() {
-    if (confirm('Reset all watched videos? This will allow you to earn points again for watched videos.')) {
-        watchedVideos = [];
-        localStorage.removeItem('watchedVideos');
-        showNotification('✅ Watched videos reset successfully!', 'success');
-        searchVideos();
-    }
-}
-
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    updateWallet();
-    checkReferralCode();
-    initializeMining();
-    console.log('🎯 Earn Points app initialized with mining system');
-});
