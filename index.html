@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reward Browser</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Reward Browser</h1>
+            <div class="wallet">
+                <span>💰 100 Points</span>
+            </div>
+        </header>
+
+        <div class="search-section">
+            <input type="text" id="searchInput" placeholder="Search YouTube Shorts...">
+            <button onclick="searchVideos()">🔍 Search</button>
+        </div>
+
+        <div class="features">
+            <h3>✨ Available Features</h3>
+            <div class="feature-card">
+                <div class="feature">📹 Watch Shorts</div>
+                <div class="feature">💰 Earn Points</div>
+                <div class="feature">🎁 Redeem Rewards</div>
+                <div class="feature">👥 Refer Friends</div>
+            </div>
+        </div>
+
+        <div id="videoResults" class="video-results">
+            <p>🔍 Search for videos to get started!</p>
+        </div>
+
+        <footer>
+            <button class="btn-primary" onclick="showEarnings()">💸 My Earnings</button>
+            <button class="btn-secondary" onclick="showReferral()">👥 Refer & Earn</button>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
