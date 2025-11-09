@@ -20,9 +20,149 @@ let referralData = JSON.parse(localStorage.getItem('referralData')) || {
     referralCount: 0
 };
 
+// Mining System
+let miningData = JSON.parse(localStorage.getItem('miningData')) || {
+    isMining: false,
+    startTime: null,
+    elapsedTime: 0,
+    totalMiningPoints: 0,
+    miningSessions: 0
+};
+
+let miningInterval = null;
+
 // Generate random referral code
 function generateReferralCode() {
     return 'REF' + Math.random().toString(36).substr(2, 6).toUpperCase();
+}
+
+// Mining System Functions
+function startMining() {
+    if (miningData.isMining) {
+        showNotification('⛏️ Mining already in progress!', 'info');
+        return;
+    }
+
+    miningData.isMining = true;
+    miningData.startTime = Date.now();
+    miningData.elapsedTime = 0;
+    localStorage.setItem('miningData', JSON.stringify(miningData));
+
+    // Update UI
+    document.getElementById('startMiningBtn').style.display = 'none';
+    document.getElementById('stopMiningBtn').style.display = 'block';
+    document.getElementById('miningProgress').style.display = 'block';
+    document.getElementById('miningStatus').textContent = 'ON';
+    document.getElementById('miningStatus').style.color = '#4CAF50';
+
+    showNotification('⛏️ Mining started! Keep this tab open to earn points.', 'success');
+
+    // Start mining interval
+    miningInterval = setInterval(updateMining, 1000);
+}
+
+function stopMining() {
+    if (!miningData.isMining) return;
+
+    miningData.isMining = false;
+    const sessionTime = Math.floor((Date.now() - miningData.startTime) / 1000);
+    miningData.elapsedTime += sessionTime;
+    
+    // Calculate points for this session (5 points per minute)
+    const sessionPoints = Math.floor(sessionTime / 60) * 5;
+    if (sessionPoints > 0) {
+        miningData.totalMiningPoints += sessionPoints;
+        earnPoints(sessionPoints, 'Mining Session', false);
+    }
+
+    localStorage.setItem('miningData', JSON.stringify(miningData));
+    clearInterval(miningInterval);
+
+    // Update UI
+    document.getElementById('startMiningBtn').style.display = 'block';
+    document.getElementById('stopMiningBtn').style.display = 'none';
+    document.getElementById('miningStatus').textContent = 'OFF';
+    document.getElementById('miningStatus').style.color = '#FF6B6B';
+
+    showNotification(`⏹️ Mining stopped. Earned ${sessionPoints} points this session!`, 'info');
+}
+
+function updateMining() {
+    if (!miningData.isMining) return;
+
+    const currentTime = Date.now();
+    const elapsedSeconds = Math.floor((currentTime - miningData.startTime) / 1000);
+    const totalElapsed = miningData.elapsedTime + elapsedSeconds;
+
+    // Update mining time display
+    const hours = Math.floor(totalElapsed / 3600);
+    const minutes = Math.floor((totalElapsed % 3600) / 60);
+    const seconds = totalElapsed % 60;
+    
+    document.getElementById('miningTime').textContent = 
+        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+    // Calculate points per hour (300 points per hour = 5 points per minute)
+    const pointsPerHour = 300;
+    document.getElementById('miningPoints').textContent = pointsPerHour;
+
+    // Update progress (1 hour = 3600 seconds)
+    const progress = Math.min((totalElapsed % 3600) / 3600 * 100, 100);
+    document.getElementById('miningProgressFill').style.width = `${progress}%`;
+    document.getElementById('miningProgressText').textContent = 
+        `Mining in progress: ${Math.round(progress)}%`;
+
+    // Check if 1 hour completed
+    if (totalElapsed >= 3600) {
+        completeMiningSession();
+    }
+}
+
+function completeMiningSession() {
+    const bonusPoints = 50; // Bonus for completing 1 hour
+    miningData.totalMiningPoints += bonusPoints;
+    miningData.miningSessions++;
+    miningData.elapsedTime = 0;
+    
+    earnPoints(bonusPoints, '1-Hour Mining Bonus', false);
+    showNotification(`🎉 1-Hour Mining Complete! You earned ${bonusPoints} bonus points!`, 'success');
+
+    // Reset for next session
+    miningData.startTime = Date.now();
+    localStorage.setItem('miningData', JSON.stringify(miningData));
+}
+
+function initializeMining() {
+    if (miningData.isMining) {
+        // Mining was running when page was closed, resume it
+        const timeSinceStart = Math.floor((Date.now() - miningData.startTime) / 1000);
+        miningData.elapsedTime += timeSinceStart;
+        
+        // Start mining again
+        miningData.startTime = Date.now();
+        localStorage.setItem('miningData', JSON.stringify(miningData));
+        
+        document.getElementById('startMiningBtn').style.display = 'none';
+        document.getElementById('stopMiningBtn').style.display = 'block';
+        document.getElementById('miningProgress').style.display = 'block';
+        document.getElementById('miningStatus').textContent = 'ON';
+        document.getElementById('miningStatus').style.color = '#4CAF50';
+        
+        miningInterval = setInterval(updateMining, 1000);
+        showNotification('⛏️ Mining resumed from previous session!', 'info');
+    }
+
+    // Update mining stats
+    updateMiningStats();
+}
+
+function updateMiningStats() {
+    document.getElementById('miningTime').textContent = 
+        `${Math.floor(miningData.elapsedTime / 3600).toString().padStart(2, '0')}:${Math.floor((miningData.elapsedTime % 3600) / 60).toString().padStart(2, '0')}:${(miningData.elapsedTime % 60).toString().padStart(2, '0')}`;
+    
+    document.getElementById('miningPoints').textContent = '300';
+    document.getElementById('miningStatus').textContent = miningData.isMining ? 'ON' : 'OFF';
+    document.getElementById('miningStatus').style.color = miningData.isMining ? '#4CAF50' : '#FF6B6B';
 }
 
 // Enhanced YouTube Search
@@ -571,12 +711,12 @@ function copyReferralLink() {
 }
 
 function shareOnTelegram() {
-    const text = `Join Reward Browser and earn points by watching videos! Use my referral code: ${referralData.referralCode} - ${window.location.href}?ref=${referralData.referralCode}`;
+    const text = `Join Earn Points and earn money by watching videos! Use my referral code: ${referralData.referralCode} - ${window.location.href}?ref=${referralData.referralCode}`;
     window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`, '_blank');
 }
 
 function shareOnWhatsApp() {
-    const text = `Join Reward Browser and earn points by watching videos! Use my referral code: ${referralData.referralCode}`;
+    const text = `Join Earn Points and earn money by watching videos! Use my referral code: ${referralData.referralCode}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + window.location.href + '?ref=' + referralData.referralCode)}`, '_blank');
 }
 
@@ -717,8 +857,8 @@ function showEarnings() {
                     <div class="stat-label">YouTube Videos</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">${referralData.totalEarnings}</div>
-                    <div class="stat-label">Referral Points</div>
+                    <div class="stat-number">${miningData.totalMiningPoints}</div>
+                    <div class="stat-label">Mining Points</div>
                 </div>
             </div>
             
@@ -748,5 +888,6 @@ function resetWatchedVideos() {
 document.addEventListener('DOMContentLoaded', function() {
     updateWallet();
     checkReferralCode();
-    console.log('🎯 Reward Browser initialized with referral system');
+    initializeMining();
+    console.log('🎯 Earn Points app initialized with mining system');
 });
