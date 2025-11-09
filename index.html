@@ -1,42 +1,84 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Reward Browser</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earn Points - Video Rewards</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>🎯 Reward Browser</h1>
-            <div class="wallet">
-                <span>💰 100 Points</span>
-            </div>
-        </header>
-
-        <div class="search-section">
+        <div class="wallet">💰 <span>100 Points</span></div>
+        <h2>🎯 Earn Points</h2>
+        
+        <div class="search-container">
             <input type="text" id="searchInput" placeholder="Search YouTube Shorts...">
             <button onclick="searchVideos()">🔍 Search</button>
         </div>
 
-        <div class="features">
-            <h3>✨ Available Features</h3>
-            <div class="feature-card">
-                <div class="feature">📹 Watch Shorts</div>
-                <div class="feature">💰 Earn Points</div>
-                <div class="feature">🎁 Redeem Rewards</div>
-                <div class="feature">👥 Refer Friends</div>
+        <!-- Mining Dashboard -->
+        <div class="mining-dashboard">
+            <h3>⛏️ Points Mining</h3>
+            <div class="mining-stats">
+                <div class="mining-stat">
+                    <span class="stat-value" id="miningTime">00:00:00</span>
+                    <span class="stat-label">Mining Time</span>
+                </div>
+                <div class="mining-stat">
+                    <span class="stat-value" id="miningPoints">0</span>
+                    <span class="stat-label">Points/Hour</span>
+                </div>
+                <div class="mining-stat">
+                    <span class="stat-value" id="miningStatus">OFF</span>
+                    <span class="stat-label">Status</span>
+                </div>
+            </div>
+            
+            <div class="mining-controls">
+                <button onclick="startMining()" class="mining-btn start" id="startMiningBtn">
+                    ⛏️ Start Mining
+                </button>
+                <button onclick="stopMining()" class="mining-btn stop" id="stopMiningBtn" style="display: none;">
+                    ⏹️ Stop Mining
+                </button>
+            </div>
+            
+            <div class="mining-progress" id="miningProgress" style="display: none;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="miningProgressFill"></div>
+                </div>
+                <div class="progress-text" id="miningProgressText">
+                    Mining in progress: 0%
+                </div>
+            </div>
+            
+            <div class="mining-info">
+                <p>🕒 <strong>1 Hour Mining:</strong> Keep mining for 1 hour to earn bonus points!</p>
+                <p>💰 <strong>Reward:</strong> 50 points after 1 hour complete mining</p>
+                <p>⚡ <strong>Note:</strong> Mining runs in background. Keep tab open.</p>
             </div>
         </div>
 
-        <div id="videoResults" class="video-results">
-            <p>🔍 Search for videos to get started!</p>
+        <div class="features">
+            <div class="feature" onclick="searchVideos()">📹 Watch Shorts</div>
+            <div class="feature" onclick="showEarnings()">💰 Earn Points</div>
+            <div class="feature" onclick="showReferralSystem()">👥 Refer Friends</div>
+            <div class="feature" onclick="startMining()">⛏️ Points Mining</div>
         </div>
 
-        <footer>
-            <button class="btn-primary" onclick="showEarnings()">💸 My Earnings</button>
-            <button class="btn-secondary" onclick="showReferral()">👥 Refer & Earn</button>
-        </footer>
+        <div id="videoResults">
+            <div class="welcome-message">
+                <h3>✨ Available Features</h3>
+                <div class="feature-list">
+                    <div class="feature-item">📹 Watch Shorts & Earn Points</div>
+                    <div class="feature-item">💰 Track Your Earnings</div>
+                    <div class="feature-item">🎁 Redeem Rewards</div>
+                    <div class="feature-item">👥 Refer Friends & Get Bonus</div>
+                    <div class="feature-item">⛏️ 1-Hour Points Mining</div>
+                </div>
+                <p class="welcome-note">🔍 Search for videos to get started or start mining points!</p>
+            </div>
+        </div>
     </div>
 
     <script src="app.js"></script>
