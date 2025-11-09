@@ -12,6 +12,19 @@ let videoStartTime = null;
 // Track watched videos - ek video sirf ek baar
 let watchedVideos = JSON.parse(localStorage.getItem('watchedVideos')) || [];
 
+// Referral System
+let referralData = JSON.parse(localStorage.getItem('referralData')) || {
+    referralCode: generateReferralCode(),
+    referredUsers: [],
+    totalEarnings: 0,
+    referralCount: 0
+};
+
+// Generate random referral code
+function generateReferralCode() {
+    return 'REF' + Math.random().toString(36).substr(2, 6).toUpperCase();
+}
+
 // Enhanced YouTube Search
 async function searchRealYouTubeVideos(query) {
     try {
@@ -81,6 +94,7 @@ function displayRealVideos(videos, query) {
         <div class="results-header">
             <h3>🎥 Found ${videos.length} YouTube Shorts</h3>
             <div class="api-badge live">Real YouTube</div>
+            <button onclick="showReferralSystem()" class="referral-btn">👥 Refer & Earn</button>
         </div>
         <div class="points-system-info">
             <div class="info-card">
@@ -144,6 +158,7 @@ function selectVideoForEarning(videoId, points, title, channel) {
             <div class="selection-header">
                 <button onclick="searchVideos()" class="back-btn">← Back to Search</button>
                 <h3>🎯 Earn Points</h3>
+                <button onclick="showReferralSystem()" class="referral-btn-small">👥 Refer</button>
             </div>
             
             <div class="video-preview-card">
@@ -409,6 +424,9 @@ function showEarningSuccess(points, title, isAuto = false) {
                 <button onclick="showEarnings()" class="wallet-btn">
                     💰 Check My Wallet
                 </button>
+                <button onclick="showReferralSystem()" class="referral-btn-success">
+                    👥 Refer & Earn Bonus
+                </button>
             </div>
         </div>
     `;
@@ -449,6 +467,139 @@ function earnPoints(points, videoTitle, isYouTube = false) {
     return userPoints;
 }
 
+// Referral System Functions
+function showReferralSystem() {
+    document.getElementById('videoResults').innerHTML = `
+        <div class="referral-system-container">
+            <div class="referral-header">
+                <button onclick="searchVideos()" class="back-btn">← Back to Videos</button>
+                <h2>👥 Referral System</h2>
+                <div class="referral-badge">Earn Bonus</div>
+            </div>
+            
+            <div class="referral-stats">
+                <div class="stat-card">
+                    <div class="stat-number">${referralData.referralCount}</div>
+                    <div class="stat-label">Referred Friends</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${referralData.totalEarnings}</div>
+                    <div class="stat-label">Bonus Points</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${50}</div>
+                    <div class="stat-label">Points Per Referral</div>
+                </div>
+            </div>
+            
+            <div class="referral-code-section">
+                <h3>🎯 Your Referral Code</h3>
+                <div class="referral-code-display">
+                    <span class="referral-code">${referralData.referralCode}</span>
+                    <button onclick="copyReferralCode()" class="copy-btn">📋 Copy</button>
+                </div>
+                <p class="referral-note">Share this code with friends to earn 50 points each!</p>
+            </div>
+            
+            <div class="referral-instructions">
+                <h4>💰 How Referral System Works:</h4>
+                <div class="instruction-steps">
+                    <div class="step">
+                        <span class="step-number">1</span>
+                        <span class="step-text">Share your referral code with friends</span>
+                    </div>
+                    <div class="step">
+                        <span class="step-number">2</span>
+                        <span class="step-text">Friends use your code when signing up</span>
+                    </div>
+                    <div class="step">
+                        <span class="step-number">3</span>
+                        <span class="step-text">You get 50 points for each friend who joins</span>
+                    </div>
+                    <div class="step">
+                        <span class="step-number">4</span>
+                        <span class="step-text">Friends also get 25 bonus points</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="referral-share-section">
+                <h4>📤 Share Your Referral Link:</h4>
+                <div class="share-buttons">
+                    <button onclick="shareOnTelegram()" class="share-btn telegram">
+                        📱 Telegram
+                    </button>
+                    <button onclick="shareOnWhatsApp()" class="share-btn whatsapp">
+                        💬 WhatsApp
+                    </button>
+                    <button onclick="copyReferralLink()" class="share-btn copy">
+                        🔗 Copy Link
+                    </button>
+                </div>
+            </div>
+            
+            <div class="referral-history">
+                <h4>📊 Referral History</h4>
+                ${referralData.referredUsers.length > 0 ? 
+                    `<div class="referral-list">
+                        ${referralData.referredUsers.map(user => `
+                            <div class="referral-item">
+                                <span class="user-name">${user.name}</span>
+                                <span class="referral-date">${user.date}</span>
+                                <span class="referral-points">+50 pts</span>
+                            </div>
+                        `).join('')}
+                    </div>` :
+                    `<div class="no-referrals">
+                        <p>No referrals yet. Share your code to start earning!</p>
+                    </div>`
+                }
+            </div>
+        </div>
+    `;
+}
+
+function copyReferralCode() {
+    navigator.clipboard.writeText(referralData.referralCode);
+    showNotification('✅ Referral code copied to clipboard!', 'success');
+}
+
+function copyReferralLink() {
+    const referralLink = `https://reward-earn-app.netlify.app/?ref=${referralData.referralCode}`;
+    navigator.clipboard.writeText(referralLink);
+    showNotification('✅ Referral link copied! Share it with friends.', 'success');
+}
+
+function shareOnTelegram() {
+    const text = `Join Reward Browser and earn points by watching videos! Use my referral code: ${referralData.referralCode} - ${window.location.href}?ref=${referralData.referralCode}`;
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`, '_blank');
+}
+
+function shareOnWhatsApp() {
+    const text = `Join Reward Browser and earn points by watching videos! Use my referral code: ${referralData.referralCode}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + window.location.href + '?ref=' + referralData.referralCode)}`, '_blank');
+}
+
+// Check for referral code on page load
+function checkReferralCode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    
+    if (refCode && refCode !== referralData.referralCode) {
+        // This is a new user with referral code
+        showNotification(`🎉 Welcome! You used referral code: ${refCode}. You get 25 bonus points!`, 'success');
+        
+        // Add bonus points
+        let userPoints = parseInt(localStorage.getItem('userPoints')) || 100;
+        userPoints += 25;
+        localStorage.setItem('userPoints', userPoints);
+        updateWallet();
+        
+        // Remove referral parameter from URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+}
+
 // Demo videos fallback
 const YOUTUBE_VIDEOS = [
     {
@@ -484,6 +635,7 @@ function displayVideos(videos) {
         <div class="results-header">
             <h3>🎥 Demo Videos - ${videos.length} Results</h3>
             <div class="api-badge demo">Demo Mode</div>
+            <button onclick="showReferralSystem()" class="referral-btn">👥 Refer & Earn</button>
         </div>
         <div class="videos-grid">
     `;
@@ -565,14 +717,19 @@ function showEarnings() {
                     <div class="stat-label">YouTube Videos</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">${userPoints - 100}</div>
-                    <div class="stat-label">Points Earned</div>
+                    <div class="stat-number">${referralData.totalEarnings}</div>
+                    <div class="stat-label">Referral Points</div>
                 </div>
             </div>
             
-            <button onclick="searchVideos()" class="continue-earning-btn">
-                🔍 Continue Earning Points
-            </button>
+            <div class="earnings-actions">
+                <button onclick="searchVideos()" class="continue-earning-btn">
+                    🔍 Continue Earning Points
+                </button>
+                <button onclick="showReferralSystem()" class="referral-btn-large">
+                    👥 Refer & Earn Bonus
+                </button>
+            </div>
         </div>
     `;
 }
@@ -590,5 +747,6 @@ function resetWatchedVideos() {
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     updateWallet();
-    console.log('🎯 Reward Browser initialized with 1-minute watch system');
+    checkReferralCode();
+    console.log('🎯 Reward Browser initialized with referral system');
 });
