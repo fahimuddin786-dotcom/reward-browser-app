@@ -1,3 +1,5 @@
+[file name]: app.js
+[file content begin]
 // YouTube API Configuration
 const YOUTUBE_API_KEY = 'AIzaSyBATxf5D7ZDeiQ61dbEdzEd4Tq72N713Y8';
 
@@ -459,6 +461,20 @@ const FOLLOW_TASKS = {
     ]
 };
 
+// Leaderboard Data
+const LEADERBOARD_DATA = [
+    { rank: 1, name: 'CryptoKing', points: 15240, level: 'Diamond', avatar: '👑' },
+    { rank: 2, name: 'EarnMaster', points: 12850, level: 'Platinum', avatar: '💎' },
+    { rank: 3, name: 'TapPro', points: 11200, level: 'Gold', avatar: '⭐' },
+    { rank: 4, name: 'PointHunter', points: 9850, level: 'Gold', avatar: '🎯' },
+    { rank: 5, name: 'MiningExpert', points: 8760, level: 'Silver', avatar: '⛏️' },
+    { rank: 6, name: 'VideoWatcher', points: 7540, level: 'Silver', avatar: '🎬' },
+    { rank: 7, name: 'ReferralGuru', points: 6890, level: 'Bronze', avatar: '👥' },
+    { rank: 8, name: 'You', points: 5564, level: 'Bronze', avatar: '😊' },
+    { rank: 9, name: 'TaskComplete', points: 4320, level: 'Bronze', avatar: '✅' },
+    { rank: 10, name: 'Newbie123', points: 2980, level: 'Bronze', avatar: '🆕' }
+];
+
 // Initialize App
 document.addEventListener('DOMContentLoaded', function() {
     loadAppState();
@@ -624,12 +640,107 @@ function claimBoost() {
     showNotification('🚀 +100 Points! Boost claimed successfully!', 'success');
 }
 
+// Show Wallet Details with Earnings Breakdown
+function showWalletDetails() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const todayEarnings = transactionHistory
+        .filter(t => new Date(t.timestamp) >= today && t.amount > 0)
+        .reduce((sum, t) => sum + t.amount, 0);
+    
+    const allTimeEarnings = transactionHistory
+        .filter(t => t.amount > 0)
+        .reduce((sum, t) => sum + t.amount, 0);
+    
+    document.getElementById('appContent').innerHTML = `
+        <div class="wallet-details">
+            <div class="section-header">
+                <button onclick="showDashboard()" class="back-btn">← Back</button>
+                <h3>💰 Wallet Details</h3>
+            </div>
+            
+            <div class="wallet-summary-card">
+                <div class="wallet-total">
+                    <div class="total-amount">${formatNumber(userPoints)}</div>
+                    <div class="total-label">Total Points</div>
+                </div>
+                
+                <div class="wallet-earnings-breakdown">
+                    <div class="earning-item">
+                        <div class="earning-icon">📅</div>
+                        <div class="earning-info">
+                            <div class="earning-title">Today's Earnings</div>
+                            <div class="earning-amount positive">+${todayEarnings}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="earning-item">
+                        <div class="earning-icon">⏳</div>
+                        <div class="earning-info">
+                            <div class="earning-title">All Time Earnings</div>
+                            <div class="earning-amount positive">+${allTimeEarnings}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="earning-item">
+                        <div class="earning-icon">💸</div>
+                        <div class="earning-info">
+                            <div class="earning-title">Total Redeemed</div>
+                            <div class="earning-amount negative">-${allTimeEarnings - userPoints}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="wallet-actions">
+                <button class="wallet-action-btn" onclick="showWalletHistory()">
+                    <span class="action-icon">📊</span>
+                    <span class="action-text">Transaction History</span>
+                </button>
+                
+                <button class="wallet-action-btn" onclick="showCashier()">
+                    <span class="action-icon">💰</span>
+                    <span class="action-text">Redeem Rewards</span>
+                </button>
+                
+                <button class="wallet-action-btn" onclick="showReferralSystem()">
+                    <span class="action-icon">👥</span>
+                    <span class="action-text">Refer & Earn</span>
+                </button>
+            </div>
+            
+            <div class="earning-stats">
+                <h4>📈 Earning Statistics</h4>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">${watchedVideos}</div>
+                        <div class="stat-label">Videos Watched</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${referrals}</div>
+                        <div class="stat-label">Referrals</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${Math.floor(miningSeconds / 3600)}h</div>
+                        <div class="stat-label">Mining Time</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${followedInstagramAccounts.length + followedXAccounts.length + followedTelegramChannels.length + subscribedYouTubeChannels.length}</div>
+                        <div class="stat-label">Accounts Followed</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 // Show Wallet History
 function showWalletHistory() {
     document.getElementById('appContent').innerHTML = `
         <div class="wallet-history">
             <div class="section-header">
-                <button onclick="showDashboard()" class="back-btn">← Back</button>
+                <button onclick="showWalletDetails()" class="back-btn">← Back</button>
                 <h3>💰 Wallet History</h3>
             </div>
             
@@ -683,6 +794,345 @@ function showDashboard() {
     `;
 }
 
+// Show Leaderboard
+function showLeaderboard() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="leaderboard-section">
+            <div class="section-header">
+                <button onclick="showDashboard()" class="back-btn">← Back</button>
+                <h3>🏆 Global Leaderboard</h3>
+            </div>
+            
+            <div class="user-rank-card">
+                <div class="user-rank-info">
+                    <div class="user-rank">#${LEADERBOARD_DATA.find(u => u.name === 'You').rank}</div>
+                    <div class="user-details">
+                        <div class="user-name">You</div>
+                        <div class="user-points">${formatNumber(userPoints)} points</div>
+                    </div>
+                    <div class="user-level-badge bronze">Bronze</div>
+                </div>
+            </div>
+            
+            <div class="leaderboard-list">
+                ${LEADERBOARD_DATA.map(user => `
+                    <div class="leaderboard-item ${user.name === 'You' ? 'current-user' : ''}">
+                        <div class="user-rank">${user.rank}</div>
+                        <div class="user-avatar">${user.avatar}</div>
+                        <div class="user-info">
+                            <div class="user-name">${user.name}</div>
+                            <div class="user-level ${user.level.toLowerCase()}">${user.level}</div>
+                        </div>
+                        <div class="user-points">${formatNumber(user.points)}</div>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <div class="leaderboard-info">
+                <h4>🎯 How to Rank Up?</h4>
+                <ul>
+                    <li>✅ Complete daily tasks and missions</li>
+                    <li>✅ Watch videos and earn points</li>
+                    <li>✅ Invite friends for referral bonuses</li>
+                    <li>✅ Mine points continuously</li>
+                    <li>✅ Follow accounts on social platforms</li>
+                </ul>
+            </div>
+        </div>
+    `;
+}
+
+// Show Support Section
+function showSupport() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="support-section">
+            <div class="section-header">
+                <button onclick="showDashboard()" class="back-btn">← Back</button>
+                <h3>💬 Support Center</h3>
+            </div>
+            
+            <div class="support-cards">
+                <div class="support-card">
+                    <div class="support-icon">❓</div>
+                    <h4>FAQ</h4>
+                    <p>Find answers to common questions</p>
+                    <button class="support-btn" onclick="showFAQ()">View FAQ</button>
+                </div>
+                
+                <div class="support-card">
+                    <div class="support-icon">📧</div>
+                    <h4>Contact Us</h4>
+                    <p>Get help from our support team</p>
+                    <button class="support-btn" onclick="showContactForm()">Contact</button>
+                </div>
+                
+                <div class="support-card">
+                    <div class="support-icon">🐛</div>
+                    <h4>Report Issue</h4>
+                    <p>Report bugs or problems</p>
+                    <button class="support-btn" onclick="showReportForm()">Report</button>
+                </div>
+            </div>
+            
+            <div class="quick-help">
+                <h4>🚀 Quick Help</h4>
+                <div class="help-items">
+                    <div class="help-item" onclick="showVideoSection()">
+                        <span class="help-icon">🎬</span>
+                        <span class="help-text">How to earn from videos?</span>
+                    </div>
+                    <div class="help-item" onclick="showReferralSystem()">
+                        <span class="help-icon">👥</span>
+                        <span class="help-text">How referrals work?</span>
+                    </div>
+                    <div class="help-item" onclick="showCashier()">
+                        <span class="help-icon">💰</span>
+                        <span class="help-text">How to redeem rewards?</span>
+                    </div>
+                    <div class="help-item" onclick="showTerms()">
+                        <span class="help-icon">📄</span>
+                        <span class="help-text">Terms & Conditions</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Show FAQ
+function showFAQ() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="faq-section">
+            <div class="section-header">
+                <button onclick="showSupport()" class="back-btn">← Back</button>
+                <h3>❓ Frequently Asked Questions</h3>
+            </div>
+            
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-question">How do I earn points?</div>
+                    <div class="faq-answer">You can earn points by mining, watching videos, following accounts, completing tasks, and referring friends.</div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">When can I redeem my points?</div>
+                    <div class="faq-answer">You can redeem points once you reach the minimum threshold for each reward type (usually 1000 points).</div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">Is there a daily limit?</div>
+                    <div class="faq-answer">No, you can earn unlimited points by completing various tasks and watching videos.</div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">How do referrals work?</div>
+                    <div class="faq-answer">You get 50 points for each friend who joins using your referral code, and they get 25 bonus points.</div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">Are my points safe?</div>
+                    <div class="faq-answer">Yes, all points are stored securely and backed up regularly.</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Show Contact Form
+function showContactForm() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="contact-section">
+            <div class="section-header">
+                <button onclick="showSupport()" class="back-btn">← Back</button>
+                <h3>📧 Contact Support</h3>
+            </div>
+            
+            <div class="contact-form">
+                <div class="form-group">
+                    <label for="contactName">Your Name</label>
+                    <input type="text" id="contactName" placeholder="Enter your name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="contactEmail">Email Address</label>
+                    <input type="email" id="contactEmail" placeholder="Enter your email">
+                </div>
+                
+                <div class="form-group">
+                    <label for="contactSubject">Subject</label>
+                    <select id="contactSubject">
+                        <option value="">Select a subject</option>
+                        <option value="technical">Technical Issue</option>
+                        <option value="account">Account Problem</option>
+                        <option value="payment">Payment/Redeem Issue</option>
+                        <option value="suggestion">Suggestion</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="contactMessage">Message</label>
+                    <textarea id="contactMessage" placeholder="Describe your issue or question..." rows="5"></textarea>
+                </div>
+                
+                <button class="submit-btn" onclick="submitContactForm()">Send Message</button>
+            </div>
+            
+            <div class="contact-info">
+                <h4>📞 Other Ways to Reach Us</h4>
+                <div class="contact-methods">
+                    <div class="contact-method">
+                        <span class="method-icon">📧</span>
+                        <span class="method-text">support@tapearn.com</span>
+                    </div>
+                    <div class="contact-method">
+                        <span class="method-icon">💬</span>
+                        <span class="method-text">Live Chat (24/7)</span>
+                    </div>
+                    <div class="contact-method">
+                        <span class="method-icon">📱</span>
+                        <span class="method-text">Telegram: @tapearnsupport</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Submit Contact Form
+function submitContactForm() {
+    const name = document.getElementById('contactName').value;
+    const email = document.getElementById('contactEmail').value;
+    const subject = document.getElementById('contactSubject').value;
+    const message = document.getElementById('contactMessage').value;
+    
+    if (!name || !email || !subject || !message) {
+        showNotification('❌ Please fill all fields!', 'warning');
+        return;
+    }
+    
+    showNotification('✅ Message sent successfully! We will respond within 24 hours.', 'success');
+    setTimeout(() => showSupport(), 2000);
+}
+
+// Show Report Form
+function showReportForm() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="report-section">
+            <div class="section-header">
+                <button onclick="showSupport()" class="back-btn">← Back</button>
+                <h3>🐛 Report an Issue</h3>
+            </div>
+            
+            <div class="report-form">
+                <div class="form-group">
+                    <label for="issueType">Issue Type</label>
+                    <select id="issueType">
+                        <option value="">Select issue type</option>
+                        <option value="video">Video Not Playing</option>
+                        <option value="points">Points Not Added</option>
+                        <option value="mining">Mining Problem</option>
+                        <option value="app">App Crash/Freeze</option>
+                        <option value="other">Other Issue</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="issueDescription">Description</label>
+                    <textarea id="issueDescription" placeholder="Please describe the issue in detail..." rows="5"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="issueSteps">Steps to Reproduce</label>
+                    <textarea id="issueSteps" placeholder="What were you doing when the issue occurred?" rows="3"></textarea>
+                </div>
+                
+                <button class="submit-btn" onclick="submitReport()">Submit Report</button>
+            </div>
+        </div>
+    `;
+}
+
+// Submit Report
+function submitReport() {
+    const issueType = document.getElementById('issueType').value;
+    const description = document.getElementById('issueDescription').value;
+    
+    if (!issueType || !description) {
+        showNotification('❌ Please fill all required fields!', 'warning');
+        return;
+    }
+    
+    showNotification('✅ Issue reported successfully! Our team will investigate.', 'success');
+    setTimeout(() => showSupport(), 2000);
+}
+
+// Show Terms & Conditions
+function showTerms() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="terms-section">
+            <div class="section-header">
+                <button onclick="showDashboard()" class="back-btn">← Back</button>
+                <h3>📄 Terms & Conditions</h3>
+            </div>
+            
+            <div class="terms-content">
+                <div class="terms-section">
+                    <h4>1. Acceptance of Terms</h4>
+                    <p>By using TapEarn, you agree to these terms and conditions. If you disagree with any part, please discontinue use immediately.</p>
+                </div>
+                
+                <div class="terms-section">
+                    <h4>2. Eligibility</h4>
+                    <p>You must be at least 13 years old to use this app. Some features may have additional age requirements.</p>
+                </div>
+                
+                <div class="terms-section">
+                    <h4>3. Points System</h4>
+                    <p>Points are awarded for completing tasks and have no real monetary value. We reserve the right to modify point values and rewards.</p>
+                </div>
+                
+                <div class="terms-section">
+                    <h4>4. Prohibited Activities</h4>
+                    <ul>
+                        <li>Using automated scripts or bots</li>
+                        <li>Creating multiple accounts</li>
+                        <li>Exploiting system vulnerabilities</li>
+                        <li>Sharing inappropriate content</li>
+                    </ul>
+                </div>
+                
+                <div class="terms-section">
+                    <h4>5. Account Termination</h4>
+                    <p>We may suspend or terminate accounts that violate these terms or engage in fraudulent activities.</p>
+                </div>
+                
+                <div class="terms-section">
+                    <h4>6. Privacy</h4>
+                    <p>We collect and use your data as described in our Privacy Policy to provide and improve our services.</p>
+                </div>
+                
+                <div class="terms-section">
+                    <h4>7. Changes to Terms</h4>
+                    <p>We may update these terms periodically. Continued use constitutes acceptance of changes.</p>
+                </div>
+                
+                <div class="terms-section">
+                    <h4>8. Contact</h4>
+                    <p>For questions about these terms, contact us at legal@tapearn.com</p>
+                </div>
+            </div>
+            
+            <div class="terms-actions">
+                <button class="terms-agree-btn" onclick="showNotification('✅ Terms accepted!', 'success')">
+                    I Agree to Terms & Conditions
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// [Previous functions for video sections, follow sections, etc. remain the same...]
 // Show Video Section
 function showVideoSection() {
     document.getElementById('appContent').innerHTML = `
@@ -2585,3 +3035,4 @@ function showNotification(message, type = 'info') {
         }
     }, 4000);
 }
+[file content end]
