@@ -660,6 +660,29 @@ function showWalletHistory() {
     `;
 }
 
+// Show Dashboard (Home)
+function showDashboard() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="welcome-message">
+            <div class="stats-grid-mini">
+                <div class="stat-card-mini">
+                    <span class="stat-number-mini">${formatNumber(userPoints)}</span>
+                    <span class="stat-label-mini">Total Points</span>
+                </div>
+                <div class="stat-card-mini">
+                    <span class="stat-number-mini">${watchedVideos}</span>
+                    <span class="stat-label-mini">Videos</span>
+                </div>
+                <div class="stat-card-mini">
+                    <span class="stat-number-mini">${referrals}</span>
+                    <span class="stat-label-mini">Referrals</span>
+                </div>
+            </div>
+            <p class="welcome-note">Start mining or complete tasks to earn more points!</p>
+        </div>
+    `;
+}
+
 // Show Video Section
 function showVideoSection() {
     document.getElementById('appContent').innerHTML = `
@@ -2543,29 +2566,6 @@ function redeemReward(reward) {
     } else {
         showNotification(`❌ Not enough points! Need ${cost} points.`, 'warning');
     }
-}
-
-// Show Dashboard
-function showDashboard() {
-    document.getElementById('appContent').innerHTML = `
-        <div class="welcome-message">
-            <div class="stats-grid-mini">
-                <div class="stat-card-mini">
-                    <span class="stat-number-mini">${formatNumber(userPoints)}</span>
-                    <span class="stat-label-mini">Total Points</span>
-                </div>
-                <div class="stat-card-mini">
-                    <span class="stat-number-mini">${watchedVideos}</span>
-                    <span class="stat-label-mini">Videos</span>
-                </div>
-                <div class="stat-card-mini">
-                    <span class="stat-number-mini">${referrals}</span>
-                    <span class="stat-label-mini">Referrals</span>
-                </div>
-            </div>
-            <p class="welcome-note">Start mining or complete tasks to earn more points!</p>
-        </div>
-    `;
 }
 
 // Notification System
