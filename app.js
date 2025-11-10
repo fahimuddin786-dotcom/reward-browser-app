@@ -1,6 +1,9 @@
 // YouTube API Configuration
 const YOUTUBE_API_KEY = 'AIzaSyBATxf5D7ZDeiQ61dbEdzEd4Tq72N713Y8';
 
+// Instagram Configuration
+const INSTAGRAM_API_ENDPOINT = 'https://www.instagram.com/api/v1/';
+
 // App State Management - FIXED
 let isMining = false;
 let miningSeconds = 0;
@@ -13,6 +16,7 @@ let referrals = 3;
 let transactionHistory = JSON.parse(localStorage.getItem('transactionHistory')) || [
     { type: 'mining', amount: 5, description: 'Mining Points', timestamp: Date.now() - 3600000, icon: '⛏️' },
     { type: 'video', amount: 15, description: 'YouTube Video', timestamp: Date.now() - 7200000, icon: '🎬' },
+    { type: 'instagram', amount: 12, description: 'Instagram Reel', timestamp: Date.now() - 10800000, icon: '📷' },
     { type: 'referral', amount: 50, description: 'Referral Bonus', timestamp: Date.now() - 86400000, icon: '👥' }
 ];
 
@@ -22,6 +26,9 @@ let currentPoints = 0;
 let currentTitle = '';
 let videoTrackingInterval = null;
 let watchedVideoIds = JSON.parse(localStorage.getItem('watchedVideos')) || [];
+
+// Instagram Video State - NEW
+let watchedInstagramVideoIds = JSON.parse(localStorage.getItem('watchedInstagramVideos')) || [];
 
 // Initialize App - IMPROVED
 document.addEventListener('DOMContentLoaded', function() {
@@ -235,6 +242,10 @@ function showWalletHistory() {
 function showVideoSection() {
     document.getElementById('appContent').innerHTML = `
         <div class="video-section">
+            <div class="video-platform-tabs">
+                <button class="platform-tab active" onclick="showYouTubeTab()">YouTube</button>
+                <button class="platform-tab" onclick="showInstagramTab()">Instagram</button>
+            </div>
             <div class="search-container">
                 <input type="text" id="youtubeSearchInput" placeholder="Search YouTube Shorts..." value="trending shorts">
                 <button onclick="searchYouTubeVideos()">🔍 Search</button>
@@ -248,6 +259,58 @@ function showVideoSection() {
         </div>
     `;
     searchYouTubeVideos();
+}
+
+// Show YouTube Tab - NEW
+function showYouTubeTab() {
+    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    document.getElementById('appContent').innerHTML = `
+        <div class="video-section">
+            <div class="video-platform-tabs">
+                <button class="platform-tab active" onclick="showYouTubeTab()">YouTube</button>
+                <button class="platform-tab" onclick="showInstagramTab()">Instagram</button>
+            </div>
+            <div class="search-container">
+                <input type="text" id="youtubeSearchInput" placeholder="Search YouTube Shorts..." value="trending shorts">
+                <button onclick="searchYouTubeVideos()">🔍 Search</button>
+            </div>
+            <div id="videoResultsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading YouTube videos...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    searchYouTubeVideos();
+}
+
+// Show Instagram Tab - NEW
+function showInstagramTab() {
+    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    document.getElementById('appContent').innerHTML = `
+        <div class="video-section">
+            <div class="video-platform-tabs">
+                <button class="platform-tab" onclick="showYouTubeTab()">YouTube</button>
+                <button class="platform-tab active" onclick="showInstagramTab()">Instagram</button>
+            </div>
+            <div class="search-container">
+                <input type="text" id="instagramSearchInput" placeholder="Search Instagram Reels..." value="trending reels">
+                <button onclick="searchInstagramVideos()">🔍 Search</button>
+            </div>
+            <div id="instagramResultsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading Instagram videos...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    searchInstagramVideos();
 }
 
 // Search YouTube Videos
@@ -277,6 +340,131 @@ async function searchYouTubeVideos() {
             </div>
         `;
     }
+}
+
+// Search Instagram Videos - NEW
+function searchInstagramVideos() {
+    const query = document.getElementById('instagramSearchInput').value.trim() || 'trending reels';
+    const container = document.getElementById('instagramResultsContainer');
+    
+    container.innerHTML = `
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Searching Instagram for "${query}"...</p>
+        </div>
+    `;
+
+    // Simulate API call delay
+    setTimeout(() => {
+        const instagramVideos = generateInstagramVideos(query);
+        displayInstagramVideos(instagramVideos, query);
+    }, 1500);
+}
+
+// Generate Instagram Videos - NEW
+function generateInstagramVideos(query) {
+    const mockVideos = [
+        {
+            id: 'instagram_1',
+            thumbnail: 'https://via.placeholder.com/300/E1306C/FFFFFF?text=Instagram+Reel',
+            title: '🎵 Trending Music Reel 2024',
+            username: 'music_lover',
+            points: 12,
+            likes: '15.2K',
+            duration: '0:45'
+        },
+        {
+            id: 'instagram_2',
+            thumbnail: 'https://via.placeholder.com/300/405DE6/FFFFFF?text=Funny+Reel',
+            title: '😂 Hilarious Comedy Skit',
+            username: 'comedy_king',
+            points: 15,
+            likes: '23.7K',
+            duration: '0:30'
+        },
+        {
+            id: 'instagram_3',
+            thumbnail: 'https://via.placeholder.com/300/C13584/FFFFFF?text=Dance+Reel',
+            title: '💃 Amazing Dance Performance',
+            username: 'dance_star',
+            points: 10,
+            likes: '45.1K',
+            duration: '0:59'
+        },
+        {
+            id: 'instagram_4',
+            thumbnail: 'https://via.placeholder.com/300/F77737/FFFFFF?text=Food+Reel',
+            title: '🍕 Delicious Food Recipe',
+            username: 'foodie_world',
+            points: 8,
+            likes: '12.3K',
+            duration: '0:40'
+        },
+        {
+            id: 'instagram_5',
+            thumbnail: 'https://via.placeholder.com/300/FCAF45/FFFFFF?text=Travel+Reel',
+            title: '✈️ Beautiful Travel Moments',
+            username: 'travel_diary',
+            points: 14,
+            likes: '31.5K',
+            duration: '0:50'
+        },
+        {
+            id: 'instagram_6',
+            thumbnail: 'https://via.placeholder.com/300/FFDC80/FFFFFF?text=Fitness+Reel',
+            title: '💪 Workout Motivation',
+            username: 'fitness_guru',
+            points: 11,
+            likes: '18.9K',
+            duration: '0:35'
+        }
+    ];
+    
+    return mockVideos;
+}
+
+// Display Instagram Videos - NEW
+function displayInstagramVideos(videos, query) {
+    const container = document.getElementById('instagramResultsContainer');
+    
+    let html = `
+        <div style="margin-bottom: 15px; text-align: center;">
+            <h3>📷 Instagram Reels</h3>
+            <p style="font-size: 12px; opacity: 0.8;">Found ${videos.length} reels for "${query}"</p>
+        </div>
+        <div class="videos-grid">
+    `;
+    
+    videos.forEach((video, index) => {
+        const isWatched = watchedInstagramVideoIds.includes(video.id);
+        
+        html += `
+            <div class="video-card" onclick="selectInstagramVideoForEarning('${video.id}', ${video.points}, '${video.title.replace(/'/g, "\\'")}', '${video.username.replace(/'/g, "\\'")}')">
+                <div class="thumbnail">
+                    <img src="${video.thumbnail}" alt="${video.title}" onerror="this.src='https://via.placeholder.com/300/E1306C/ffffff?text=Instagram+Reel'">
+                    <div class="points-badge">+${video.points} pts</div>
+                    <div class="instagram-badge">Instagram</div>
+                    <div class="video-duration">${video.duration}</div>
+                </div>
+                <div class="video-details">
+                    <h4 class="video-title">${video.title}</h4>
+                    <div class="video-meta">
+                        <span class="channel">@${video.username}</span>
+                        <span class="video-likes">❤️ ${video.likes}</span>
+                    </div>
+                    <div class="video-meta">
+                        ${isWatched ? 
+                            '<span class="watch-now">✅ Earned</span>' : 
+                            '<span class="watch-now">▶️ Watch</span>'
+                        }
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
 }
 
 // Search Real YouTube Videos
@@ -468,6 +656,89 @@ function selectVideoForEarning(videoId, points, title, channel) {
     startVideoTracking();
 }
 
+// Select Instagram Video for Earning - NEW
+function selectInstagramVideoForEarning(videoId, points, title, username) {
+    // Check if video already watched
+    if (watchedInstagramVideoIds.includes(videoId)) {
+        showNotification('❌ You have already earned points for this reel!', 'warning');
+        return;
+    }
+    
+    currentVideoId = videoId;
+    currentPoints = points;
+    currentTitle = title;
+    
+    document.getElementById('appContent').innerHTML = `
+        <div class="video-player-interface">
+            <div class="player-header">
+                <button onclick="showInstagramTab()" class="back-btn">← Back to Search</button>
+                <h3>🎯 Earn Points</h3>
+            </div>
+            
+            <div class="instagram-video-container">
+                <div class="instagram-video-placeholder">
+                    <div class="instagram-logo">📷</div>
+                    <h3>Instagram Reel</h3>
+                    <p>🎬 "${title}"</p>
+                    <p>👤 @${username}</p>
+                    <div class="video-simulation">
+                        <div class="simulation-bar"></div>
+                        <div class="simulation-bar"></div>
+                        <div class="simulation-bar"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="video-timer">
+                <p>⏰ <strong>Watch for 1 minute to earn ${points} points</strong></p>
+                <p style="font-size: 12px;">Don't close this page - points awarded automatically</p>
+            </div>
+            
+            <div class="tracking-section">
+                <div class="tracking-status">
+                    <div class="status-indicator" id="statusIndicator"></div>
+                    <div class="status-text" id="statusText">
+                        🎯 Ready to earn ${points} points
+                    </div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">
+                        Waiting for video completion...
+                    </div>
+                </div>
+                
+                <div class="tracking-controls">
+                    <button onclick="cancelInstagramVideoEarning()" class="cancel-btn">
+                        ❌ Cancel Earning
+                    </button>
+                </div>
+            </div>
+            
+            <div class="instructions-panel">
+                <h4>📱 Important Instructions:</h4>
+                <div class="instruction-list">
+                    <div class="instruction">✅ Reel is playing on this page</div>
+                    <div class="instruction">✅ Watch the reel for complete 1 minute</div>
+                    <div class="instruction">❌ Don't close or minimize this page</div>
+                    <div class="instruction">❌ Don't refresh or go back</div>
+                    <div class="instruction">💰 Points automatically after 1 minute</div>
+                </div>
+                
+                <div class="warning-note">
+                    <strong>⚠️ Warning:</strong> If you leave this page, you won't get points!
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Start video tracking
+    startInstagramVideoTracking();
+}
+
 // Start Video Tracking
 function startVideoTracking() {
     let trackingTime = 0;
@@ -480,6 +751,22 @@ function startVideoTracking() {
         if (trackingTime >= maxTrackingTime) {
             clearInterval(videoTrackingInterval);
             completeVideoEarning();
+        }
+    }, 1000);
+}
+
+// Start Instagram Video Tracking - NEW
+function startInstagramVideoTracking() {
+    let trackingTime = 0;
+    const maxTrackingTime = 60; // 1 minute required
+    
+    videoTrackingInterval = setInterval(() => {
+        trackingTime++;
+        updateVideoTrackingProgress(trackingTime, maxTrackingTime);
+        
+        if (trackingTime >= maxTrackingTime) {
+            clearInterval(videoTrackingInterval);
+            completeInstagramVideoEarning();
         }
     }, 1000);
 }
@@ -530,6 +817,24 @@ function completeVideoEarning() {
     showEarningSuccess();
 }
 
+// Complete Instagram Video Earning - NEW
+function completeInstagramVideoEarning() {
+    // Add to watched Instagram videos list
+    if (currentVideoId && !watchedInstagramVideoIds.includes(currentVideoId)) {
+        watchedInstagramVideoIds.push(currentVideoId);
+        localStorage.setItem('watchedInstagramVideos', JSON.stringify(watchedInstagramVideoIds));
+    }
+    
+    // Add points
+    userPoints += currentPoints;
+    watchedVideos++;
+    addTransaction('instagram', currentPoints, 'Instagram Reel: ' + currentTitle.substring(0, 20) + '...', '📷');
+    updateUI();
+    
+    // Show success message
+    showInstagramEarningSuccess();
+}
+
 // Show Earning Success
 function showEarningSuccess() {
     document.getElementById('appContent').innerHTML = `
@@ -575,6 +880,51 @@ function showEarningSuccess() {
     showNotification(`✅ +${currentPoints} Points earned for 1 minute watch!`, 'success');
 }
 
+// Show Instagram Earning Success - NEW
+function showInstagramEarningSuccess() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="earning-success">
+            <div class="success-icon">🎉</div>
+            
+            <h3>Points Earned Successfully!</h3>
+            
+            <div class="points-earned-large">
+                +${currentPoints} Points
+            </div>
+            
+            <div class="success-details">
+                <div class="detail-item">
+                    <span class="detail-label">Reel:</span>
+                    <span class="detail-value">${currentTitle}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Points Added:</span>
+                    <span class="detail-value">+${currentPoints}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Total Points:</span>
+                    <span class="detail-value">${userPoints}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Watch Time:</span>
+                    <span class="detail-value">1 minute complete</span>
+                </div>
+            </div>
+            
+            <div class="success-actions">
+                <button onclick="showInstagramTab()" class="continue-btn">
+                    🔍 Watch More Reels
+                </button>
+                <button onclick="showDashboard()" class="continue-btn" style="background: #667eea;">
+                    🏠 Back to Dashboard
+                </button>
+            </div>
+        </div>
+    `;
+    
+    showNotification(`✅ +${currentPoints} Points earned for 1 minute watch!`, 'success');
+}
+
 // Cancel Video Earning
 function cancelVideoEarning() {
     if (videoTrackingInterval) {
@@ -582,6 +932,15 @@ function cancelVideoEarning() {
     }
     showNotification('❌ Points earning cancelled - no points added', 'warning');
     showVideoSection();
+}
+
+// Cancel Instagram Video Earning - NEW
+function cancelInstagramVideoEarning() {
+    if (videoTrackingInterval) {
+        clearInterval(videoTrackingInterval);
+    }
+    showNotification('❌ Points earning cancelled - no points added', 'warning');
+    showInstagramTab();
 }
 
 // Show Referral System - UPDATED with Sharing Options
