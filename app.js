@@ -41,6 +41,126 @@ let followedXAccounts = JSON.parse(localStorage.getItem('followedXAccounts')) ||
 let followedTelegramChannels = JSON.parse(localStorage.getItem('followedTelegramChannels')) || [];
 let subscribedYouTubeChannels = JSON.parse(localStorage.getItem('subscribedYouTubeChannels')) || [];
 
+// Social Tasks Data
+const SOCIAL_TASKS = {
+    youtube: [
+        {
+            id: 'youtube_task_1',
+            title: 'Subscribe to Tech Channel',
+            description: 'Subscribe to our tech review channel',
+            points: 40,
+            platform: 'youtube',
+            completed: false,
+            icon: '📺'
+        },
+        {
+            id: 'youtube_task_2',
+            title: 'Watch 3 Videos',
+            description: 'Watch any 3 YouTube Shorts',
+            points: 25,
+            platform: 'youtube',
+            completed: false,
+            icon: '🎬'
+        },
+        {
+            id: 'youtube_task_3',
+            title: 'Like & Comment',
+            description: 'Like and comment on a video',
+            points: 15,
+            platform: 'youtube',
+            completed: false,
+            icon: '💬'
+        }
+    ],
+    twitter: [
+        {
+            id: 'twitter_task_1',
+            title: 'Follow Tech News',
+            description: 'Follow our tech news account',
+            points: 25,
+            platform: 'twitter',
+            completed: false,
+            icon: '🐦'
+        },
+        {
+            id: 'twitter_task_2',
+            title: 'Retweet Post',
+            description: 'Retweet our latest announcement',
+            points: 20,
+            platform: 'twitter',
+            completed: false,
+            icon: '🔄'
+        },
+        {
+            id: 'twitter_task_3',
+            title: 'Like 5 Tweets',
+            description: 'Like 5 tweets from our feed',
+            points: 15,
+            platform: 'twitter',
+            completed: false,
+            icon: '❤️'
+        }
+    ],
+    instagram: [
+        {
+            id: 'instagram_task_1',
+            title: 'Follow Fashion Page',
+            description: 'Follow our fashion inspiration page',
+            points: 30,
+            platform: 'instagram',
+            completed: false,
+            icon: '📷'
+        },
+        {
+            id: 'instagram_task_2',
+            title: 'Watch 5 Reels',
+            description: 'Watch 5 Instagram Reels',
+            points: 20,
+            platform: 'instagram',
+            completed: false,
+            icon: '🎥'
+        },
+        {
+            id: 'instagram_task_3',
+            title: 'Like & Share Story',
+            description: 'Like and share our story',
+            points: 15,
+            platform: 'instagram',
+            completed: false,
+            icon: '📖'
+        }
+    ],
+    telegram: [
+        {
+            id: 'telegram_task_1',
+            title: 'Join Crypto Channel',
+            description: 'Join our crypto signals channel',
+            points: 50,
+            platform: 'telegram',
+            completed: false,
+            icon: '📱'
+        },
+        {
+            id: 'telegram_task_2',
+            title: 'Watch 3 Ads',
+            description: 'Watch 3 sponsored ads',
+            points: 25,
+            platform: 'telegram',
+            completed: false,
+            icon: '📢'
+        },
+        {
+            id: 'telegram_task_3',
+            title: 'Share Channel',
+            description: 'Share channel with friends',
+            points: 20,
+            platform: 'telegram',
+            completed: false,
+            icon: '📤'
+        }
+    ]
+};
+
 // Real Instagram Videos Data
 const REAL_INSTAGRAM_VIDEOS = [
     {
@@ -733,6 +853,188 @@ function showWalletDetails() {
     `;
 }
 
+// Show Social Tasks Section
+function showSocialTasks() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="social-tasks-section">
+            <div class="section-header">
+                <button onclick="showDashboard()" class="back-btn">← Back</button>
+                <h3>🌐 Social Media Tasks</h3>
+            </div>
+            
+            <div class="social-platform-tabs">
+                <button class="platform-tab active" onclick="showAllSocialTasks()">All Tasks</button>
+                <button class="platform-tab" onclick="showYouTubeTasks()">YouTube</button>
+                <button class="platform-tab" onclick="showTwitterTasks()">Twitter</button>
+                <button class="platform-tab" onclick="showInstagramTasks()">Instagram</button>
+                <button class="platform-tab" onclick="showTelegramTasks()">Telegram</button>
+            </div>
+            
+            <div class="social-tasks-stats">
+                <div class="social-stat">
+                    <span class="stat-value">${Object.values(SOCIAL_TASKS).flat().length}</span>
+                    <span class="stat-label">Total Tasks</span>
+                </div>
+                <div class="social-stat">
+                    <span class="stat-value">${Math.max(...Object.values(SOCIAL_TASKS).flat().map(v => v.points))}</span>
+                    <span class="stat-label">Max Points</span>
+                </div>
+                <div class="social-stat">
+                    <span class="stat-value">${Object.values(SOCIAL_TASKS).flat().filter(task => task.completed).length}</span>
+                    <span class="stat-label">Completed</span>
+                </div>
+            </div>
+            
+            <div id="socialTasksContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading social tasks...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    showAllSocialTasks();
+}
+
+// Show All Social Tasks
+function showAllSocialTasks() {
+    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    const allTasks = [
+        ...SOCIAL_TASKS.youtube,
+        ...SOCIAL_TASKS.twitter,
+        ...SOCIAL_TASKS.instagram,
+        ...SOCIAL_TASKS.telegram
+    ];
+    
+    displaySocialTasks(allTasks, 'All Social Tasks');
+}
+
+// Show YouTube Tasks
+function showYouTubeTasks() {
+    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+    displaySocialTasks(SOCIAL_TASKS.youtube, 'YouTube Tasks');
+}
+
+// Show Twitter Tasks
+function showTwitterTasks() {
+    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+    displaySocialTasks(SOCIAL_TASKS.twitter, 'Twitter Tasks');
+}
+
+// Show Instagram Tasks
+function showInstagramTasks() {
+    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+    displaySocialTasks(SOCIAL_TASKS.instagram, 'Instagram Tasks');
+}
+
+// Show Telegram Tasks
+function showTelegramTasks() {
+    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+    displaySocialTasks(SOCIAL_TASKS.telegram, 'Telegram Tasks');
+}
+
+// Display Social Tasks
+function displaySocialTasks(tasks, title) {
+    const container = document.getElementById('socialTasksContainer');
+    
+    let html = `
+        <div class="section-title">
+            <h3>🌐 ${title}</h3>
+            <p class="section-subtitle">${tasks.length} tasks found • Earn up to ${Math.max(...tasks.map(v => v.points))} points each</p>
+        </div>
+        <div class="social-tasks-grid">
+    `;
+    
+    tasks.forEach((task) => {
+        html += `
+            <div class="social-task-card ${task.platform}">
+                <div class="social-task-header">
+                    <div class="task-platform-icon">${task.icon}</div>
+                    <div class="task-platform-name">${task.platform.charAt(0).toUpperCase() + task.platform.slice(1)}</div>
+                    <div class="task-points">+${task.points}</div>
+                </div>
+                
+                <div class="social-task-content">
+                    <h4 class="task-title">${task.title}</h4>
+                    <p class="task-description">${task.description}</p>
+                </div>
+                
+                <div class="social-task-actions">
+                    ${task.completed ? 
+                        '<span class="social-task-completed">✅ Completed</span>' : 
+                        `<button class="social-task-btn" onclick="completeSocialTask('${task.id}', ${task.points}, '${task.title}', '${task.platform}')">
+                            Complete +${task.points}
+                        </button>`
+                    }
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// Complete Social Task
+function completeSocialTask(taskId, points, title, platform) {
+    // Find the task in SOCIAL_TASKS
+    let taskFound = false;
+    for (const platformKey in SOCIAL_TASKS) {
+        const taskIndex = SOCIAL_TASKS[platformKey].findIndex(task => task.id === taskId);
+        if (taskIndex !== -1) {
+            if (SOCIAL_TASKS[platformKey][taskIndex].completed) {
+                showNotification('❌ You have already completed this task!', 'warning');
+                return;
+            }
+            SOCIAL_TASKS[platformKey][taskIndex].completed = true;
+            taskFound = true;
+            break;
+        }
+    }
+    
+    if (!taskFound) {
+        showNotification('❌ Task not found!', 'warning');
+        return;
+    }
+    
+    userPoints += points;
+    let transactionType = '';
+    let icon = '';
+    
+    switch(platform) {
+        case 'youtube':
+            transactionType = 'youtube_task';
+            icon = '📺';
+            break;
+        case 'twitter':
+            transactionType = 'twitter_task';
+            icon = '🐦';
+            break;
+        case 'instagram':
+            transactionType = 'instagram_task';
+            icon = '📷';
+            break;
+        case 'telegram':
+            transactionType = 'telegram_task';
+            icon = '📱';
+            break;
+    }
+    
+    addTransaction(transactionType, points, `${platform.charAt(0).toUpperCase() + platform.slice(1)} Task: ${title}`, icon);
+    updateUI();
+    showNotification(`✅ +${points} Points! ${platform} task completed!`, 'success');
+    
+    // Refresh the social tasks section to update the UI
+    showSocialTasks();
+}
+
+// [Previous functions for wallet history, dashboard, etc. remain the same...]
 // Show Wallet History
 function showWalletHistory() {
     document.getElementById('appContent').innerHTML = `
@@ -2037,14 +2339,14 @@ function followXAccount(accountId, points, username) {
 
 // Show All X Content
 function showAllXContent() {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.category-btn').forEach(btn => tab.classList.remove('active'));
     event.target.classList.add('active');
     displayXContent(X_CONTENT, 'All X Content');
 }
 
 // Show X Videos
 function showXVideos() {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.category-btn').forEach(btn => tab.classList.remove('active'));
     event.target.classList.add('active');
     const videos = X_CONTENT.filter(item => item.type === 'video');
     displayXContent(videos, 'X Videos');
@@ -2052,7 +2354,7 @@ function showXVideos() {
 
 // Show X Tweets
 function showXTweets() {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.category-btn').forEach(btn => tab.classList.remove('active'));
     event.target.classList.add('active');
     const tweets = X_CONTENT.filter(item => item.type === 'tweet');
     displayXContent(tweets, 'X Tweets');
@@ -2060,7 +2362,7 @@ function showXTweets() {
 
 // Show Trending X
 function showTrendingX() {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.category-btn').forEach(btn => tab.classList.remove('active'));
     event.target.classList.add('active');
     const trending = [...X_CONTENT].sort((a, b) => b.points - a.points).slice(0, 6);
     displayXContent(trending, 'Trending on X');
