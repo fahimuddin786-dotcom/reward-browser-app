@@ -459,356 +459,11 @@ const FOLLOW_TASKS = {
     ]
 };
 
-// =============================================
-// CONTENT MANAGEMENT SYSTEM - IMPORTANT FUNCTIONS
-// =============================================
-
-// Content Management System
-function showSection(sectionId) {
-    // Hide all sections
-    document.querySelectorAll('.content-section').forEach(section => {
-        section.classList.remove('active');
-        section.innerHTML = ''; // Clear content
-    });
-    
-    // Show the selected section
-    const targetSection = document.getElementById(sectionId);
-    if (targetSection) {
-        targetSection.classList.add('active');
-    }
-    
-    // Update bottom nav active state
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-    });
-}
-
-// Updated functions to show specific sections
-function showDashboard() {
-    showSection('dashboardSection');
-    document.querySelector('.nav-item:nth-child(1)').classList.add('active');
-    updateDashboard();
-}
-
-function showVideoSection() {
-    showSection('videoSection');
-    document.querySelector('.nav-item:nth-child(2)').classList.add('active');
-    loadVideoSection();
-}
-
-function showTelegramSection() {
-    showSection('telegramSection');
-    document.querySelector('.nav-item:nth-child(3)').classList.add('active');
-    loadTelegramSection();
-}
-
-function showXSection() {
-    showSection('xSection');
-    document.querySelector('.nav-item:nth-child(4)').classList.add('active');
-    loadXSection();
-}
-
-function showFollowSection() {
-    showSection('followSection');
-    loadFollowSection();
-}
-
-function showReferralSystem() {
-    showSection('referralSection');
-    document.querySelector('.nav-item:nth-child(5)').classList.add('active');
-    loadReferralSection();
-}
-
-function showWalletHistory() {
-    showSection('walletSection');
-    loadWalletSection();
-}
-
-// Load content functions
-function updateDashboard() {
-    document.getElementById('dashboardSection').innerHTML = `
-        <div class="welcome-message">
-            <div class="stats-grid-mini">
-                <div class="stat-card-mini">
-                    <span class="stat-number-mini">${formatNumber(userPoints)}</span>
-                    <span class="stat-label-mini">Total Points</span>
-                </div>
-                <div class="stat-card-mini">
-                    <span class="stat-number-mini">${watchedVideos}</span>
-                    <span class="stat-label-mini">Videos</span>
-                </div>
-                <div class="stat-card-mini">
-                    <span class="stat-number-mini">${referrals}</span>
-                    <span class="stat-label-mini">Referrals</span>
-                </div>
-            </div>
-            <p class="welcome-note">Start mining or complete tasks to earn more points!</p>
-        </div>
-    `;
-}
-
-function loadVideoSection() {
-    document.getElementById('videoSection').innerHTML = `
-        <div class="video-section">
-            <div class="video-platform-tabs">
-                <button class="platform-tab active" onclick="showYouTubeTab()">YouTube</button>
-                <button class="platform-tab" onclick="showInstagramTab()">Instagram</button>
-            </div>
-            <div class="search-container">
-                <input type="text" id="youtubeSearchInput" placeholder="Search YouTube Shorts..." value="trending shorts">
-                <button onclick="searchYouTubeVideos()">🔍 Search</button>
-            </div>
-            <div id="videoResultsContainer">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading YouTube videos...</p>
-                </div>
-            </div>
-        </div>
-    `;
-    searchYouTubeVideos();
-}
-
-function loadTelegramSection() {
-    document.getElementById('telegramSection').innerHTML = `
-        <div class="telegram-section">
-            <div class="section-header">
-                <button onclick="showDashboard()" class="back-btn">← Back</button>
-                <h3>📱 Telegram Videos & Ads</h3>
-            </div>
-            
-            <div class="telegram-categories">
-                <button class="category-btn active" onclick="showAllTelegramVideos()">All Videos</button>
-                <button class="category-btn" onclick="showTelegramAds()">📢 Ads</button>
-                <button class="category-btn" onclick="showTelegramVideos()">🎥 Videos</button>
-                <button class="category-btn" onclick="showTelegramFollow()">👥 Join</button>
-                <button class="category-btn" onclick="showTrendingTelegram()">🔥 Trending</button>
-            </div>
-            
-            <div class="search-container">
-                <input type="text" id="telegramSearchInput" placeholder="Search Telegram videos..." value="trending">
-                <button onclick="searchTelegramVideos()">🔍 Search</button>
-            </div>
-            
-            <div class="telegram-stats">
-                <div class="telegram-stat">
-                    <span class="stat-value">${TELEGRAM_VIDEOS.length}</span>
-                    <span class="stat-label">Total Videos</span>
-                </div>
-                <div class="telegram-stat">
-                    <span class="stat-value">${Math.max(...TELEGRAM_VIDEOS.map(v => v.points))}</span>
-                    <span class="stat-label">Max Points</span>
-                </div>
-                <div class="telegram-stat">
-                    <span class="stat-value">${watchedTelegramVideoIds.length}</span>
-                    <span class="stat-label">Watched</span>
-                </div>
-            </div>
-            
-            <div id="telegramResultsContainer">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading Telegram videos...</p>
-                </div>
-            </div>
-        </div>
-    `;
-    showAllTelegramVideos();
-}
-
-function loadXSection() {
-    document.getElementById('xSection').innerHTML = `
-        <div class="x-section">
-            <div class="section-header">
-                <button onclick="showDashboard()" class="back-btn">← Back</button>
-                <h3>🐦 X (Twitter) Tasks</h3>
-            </div>
-            
-            <div class="x-categories">
-                <button class="category-btn active" onclick="showAllXContent()">All Content</button>
-                <button class="category-btn" onclick="showXVideos()">🎬 Videos</button>
-                <button class="category-btn" onclick="showXTweets()">💬 Tweets</button>
-                <button class="category-btn" onclick="showXFollow()">👤 Follow</button>
-                <button class="category-btn" onclick="showTrendingX()">🔥 Trending</button>
-            </div>
-            
-            <div class="search-container">
-                <input type="text" id="xSearchInput" placeholder="Search X content..." value="trending">
-                <button onclick="searchXContent()">🔍 Search</button>
-            </div>
-            
-            <div class="x-stats">
-                <div class="x-stat">
-                    <span class="stat-value">${X_CONTENT.length}</span>
-                    <span class="stat-label">Total Tasks</span>
-                </div>
-                <div class="x-stat">
-                    <span class="stat-value">${Math.max(...X_CONTENT.map(v => v.points))}</span>
-                    <span class="stat-label">Max Points</span>
-                </div>
-                <div class="x-stat">
-                    <span class="stat-value">${watchedXVideoIds.length + likedXTweetIds.length + retweetedXTweetIds.length + followedXAccounts.length}</span>
-                    <span class="stat-label">Completed</span>
-                </div>
-            </div>
-            
-            <div id="xResultsContainer">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading X content...</p>
-                </div>
-            </div>
-        </div>
-    `;
-    showAllXContent();
-}
-
-function loadFollowSection() {
-    document.getElementById('followSection').innerHTML = `
-        <div class="follow-section">
-            <div class="section-header">
-                <button onclick="showDashboard()" class="back-btn">← Back</button>
-                <h3>👥 Follow & Earn</h3>
-            </div>
-            
-            <div class="follow-platform-tabs">
-                <button class="platform-tab active" onclick="showAllFollowTasks()">All</button>
-                <button class="platform-tab" onclick="showInstagramFollowTasks()">📷 Instagram</button>
-                <button class="platform-tab" onclick="showXFollowTasks()">🐦 X</button>
-                <button class="platform-tab" onclick="showTelegramFollowTasks()">📱 Telegram</button>
-                <button class="platform-tab" onclick="showYouTubeFollowTasks()">🎬 YouTube</button>
-            </div>
-            
-            <div class="follow-stats">
-                <div class="follow-stat">
-                    <span class="stat-value">${Object.values(FOLLOW_TASKS).flat().length}</span>
-                    <span class="stat-label">Total Tasks</span>
-                </div>
-                <div class="follow-stat">
-                    <span class="stat-value">${Math.max(...Object.values(FOLLOW_TASKS).flat().map(v => v.points))}</span>
-                    <span class="stat-label">Max Points</span>
-                </div>
-                <div class="follow-stat">
-                    <span class="stat-value">${followedInstagramAccounts.length + followedXAccounts.length + followedTelegramChannels.length + subscribedYouTubeChannels.length}</span>
-                    <span class="stat-label">Completed</span>
-                </div>
-            </div>
-            
-            <div id="followResultsContainer">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading follow tasks...</p>
-                </div>
-            </div>
-        </div>
-    `;
-    showAllFollowTasks();
-}
-
-function loadReferralSection() {
-    document.getElementById('referralSection').innerHTML = `
-        <div class="referral-section">
-            <div class="section-header">
-                <button onclick="showDashboard()" class="back-btn">← Back</button>
-                <h3>👥 Refer & Earn</h3>
-            </div>
-            
-            <div class="referral-card">
-                <div class="referral-code">TAPEARN123</div>
-                <p class="referral-note">Share this code with friends to earn 50 points each!</p>
-                
-                <div class="referral-stats">
-                    <div class="referral-stat">
-                        <span class="stat-value">${referrals}</span>
-                        <span class="stat-label">Total Referrals</span>
-                    </div>
-                    <div class="referral-stat">
-                        <span class="stat-value">${referrals * 50}</span>
-                        <span class="stat-label">Points Earned</span>
-                    </div>
-                    <div class="referral-stat">
-                        <span class="stat-value">50</span>
-                        <span class="stat-label">Per Referral</span>
-                    </div>
-                </div>
-                
-                <div class="sharing-options">
-                    <button class="share-btn telegram" onclick="shareOnTelegram()">
-                        📱 Telegram
-                    </button>
-                    <button class="share-btn whatsapp" onclick="shareOnWhatsApp()">
-                        💚 WhatsApp
-                    </button>
-                    <button class="share-btn copy" onclick="copyReferralCode()">
-                        📋 Copy Code
-                    </button>
-                </div>
-                
-                <button onclick="addReferral()" class="action-btn primary">
-                    👥 Add Test Referral
-                </button>
-            </div>
-            
-            <div class="referral-benefits">
-                <h4>🎁 Referral Benefits</h4>
-                <ul>
-                    <li>✅ Earn 50 points for each friend who joins</li>
-                    <li>✅ Your friend gets 25 bonus points</li>
-                    <li>✅ Unlimited referrals - no limits!</li>
-                    <li>✅ Points credited instantly</li>
-                </ul>
-            </div>
-        </div>
-    `;
-}
-
-function loadWalletSection() {
-    document.getElementById('walletSection').innerHTML = `
-        <div class="wallet-history">
-            <div class="section-header">
-                <button onclick="showDashboard()" class="back-btn">← Back</button>
-                <h3>💰 Wallet History</h3>
-            </div>
-            
-            <div class="wallet-summary">
-                <div class="wallet-balance">${formatNumber(userPoints)}</div>
-                <div class="wallet-label">Total Points</div>
-            </div>
-            
-            <div class="transaction-list">
-                ${transactionHistory.length > 0 ? 
-                    transactionHistory.map(transaction => `
-                        <div class="transaction-item">
-                            <div class="transaction-icon">${transaction.icon}</div>
-                            <div class="transaction-details">
-                                <div class="transaction-title">${transaction.description}</div>
-                                <div class="transaction-time">${new Date(transaction.timestamp).toLocaleString()}</div>
-                            </div>
-                            <div class="transaction-amount ${transaction.amount > 0 ? 'positive' : 'negative'}">
-                                ${transaction.amount > 0 ? '+' : ''}${transaction.amount}
-                            </div>
-                        </div>
-                    `).join('') 
-                    : 
-                    '<div class="no-transactions">No transactions yet</div>'
-                }
-            </div>
-        </div>
-    `;
-}
-
-// =============================================
-// EXISTING APP FUNCTIONALITY
-// =============================================
-
 // Initialize App
 document.addEventListener('DOMContentLoaded', function() {
     loadAppState();
     updateUI();
     console.log('🎯 TapEarn App Initialized - All Features Working');
-    
-    // Show dashboard by default
-    showDashboard();
 });
 
 // Load App State from LocalStorage
@@ -969,15 +624,86 @@ function claimBoost() {
     showNotification('🚀 +100 Points! Boost claimed successfully!', 'success');
 }
 
+// Show Wallet History
+function showWalletHistory() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="wallet-history">
+            <div class="section-header">
+                <button onclick="showDashboard()" class="back-btn">← Back</button>
+                <h3>💰 Wallet History</h3>
+            </div>
+            
+            <div class="wallet-summary">
+                <div class="wallet-balance">${formatNumber(userPoints)}</div>
+                <div class="wallet-label">Total Points</div>
+            </div>
+            
+            <div class="transaction-list">
+                ${transactionHistory.length > 0 ? 
+                    transactionHistory.map(transaction => `
+                        <div class="transaction-item">
+                            <div class="transaction-icon">${transaction.icon}</div>
+                            <div class="transaction-details">
+                                <div class="transaction-title">${transaction.description}</div>
+                                <div class="transaction-time">${new Date(transaction.timestamp).toLocaleString()}</div>
+                            </div>
+                            <div class="transaction-amount ${transaction.amount > 0 ? 'positive' : 'negative'}">
+                                ${transaction.amount > 0 ? '+' : ''}${transaction.amount}
+                            </div>
+                        </div>
+                    `).join('') 
+                    : 
+                    '<div class="no-transactions">No transactions yet</div>'
+                }
+            </div>
+        </div>
+    `;
+}
+
+// Show Video Section
+function showVideoSection() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="video-section">
+            <div class="video-platform-tabs">
+                <button class="platform-tab active" onclick="showYouTubeTab()">YouTube</button>
+                <button class="platform-tab" onclick="showInstagramTab()">Instagram</button>
+            </div>
+            <div class="search-container">
+                <input type="text" id="youtubeSearchInput" placeholder="Search YouTube Shorts..." value="trending shorts">
+                <button onclick="searchYouTubeVideos()">🔍 Search</button>
+            </div>
+            <div id="videoResultsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading YouTube videos...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    searchYouTubeVideos();
+}
+
 // Show YouTube Tab
 function showYouTubeTab() {
     document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
     event.target.classList.add('active');
     
-    document.getElementById('videoResultsContainer').innerHTML = `
-        <div class="loading">
-            <div class="spinner"></div>
-            <p>Loading YouTube videos...</p>
+    document.getElementById('appContent').innerHTML = `
+        <div class="video-section">
+            <div class="video-platform-tabs">
+                <button class="platform-tab active" onclick="showYouTubeTab()">YouTube</button>
+                <button class="platform-tab" onclick="showInstagramTab()">Instagram</button>
+            </div>
+            <div class="search-container">
+                <input type="text" id="youtubeSearchInput" placeholder="Search YouTube Shorts..." value="trending shorts">
+                <button onclick="searchYouTubeVideos()">🔍 Search</button>
+            </div>
+            <div id="videoResultsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading YouTube videos...</p>
+                </div>
+            </div>
         </div>
     `;
     searchYouTubeVideos();
@@ -988,7 +714,7 @@ function showInstagramTab() {
     document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
     event.target.classList.add('active');
     
-    document.getElementById('videoResultsContainer').innerHTML = `
+    document.getElementById('appContent').innerHTML = `
         <div class="video-section">
             <div class="video-platform-tabs">
                 <button class="platform-tab" onclick="showYouTubeTab()">YouTube</button>
@@ -1175,6 +901,49 @@ function displayInstagramVideos(videos, title) {
     
     html += '</div>';
     container.innerHTML = html;
+}
+
+// Show Follow Section
+function showFollowSection() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="follow-section">
+            <div class="section-header">
+                <button onclick="showDashboard()" class="back-btn">← Back</button>
+                <h3>👥 Follow & Earn</h3>
+            </div>
+            
+            <div class="follow-platform-tabs">
+                <button class="platform-tab active" onclick="showAllFollowTasks()">All</button>
+                <button class="platform-tab" onclick="showInstagramFollowTasks()">📷 Instagram</button>
+                <button class="platform-tab" onclick="showXFollowTasks()">🐦 X</button>
+                <button class="platform-tab" onclick="showTelegramFollowTasks()">📱 Telegram</button>
+                <button class="platform-tab" onclick="showYouTubeFollowTasks()">🎬 YouTube</button>
+            </div>
+            
+            <div class="follow-stats">
+                <div class="follow-stat">
+                    <span class="stat-value">${Object.values(FOLLOW_TASKS).flat().length}</span>
+                    <span class="stat-label">Total Tasks</span>
+                </div>
+                <div class="follow-stat">
+                    <span class="stat-value">${Math.max(...Object.values(FOLLOW_TASKS).flat().map(v => v.points))}</span>
+                    <span class="stat-label">Max Points</span>
+                </div>
+                <div class="follow-stat">
+                    <span class="stat-value">${followedInstagramAccounts.length + followedXAccounts.length + followedTelegramChannels.length + subscribedYouTubeChannels.length}</span>
+                    <span class="stat-label">Completed</span>
+                </div>
+            </div>
+            
+            <div id="followResultsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading follow tasks...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    showAllFollowTasks();
 }
 
 // Show All Follow Tasks
@@ -1378,6 +1147,54 @@ function completeFollowTask(platform, taskId, points, name) {
     showFollowSection();
 }
 
+// Show Telegram Section
+function showTelegramSection() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="telegram-section">
+            <div class="section-header">
+                <button onclick="showDashboard()" class="back-btn">← Back</button>
+                <h3>📱 Telegram Videos & Ads</h3>
+            </div>
+            
+            <div class="telegram-categories">
+                <button class="category-btn active" onclick="showAllTelegramVideos()">All Videos</button>
+                <button class="category-btn" onclick="showTelegramAds()">📢 Ads</button>
+                <button class="category-btn" onclick="showTelegramVideos()">🎥 Videos</button>
+                <button class="category-btn" onclick="showTelegramFollow()">👥 Join</button>
+                <button class="category-btn" onclick="showTrendingTelegram()">🔥 Trending</button>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="telegramSearchInput" placeholder="Search Telegram videos..." value="trending">
+                <button onclick="searchTelegramVideos()">🔍 Search</button>
+            </div>
+            
+            <div class="telegram-stats">
+                <div class="telegram-stat">
+                    <span class="stat-value">${TELEGRAM_VIDEOS.length}</span>
+                    <span class="stat-label">Total Videos</span>
+                </div>
+                <div class="telegram-stat">
+                    <span class="stat-value">${Math.max(...TELEGRAM_VIDEOS.map(v => v.points))}</span>
+                    <span class="stat-label">Max Points</span>
+                </div>
+                <div class="telegram-stat">
+                    <span class="stat-value">${watchedTelegramVideoIds.length}</span>
+                    <span class="stat-label">Watched</span>
+                </div>
+            </div>
+            
+            <div id="telegramResultsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading Telegram videos...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    showAllTelegramVideos();
+}
+
 // Show Telegram Follow
 function showTelegramFollow() {
     document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
@@ -1555,7 +1372,7 @@ function selectTelegramVideo(videoId, points, title, channel, type) {
     
     const videoData = TELEGRAM_VIDEOS.find(v => v.id === videoId);
     
-    document.getElementById('telegramSection').innerHTML = `
+    document.getElementById('appContent').innerHTML = `
         <div class="video-player-section">
             <div class="section-header">
                 <button onclick="showTelegramSection()" class="back-btn">← Back to Telegram</button>
@@ -1631,6 +1448,54 @@ function selectTelegramVideo(videoId, points, title, channel, type) {
     `;
     
     startVideoTracking();
+}
+
+// Show X Section
+function showXSection() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="x-section">
+            <div class="section-header">
+                <button onclick="showDashboard()" class="back-btn">← Back</button>
+                <h3>🐦 X (Twitter) Tasks</h3>
+            </div>
+            
+            <div class="x-categories">
+                <button class="category-btn active" onclick="showAllXContent()">All Content</button>
+                <button class="category-btn" onclick="showXVideos()">🎬 Videos</button>
+                <button class="category-btn" onclick="showXTweets()">💬 Tweets</button>
+                <button class="category-btn" onclick="showXFollow()">👤 Follow</button>
+                <button class="category-btn" onclick="showTrendingX()">🔥 Trending</button>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="xSearchInput" placeholder="Search X content..." value="trending">
+                <button onclick="searchXContent()">🔍 Search</button>
+            </div>
+            
+            <div class="x-stats">
+                <div class="x-stat">
+                    <span class="stat-value">${X_CONTENT.length}</span>
+                    <span class="stat-label">Total Tasks</span>
+                </div>
+                <div class="x-stat">
+                    <span class="stat-value">${Math.max(...X_CONTENT.map(v => v.points))}</span>
+                    <span class="stat-label">Max Points</span>
+                </div>
+                <div class="x-stat">
+                    <span class="stat-value">${watchedXVideoIds.length + likedXTweetIds.length + retweetedXTweetIds.length + followedXAccounts.length}</span>
+                    <span class="stat-label">Completed</span>
+                </div>
+            </div>
+            
+            <div id="xResultsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading X content...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    showAllXContent();
 }
 
 // Show X Follow
@@ -1870,7 +1735,7 @@ function selectXVideo(videoId, points, title, username, handle) {
     
     const videoData = X_CONTENT.find(v => v.id === videoId);
     
-    document.getElementById('xSection').innerHTML = `
+    document.getElementById('appContent').innerHTML = `
         <div class="video-player-section">
             <div class="section-header">
                 <button onclick="showXSection()" class="back-btn">← Back to X</button>
@@ -2120,7 +1985,7 @@ function selectYouTubeVideo(videoId, points, title, channel) {
     currentPoints = points;
     currentTitle = title;
     
-    document.getElementById('videoSection').innerHTML = `
+    document.getElementById('appContent').innerHTML = `
         <div class="video-player-section">
             <div class="section-header">
                 <button onclick="showVideoSection()" class="back-btn">← Back to Videos</button>
@@ -2185,7 +2050,7 @@ function selectInstagramVideo(videoId, points, title, username) {
     
     const videoData = REAL_INSTAGRAM_VIDEOS.find(v => v.id === videoId);
     
-    document.getElementById('videoSection').innerHTML = `
+    document.getElementById('appContent').innerHTML = `
         <div class="video-player-section">
             <div class="section-header">
                 <button onclick="showInstagramTab()" class="back-btn">← Back to Instagram</button>
@@ -2350,7 +2215,7 @@ function completeVideoEarning() {
 
 // Show Earning Success
 function showEarningSuccess() {
-    document.getElementById('videoSection').innerHTML = `
+    document.getElementById('appContent').innerHTML = `
         <div class="earning-success">
             <div class="success-icon">🎉</div>
             
@@ -2396,6 +2261,64 @@ function cancelVideoEarning() {
     }
     showNotification('❌ Points earning cancelled', 'warning');
     showVideoSection();
+}
+
+// Show Referral System
+function showReferralSystem() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="referral-section">
+            <div class="section-header">
+                <button onclick="showDashboard()" class="back-btn">← Back</button>
+                <h3>👥 Refer & Earn</h3>
+            </div>
+            
+            <div class="referral-card">
+                <div class="referral-code">TAPEARN123</div>
+                <p class="referral-note">Share this code with friends to earn 50 points each!</p>
+                
+                <div class="referral-stats">
+                    <div class="referral-stat">
+                        <span class="stat-value">${referrals}</span>
+                        <span class="stat-label">Total Referrals</span>
+                    </div>
+                    <div class="referral-stat">
+                        <span class="stat-value">${referrals * 50}</span>
+                        <span class="stat-label">Points Earned</span>
+                    </div>
+                    <div class="referral-stat">
+                        <span class="stat-value">50</span>
+                        <span class="stat-label">Per Referral</span>
+                    </div>
+                </div>
+                
+                <div class="sharing-options">
+                    <button class="share-btn telegram" onclick="shareOnTelegram()">
+                        📱 Telegram
+                    </button>
+                    <button class="share-btn whatsapp" onclick="shareOnWhatsApp()">
+                        💚 WhatsApp
+                    </button>
+                    <button class="share-btn copy" onclick="copyReferralCode()">
+                        📋 Copy Code
+                    </button>
+                </div>
+                
+                <button onclick="addReferral()" class="action-btn primary">
+                    👥 Add Test Referral
+                </button>
+            </div>
+            
+            <div class="referral-benefits">
+                <h4>🎁 Referral Benefits</h4>
+                <ul>
+                    <li>✅ Earn 50 points for each friend who joins</li>
+                    <li>✅ Your friend gets 25 bonus points</li>
+                    <li>✅ Unlimited referrals - no limits!</li>
+                    <li>✅ Points credited instantly</li>
+                </ul>
+            </div>
+        </div>
+    `;
 }
 
 // Share on Telegram
@@ -2620,6 +2543,29 @@ function redeemReward(reward) {
     } else {
         showNotification(`❌ Not enough points! Need ${cost} points.`, 'warning');
     }
+}
+
+// Show Dashboard
+function showDashboard() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="welcome-message">
+            <div class="stats-grid-mini">
+                <div class="stat-card-mini">
+                    <span class="stat-number-mini">${formatNumber(userPoints)}</span>
+                    <span class="stat-label-mini">Total Points</span>
+                </div>
+                <div class="stat-card-mini">
+                    <span class="stat-number-mini">${watchedVideos}</span>
+                    <span class="stat-label-mini">Videos</span>
+                </div>
+                <div class="stat-card-mini">
+                    <span class="stat-number-mini">${referrals}</span>
+                    <span class="stat-label-mini">Referrals</span>
+                </div>
+            </div>
+            <p class="welcome-note">Start mining or complete tasks to earn more points!</p>
+        </div>
+    `;
 }
 
 // Notification System
