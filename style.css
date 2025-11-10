@@ -19,7 +19,7 @@ body {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
     border-radius: 20px;
-    padding: 20px;
+    padding: 15px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -29,7 +29,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .wallet {
@@ -37,7 +37,7 @@ body {
     align-items: center;
     gap: 8px;
     background: rgba(255, 215, 0, 0.1);
-    padding: 12px 18px;
+    padding: 10px 15px;
     border-radius: 15px;
     border: 1px solid rgba(255, 215, 0, 0.3);
     cursor: pointer;
@@ -54,7 +54,7 @@ body {
 }
 
 .wallet-amount {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
     color: #FFD700;
 }
@@ -82,16 +82,16 @@ body {
 
 h2 {
     text-align: center;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     font-size: 24px;
     background: linear-gradient(45deg, #FFD700, #FFA726);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
-/* Main Mining Feature - FIXED LAYOUT */
+/* Main Mining Feature */
 .main-features {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
 .main-feature-card {
@@ -126,7 +126,7 @@ h2 {
 .feature-main-desc {
     font-size: 14px;
     opacity: 0.9;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .mining-stats {
@@ -152,26 +152,26 @@ h2 {
     opacity: 0.8;
 }
 
-/* Quick Actions Mini - FIXED LAYOUT */
+/* Quick Actions Mini */
 .quick-actions-mini {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-bottom: 25px;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
 .mini-btn {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 15px;
-    padding: 15px 10px;
+    border-radius: 12px;
+    padding: 12px 8px;
     color: white;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 5px;
     backdrop-filter: blur(10px);
 }
 
@@ -181,28 +181,28 @@ h2 {
 }
 
 .mini-icon {
-    font-size: 22px;
+    font-size: 20px;
 }
 
 .mini-text {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
 }
 
-/* Boost Section - FIXED LAYOUT */
+/* Boost Section */
 .boost-section {
     background: rgba(255, 215, 0, 0.1);
     border: 1px solid rgba(255, 215, 0, 0.3);
     border-radius: 15px;
-    padding: 18px;
-    margin-bottom: 20px;
+    padding: 15px;
+    margin-bottom: 15px;
 }
 
 .boost-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
 .boost-title {
@@ -218,16 +218,16 @@ h2 {
 
 .boost-bar {
     background: rgba(255, 255, 255, 0.1);
-    height: 8px;
-    border-radius: 4px;
+    height: 6px;
+    border-radius: 3px;
     overflow: hidden;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
 }
 
 .boost-fill {
     background: linear-gradient(90deg, #FFD700, #FFA726);
     height: 100%;
-    border-radius: 4px;
+    border-radius: 3px;
     transition: width 0.3s ease;
 }
 
@@ -235,31 +235,30 @@ h2 {
     background: linear-gradient(135deg, #FFD700, #FFA726);
     color: #1a1a2e;
     border: none;
-    padding: 12px 20px;
-    border-radius: 12px;
+    padding: 10px 15px;
+    border-radius: 10px;
     cursor: pointer;
     font-weight: bold;
     width: 100%;
     transition: transform 0.3s ease;
-    font-size: 14px;
 }
 
 .boost-btn:hover {
     transform: translateY(-2px);
 }
 
-/* Community Section - FIXED LAYOUT */
+/* Community Section */
 .community-section {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 15px;
-    padding: 18px;
-    margin-bottom: 25px;
+    padding: 15px;
+    margin-bottom: 20px;
     text-align: center;
 }
 
 .community-header {
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
 .community-title {
@@ -291,14 +290,14 @@ h2 {
     opacity: 0.7;
 }
 
-/* Bottom Navigation - FIXED LAYOUT */
+/* Bottom Navigation */
 .bottom-nav {
     display: flex;
     justify-content: space-around;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 15px;
-    padding: 12px 8px;
-    margin-bottom: 20px;
+    padding: 10px 5px;
+    margin-bottom: 15px;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -306,7 +305,7 @@ h2 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     cursor: pointer;
     padding: 8px 12px;
     border-radius: 10px;
@@ -324,47 +323,47 @@ h2 {
 }
 
 .nav-icon {
-    font-size: 20px;
+    font-size: 18px;
 }
 
 .nav-text {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
 }
 
-/* Stats Grid Mini - FIXED LAYOUT */
+/* Stats Grid Mini */
 .stats-grid-mini {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin: 20px 0;
+    gap: 10px;
+    margin: 15px 0;
 }
 
 .stat-card-mini {
     background: rgba(255, 255, 255, 0.05);
-    padding: 15px 10px;
-    border-radius: 12px;
+    padding: 12px 8px;
+    border-radius: 10px;
     text-align: center;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .stat-number-mini {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
     color: #4CAF50;
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .stat-label-mini {
-    font-size: 11px;
+    font-size: 10px;
     opacity: 0.7;
 }
 
-/* Welcome Message - FIXED LAYOUT */
+/* Welcome Message */
 .welcome-message {
     text-align: center;
-    padding: 20px;
+    padding: 15px;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 15px;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -379,7 +378,7 @@ h2 {
 .welcome-note {
     opacity: 0.7;
     font-style: italic;
-    margin-top: 15px;
+    margin-top: 10px;
     font-size: 14px;
 }
 
@@ -394,18 +393,74 @@ h2 {
     font-weight: bold;
 }
 
-/* Video Section Styles - FIXED LAYOUT */
+/* Wallet History */
+.wallet-history {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.transaction-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 15px 0;
+}
+
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.transaction-icon {
+    font-size: 20px;
+    margin-right: 12px;
+}
+
+.transaction-details {
+    flex: 1;
+}
+
+.transaction-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.transaction-time {
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+.transaction-amount {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.transaction-amount.positive {
+    color: #4CAF50;
+}
+
+.transaction-amount.negative {
+    color: #FF6B6B;
+}
+
+/* Video Platform Tabs - NEW */
 .video-platform-tabs {
     display: flex;
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 6px;
-    margin-bottom: 20px;
+    border-radius: 10px;
+    padding: 5px;
+    margin-bottom: 15px;
 }
 
 .platform-tab {
     flex: 1;
-    padding: 12px 15px;
+    padding: 10px 15px;
     border: none;
     background: transparent;
     color: white;
@@ -413,7 +468,6 @@ h2 {
     border-radius: 8px;
     transition: all 0.3s ease;
     font-weight: bold;
-    font-size: 14px;
 }
 
 .platform-tab.active {
@@ -421,17 +475,61 @@ h2 {
     color: #FFD700;
 }
 
+/* Referral Sharing */
+.sharing-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.share-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.share-btn.telegram {
+    background: #0088cc;
+}
+
+.share-btn.whatsapp {
+    background: #25D366;
+}
+
+.share-btn.copy {
+    background: #667eea;
+}
+
+.share-btn.message {
+    background: #FFA726;
+}
+
+.share-btn:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+/* YouTube Videos Section */
 .search-container {
     display: flex;
-    gap: 12px;
-    margin-bottom: 20px;
+    gap: 10px;
+    margin-bottom: 15px;
 }
 
 .search-container input {
     flex: 1;
-    padding: 14px 18px;
+    padding: 12px 15px;
     border: none;
-    border-radius: 12px;
+    border-radius: 10px;
     background: rgba(255, 255, 255, 0.9);
     color: #333;
     font-size: 14px;
@@ -442,29 +540,27 @@ h2 {
     background: linear-gradient(135deg, #4CAF50, #45a049);
     color: white;
     border: none;
-    padding: 14px 18px;
-    border-radius: 12px;
+    padding: 12px 15px;
+    border-radius: 10px;
     cursor: pointer;
     font-weight: bold;
     transition: transform 0.3s;
-    font-size: 14px;
 }
 
 .search-container button:hover {
     transform: translateY(-2px);
 }
 
-/* Videos Grid */
 .videos-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-    margin-top: 20px;
+    gap: 12px;
+    margin-top: 15px;
 }
 
 .video-card {
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
+    border-radius: 12px;
     overflow: hidden;
     cursor: pointer;
     transition: transform 0.3s;
@@ -478,7 +574,7 @@ h2 {
 .thumbnail {
     position: relative;
     width: 100%;
-    height: 120px;
+    height: 100px;
     overflow: hidden;
 }
 
@@ -490,46 +586,57 @@ h2 {
 
 .points-badge {
     position: absolute;
-    top: 8px;
-    left: 8px;
+    top: 5px;
+    left: 5px;
     background: #4CAF50;
     color: white;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 10px;
     font-weight: bold;
 }
 
 .youtube-badge {
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: 5px;
+    right: 5px;
     background: #FF0000;
     color: white;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 9px;
 }
 
 .instagram-badge {
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: 5px;
+    right: 5px;
     background: linear-gradient(45deg, #405DE6, #E1306C, #FD1D1D, #F77737, #FCAF45, #FFDC80);
     color: white;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 9px;
     font-weight: bold;
 }
 
+.video-duration {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 9px;
+}
+
 .video-details {
-    padding: 12px;
+    padding: 10px;
 }
 
 .video-title {
-    font-size: 13px;
-    margin-bottom: 8px;
+    font-size: 12px;
+    margin-bottom: 6px;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -541,8 +648,13 @@ h2 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 11px;
+    font-size: 10px;
     opacity: 0.8;
+}
+
+.video-likes {
+    color: #E1306C;
+    font-weight: bold;
 }
 
 .watch-now {
@@ -550,20 +662,284 @@ h2 {
     font-weight: bold;
 }
 
+/* Video Player Interface */
+.video-player-interface {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.back-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.3s;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.youtube-iframe-container {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    background: #000;
+}
+
+.youtube-iframe-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.instagram-video-container {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    background: linear-gradient(45deg, #405DE6, #E1306C, #FD1D1D, #F77737, #FCAF45, #FFDC80);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.instagram-video-placeholder {
+    text-align: center;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+}
+
+.instagram-logo {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.video-simulation {
+    margin-top: 15px;
+}
+
+.simulation-bar {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    margin: 5px 0;
+    border-radius: 2px;
+    animation: pulse 2s infinite;
+}
+
+.simulation-bar:nth-child(2) {
+    animation-delay: 0.5s;
+}
+
+.simulation-bar:nth-child(3) {
+    animation-delay: 1s;
+}
+
+.video-timer {
+    text-align: center;
+    padding: 10px;
+    background: rgba(255, 165, 0, 0.2);
+    border-radius: 8px;
+    border: 1px solid #FFA726;
+    margin-bottom: 15px;
+}
+
+.tracking-section {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.tracking-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #4CAF50;
+    animation: pulse 2s infinite;
+}
+
+.status-text {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.progress-container {
+    margin-bottom: 15px;
+}
+
+.progress-bar {
+    background: rgba(255, 255, 255, 0.3);
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-fill {
+    background: linear-gradient(90deg, #4CAF50, #45a049);
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s;
+}
+
+.progress-text {
+    font-size: 12px;
+    text-align: center;
+    opacity: 0.8;
+}
+
+.tracking-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.cancel-btn {
+    background: #FF6B6B;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 14px;
+}
+
+.instructions-panel {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.instruction-list {
+    margin: 10px 0;
+}
+
+.instruction {
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 12px;
+}
+
+.instruction:last-child {
+    border-bottom: none;
+}
+
+.warning-note {
+    background: rgba(255, 165, 0, 0.2);
+    border: 1px solid #FFA726;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    text-align: center;
+    font-size: 12px;
+}
+
 /* Loading Spinner */
 .loading {
     text-align: center;
-    padding: 40px 20px;
+    padding: 30px 20px;
 }
 
 .spinner {
-    border: 4px solid rgba(255, 255, 255, 0.3);
+    border: 3px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
-    border-top: 4px solid white;
-    width: 40px;
-    height: 40px;
+    border-top: 3px solid white;
+    width: 30px;
+    height: 30px;
     animation: spin 1s linear infinite;
-    margin: 0 auto 20px;
+    margin: 0 auto 15px;
+}
+
+/* Earning Success */
+.earning-success {
+    text-align: center;
+    padding: 20px 15px;
+}
+
+.success-icon {
+    font-size: 60px;
+    margin-bottom: 15px;
+}
+
+.points-earned-large {
+    font-size: 36px;
+    font-weight: bold;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 15px;
+    border-radius: 12px;
+    margin: 15px 0;
+}
+
+.success-details {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+    text-align: left;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 12px;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    opacity: 0.8;
+}
+
+.detail-value {
+    font-weight: bold;
+}
+
+.success-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.continue-btn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
 }
 
 /* Notifications */
@@ -573,11 +949,11 @@ h2 {
     right: 20px;
     background: rgba(255, 255, 255, 0.95);
     color: #333;
-    padding: 15px 20px;
-    border-radius: 10px;
+    padding: 12px 16px;
+    border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     z-index: 1000;
-    max-width: 300px;
+    max-width: 280px;
     animation: slideIn 0.3s ease-out;
 }
 
@@ -602,7 +978,7 @@ h2 {
 .notification-close {
     background: none;
     border: none;
-    font-size: 18px;
+    font-size: 16px;
     cursor: pointer;
     color: #666;
 }
@@ -619,6 +995,12 @@ h2 {
     }
 }
 
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -627,105 +1009,56 @@ h2 {
 /* Responsive Design */
 @media (max-width: 480px) {
     .container {
-        padding: 15px;
+        padding: 12px;
         margin: 5px;
     }
     
     .quick-actions-mini {
         grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
+        gap: 8px;
     }
     
     .mini-btn {
-        padding: 12px 8px;
+        padding: 10px 6px;
     }
     
     .mini-icon {
-        font-size: 20px;
-    }
-    
-    .mini-text {
-        font-size: 11px;
-    }
-    
-    .bottom-nav {
-        padding: 10px 5px;
-    }
-    
-    .nav-item {
-        padding: 6px 10px;
-    }
-    
-    .nav-icon {
         font-size: 18px;
     }
     
-    .nav-text {
+    .mini-text {
         font-size: 10px;
+    }
+    
+    .bottom-nav {
+        padding: 8px 3px;
+    }
+    
+    .nav-item {
+        padding: 6px 8px;
+    }
+    
+    .nav-icon {
+        font-size: 16px;
+    }
+    
+    .nav-text {
+        font-size: 9px;
     }
 
     .videos-grid {
         grid-template-columns: 1fr;
     }
 
-    .search-container input {
-        padding: 12px 15px;
+    .youtube-iframe-container {
+        height: 200px;
     }
 
-    .search-container button {
-        padding: 12px 15px;
+    .instagram-video-container {
+        height: 200px;
     }
-}
 
-/* Instagram Categories */
-.instagram-categories {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    overflow-x: auto;
-    padding: 8px 0;
-}
-
-.category-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
-    padding: 10px 18px;
-    color: white;
-    cursor: pointer;
-    white-space: nowrap;
-    font-size: 13px;
-    transition: all 0.3s ease;
-}
-
-.category-btn.active {
-    background: linear-gradient(45deg, #E1306C, #C13584);
-    border-color: #E1306C;
-}
-
-.instagram-stats-bar {
-    display: flex;
-    justify-content: space-around;
-    background: rgba(225, 48, 108, 0.1);
-    border: 1px solid rgba(225, 48, 108, 0.3);
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 20px;
-}
-
-.stat-item {
-    text-align: center;
-}
-
-.stat-number {
-    display: block;
-    font-size: 15px;
-    font-weight: bold;
-    color: #E1306C;
-    margin-bottom: 3px;
-}
-
-.stat-label {
-    font-size: 11px;
-    opacity: 0.8;
+    .sharing-options {
+        grid-template-columns: 1fr;
+    }
 }
