@@ -1,5 +1,3 @@
-[file name]: app.js
-[file content begin]
 // YouTube API Configuration
 const YOUTUBE_API_KEY = 'AIzaSyBATxf5D7ZDeiQ61dbEdzEd4Tq72N713Y8';
 
@@ -3035,4 +3033,3 @@ function showNotification(message, type = 'info') {
         }
     }, 4000);
 }
-[file content end]
