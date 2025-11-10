@@ -27,6 +27,9 @@ let watchedVideoIds = JSON.parse(localStorage.getItem('watchedVideos')) || [];
 // Instagram Video State
 let watchedInstagramVideoIds = JSON.parse(localStorage.getItem('watchedInstagramVideos')) || [];
 
+// Telegram Video State
+let watchedTelegramVideoIds = JSON.parse(localStorage.getItem('watchedTelegramVideos')) || [];
+
 // Real Instagram Videos Data
 const REAL_INSTAGRAM_VIDEOS = [
     {
@@ -106,6 +109,82 @@ const REAL_INSTAGRAM_VIDEOS = [
         views: '7.8M',
         music: 'Practice Beat',
         type: 'story'
+    }
+];
+
+// Telegram Videos Data
+const TELEGRAM_VIDEOS = [
+    {
+        id: 'telegram_ad_1',
+        video_url: 'https://example.com/telegram-ad-1.mp4',
+        thumbnail: 'https://images.unsplash.com/photo-1611605698335-8b1569810432?w=300&h=200&fit=crop',
+        title: '📱 Crypto Trading Bot - Limited Offer',
+        channel: 'Crypto Signals Pro',
+        points: 18,
+        duration: '0:45',
+        views: '2.1M',
+        type: 'ad',
+        category: 'crypto'
+    },
+    {
+        id: 'telegram_ad_2',
+        video_url: 'https://example.com/telegram-ad-2.mp4',
+        thumbnail: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=300&h=200&fit=crop',
+        title: '💼 Earn $500 Daily - Forex Signals',
+        channel: 'Forex Masters',
+        points: 15,
+        duration: '0:30',
+        views: '1.8M',
+        type: 'ad',
+        category: 'forex'
+    },
+    {
+        id: 'telegram_ad_3',
+        video_url: 'https://example.com/telegram-ad-3.mp4',
+        thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=300&h=200&fit=crop',
+        title: '🛒 Amazon Deals - 90% OFF Today',
+        channel: 'Deal Hunters',
+        points: 12,
+        duration: '0:40',
+        views: '3.2M',
+        type: 'ad',
+        category: 'shopping'
+    },
+    {
+        id: 'telegram_video_1',
+        video_url: 'https://example.com/telegram-video-1.mp4',
+        thumbnail: 'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=300&h=200&fit=crop',
+        title: '🎮 Free Fire Tournament - Join Now!',
+        channel: 'Gaming Community',
+        points: 20,
+        duration: '1:20',
+        views: '5.4M',
+        type: 'video',
+        category: 'gaming'
+    },
+    {
+        id: 'telegram_video_2',
+        video_url: 'https://example.com/telegram-video-2.mp4',
+        thumbnail: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=300&h=200&fit=crop',
+        title: '📈 Stock Market Analysis - Weekly',
+        channel: 'Stock Experts',
+        points: 25,
+        duration: '2:15',
+        views: '1.2M',
+        type: 'video',
+        category: 'education'
+    },
+    {
+        id: 'telegram_video_3',
+        video_url: 'https://example.com/telegram-video-3.mp4',
+        thumbnail: 'https://images.unsplash.com/photo-1533750349088-cd871a92f312?w=300&h=200&fit=crop',
+        title: '🤖 AI Tools 2024 - Must Have Apps',
+        channel: 'Tech Updates',
+        points: 22,
+        duration: '1:45',
+        views: '2.8M',
+        type: 'video',
+        category: 'technology'
     }
 ];
 
@@ -487,6 +566,243 @@ function displayInstagramVideos(videos, title) {
     container.innerHTML = html;
 }
 
+// Show Telegram Section
+function showTelegramSection() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="telegram-section">
+            <div class="section-header">
+                <button onclick="showDashboard()" class="back-btn">← Back</button>
+                <h3>📱 Telegram Videos & Ads</h3>
+            </div>
+            
+            <div class="telegram-categories">
+                <button class="category-btn active" onclick="showAllTelegramVideos()">All Videos</button>
+                <button class="category-btn" onclick="showTelegramAds()">📢 Ads</button>
+                <button class="category-btn" onclick="showTelegramVideos()">🎥 Videos</button>
+                <button class="category-btn" onclick="showTrendingTelegram()">🔥 Trending</button>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="telegramSearchInput" placeholder="Search Telegram videos..." value="trending">
+                <button onclick="searchTelegramVideos()">🔍 Search</button>
+            </div>
+            
+            <div class="telegram-stats">
+                <div class="telegram-stat">
+                    <span class="stat-value">${TELEGRAM_VIDEOS.length}</span>
+                    <span class="stat-label">Total Videos</span>
+                </div>
+                <div class="telegram-stat">
+                    <span class="stat-value">${Math.max(...TELEGRAM_VIDEOS.map(v => v.points))}</span>
+                    <span class="stat-label">Max Points</span>
+                </div>
+                <div class="telegram-stat">
+                    <span class="stat-value">${watchedTelegramVideoIds.length}</span>
+                    <span class="stat-label">Watched</span>
+                </div>
+            </div>
+            
+            <div id="telegramResultsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading Telegram videos...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    showAllTelegramVideos();
+}
+
+// Show All Telegram Videos
+function showAllTelegramVideos() {
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    displayTelegramVideos(TELEGRAM_VIDEOS, 'All Telegram Videos');
+}
+
+// Show Telegram Ads
+function showTelegramAds() {
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    const ads = TELEGRAM_VIDEOS.filter(video => video.type === 'ad');
+    displayTelegramVideos(ads, 'Telegram Ads');
+}
+
+// Show Telegram Videos
+function showTelegramVideos() {
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    const videos = TELEGRAM_VIDEOS.filter(video => video.type === 'video');
+    displayTelegramVideos(videos, 'Telegram Videos');
+}
+
+// Show Trending Telegram
+function showTrendingTelegram() {
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    const trending = [...TELEGRAM_VIDEOS].sort((a, b) => b.points - a.points).slice(0, 4);
+    displayTelegramVideos(trending, 'Trending on Telegram');
+}
+
+// Search Telegram Videos
+function searchTelegramVideos() {
+    const query = document.getElementById('telegramSearchInput').value.trim() || 'trending';
+    const container = document.getElementById('telegramResultsContainer');
+    
+    container.innerHTML = `
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Searching Telegram for "${query}"...</p>
+        </div>
+    `;
+
+    setTimeout(() => {
+        const filteredVideos = TELEGRAM_VIDEOS.filter(video => 
+            video.title.toLowerCase().includes(query.toLowerCase()) ||
+            video.channel.toLowerCase().includes(query.toLowerCase()) ||
+            video.category.toLowerCase().includes(query.toLowerCase())
+        );
+        
+        displayTelegramVideos(filteredVideos.length > 0 ? filteredVideos : TELEGRAM_VIDEOS, `Results for "${query}"`);
+    }, 1500);
+}
+
+// Display Telegram Videos
+function displayTelegramVideos(videos, title) {
+    const container = document.getElementById('telegramResultsContainer');
+    
+    let html = `
+        <div class="section-title">
+            <h3>📱 ${title}</h3>
+            <p class="section-subtitle">${videos.length} videos found • Earn up to ${Math.max(...videos.map(v => v.points))} points each</p>
+        </div>
+        <div class="telegram-videos-grid">
+    `;
+    
+    videos.forEach((video) => {
+        const isWatched = watchedTelegramVideoIds.includes(video.id);
+        
+        html += `
+            <div class="telegram-video-card" onclick="selectTelegramVideo('${video.id}', ${video.points}, '${video.title.replace(/'/g, "\\'")}', '${video.channel.replace(/'/g, "\\'")}', '${video.type}')">
+                <div class="telegram-thumbnail">
+                    <img src="${video.thumbnail}" alt="${video.title}">
+                    <div class="telegram-points-badge">+${video.points} pts</div>
+                    <div class="telegram-type-badge ${video.type}">${video.type === 'ad' ? '📢 Ad' : '🎥 Video'}</div>
+                    <div class="telegram-duration">${video.duration}</div>
+                </div>
+                <div class="telegram-video-details">
+                    <h4 class="telegram-video-title">${video.title}</h4>
+                    <div class="telegram-video-meta">
+                        <span class="telegram-channel">${video.channel}</span>
+                        <span class="telegram-category">#${video.category}</span>
+                    </div>
+                    <div class="telegram-video-meta">
+                        <span class="telegram-views">👁️ ${video.views}</span>
+                        ${isWatched ? 
+                            '<span class="telegram-watch watched">✅ Earned</span>' : 
+                            '<span class="telegram-watch">▶️ Watch & Earn</span>'
+                        }
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// Select Telegram Video for Earning
+function selectTelegramVideo(videoId, points, title, channel, type) {
+    if (watchedTelegramVideoIds.includes(videoId)) {
+        showNotification('❌ You have already earned points for this video!', 'warning');
+        return;
+    }
+    
+    currentVideoId = videoId;
+    currentPoints = points;
+    currentTitle = title;
+    
+    const videoData = TELEGRAM_VIDEOS.find(v => v.id === videoId);
+    
+    document.getElementById('appContent').innerHTML = `
+        <div class="video-player-section">
+            <div class="section-header">
+                <button onclick="showTelegramSection()" class="back-btn">← Back to Telegram</button>
+                <h3>🎯 Earn Points</h3>
+            </div>
+            
+            <div class="telegram-player-container">
+                <div class="telegram-player-header">
+                    <div class="telegram-channel-info">
+                        <div class="channel-avatar">${type === 'ad' ? '📢' : '🎥'}</div>
+                        <div class="channel-details">
+                            <div class="channel-name">${channel}</div>
+                            <div class="channel-status">${type === 'ad' ? 'Sponsored Content' : 'Telegram Channel'}</div>
+                        </div>
+                    </div>
+                    <div class="telegram-options">⋯</div>
+                </div>
+                
+                <div class="telegram-video-placeholder">
+                    <div class="telegram-logo">📱</div>
+                    <h3>Telegram ${type === 'ad' ? 'Advertisement' : 'Video'}</h3>
+                    <p>"${title}"</p>
+                    <div class="telegram-stats">
+                        <span>⏱️ ${videoData.duration}</span>
+                        <span>👁️ ${videoData.views}</span>
+                        <span>💰 +${points} points</span>
+                    </div>
+                    <div class="telegram-simulation">
+                        <div class="simulation-progress"></div>
+                        <div class="telegram-message">
+                            <div class="message-bubble">Watch this ${type} to earn ${points} points!</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="telegram-player-actions">
+                    <div class="telegram-action-btn">❤️</div>
+                    <div class="telegram-action-btn">💬</div>
+                    <div class="telegram-action-btn">🔄</div>
+                    <div class="telegram-action-btn">📤</div>
+                </div>
+            </div>
+            
+            <div class="video-timer telegram-timer">
+                <p>⏰ <strong>Watch for 1 minute to earn ${points} points</strong></p>
+                <p class="timer-note">Don't close this page - points awarded automatically</p>
+            </div>
+            
+            <div class="tracking-section">
+                <div class="tracking-status">
+                    <div class="status-indicator" id="statusIndicator"></div>
+                    <div class="status-text" id="statusText">
+                        🎯 Ready to earn ${points} points
+                    </div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">
+                        Waiting for video completion...
+                    </div>
+                </div>
+                
+                <div class="tracking-controls">
+                    <button onclick="cancelVideoEarning()" class="cancel-btn">
+                        ❌ Cancel Earning
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    startVideoTracking();
+}
+
 // Search YouTube Videos
 async function searchYouTubeVideos() {
     const query = document.getElementById('youtubeSearchInput').value.trim() || 'trending shorts';
@@ -811,6 +1127,7 @@ function updateVideoTrackingProgress(current, max) {
 // Complete Video Earning
 function completeVideoEarning() {
     const isInstagram = watchedInstagramVideoIds.includes(currentVideoId) || REAL_INSTAGRAM_VIDEOS.some(v => v.id === currentVideoId);
+    const isTelegram = watchedTelegramVideoIds.includes(currentVideoId) || TELEGRAM_VIDEOS.some(v => v.id === currentVideoId);
     
     if (isInstagram) {
         // Instagram video
@@ -819,6 +1136,13 @@ function completeVideoEarning() {
             localStorage.setItem('watchedInstagramVideos', JSON.stringify(watchedInstagramVideoIds));
         }
         addTransaction('instagram', currentPoints, 'Instagram: ' + currentTitle.substring(0, 20) + '...', '📷');
+    } else if (isTelegram) {
+        // Telegram video
+        if (currentVideoId && !watchedTelegramVideoIds.includes(currentVideoId)) {
+            watchedTelegramVideoIds.push(currentVideoId);
+            localStorage.setItem('watchedTelegramVideos', JSON.stringify(watchedTelegramVideoIds));
+        }
+        addTransaction('telegram', currentPoints, 'Telegram: ' + currentTitle.substring(0, 20) + '...', '📱');
     } else {
         // YouTube video
         if (currentVideoId && !watchedVideoIds.includes(currentVideoId)) {
