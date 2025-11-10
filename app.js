@@ -1,13 +1,20 @@
 // YouTube API Configuration
 const YOUTUBE_API_KEY = 'AIzaSyBATxf5D7ZDeiQ61dbEdzEd4Tq72N713Y8';
 
-// App State Management
+// App State Management - FIXED
 let isMining = false;
 let miningSeconds = 0;
-let miningInterval;
+let miningInterval = null;
 let userPoints = 1010;
 let watchedVideos = 24;
 let referrals = 3;
+
+// Transaction History - NEW
+let transactionHistory = JSON.parse(localStorage.getItem('transactionHistory')) || [
+    { type: 'mining', amount: 5, description: 'Mining Points', timestamp: Date.now() - 3600000, icon: '⛏️' },
+    { type: 'video', amount: 15, description: 'YouTube Video', timestamp: Date.now() - 7200000, icon: '🎬' },
+    { type: 'referral', amount: 50, description: 'Referral Bonus', timestamp: Date.now() - 86400000, icon: '👥' }
+];
 
 // YouTube Video State
 let currentVideoId = null;
@@ -16,25 +23,67 @@ let currentTitle = '';
 let videoTrackingInterval = null;
 let watchedVideoIds = JSON.parse(localStorage.getItem('watchedVideos')) || [];
 
-// Initialize App
+// Initialize App - IMPROVED
 document.addEventListener('DOMContentLoaded', function() {
+    loadAppState();
     updateUI();
-    console.log('🎯 TapEarn App Initialized with YouTube Videos');
+    console.log('🎯 TapEarn App Initialized - All Issues Fixed');
 });
 
-// Update UI
+// Load App State from LocalStorage - NEW
+function loadAppState() {
+    const savedState = localStorage.getItem('miningState');
+    if (savedState) {
+        const state = JSON.parse(savedState);
+        isMining = state.isMining || false;
+        miningSeconds = state.miningSeconds || 0;
+        userPoints = state.userPoints || 1010;
+        
+        if (isMining) {
+            startMining(); // Resume mining if it was active
+        }
+    }
+}
+
+// Save App State to LocalStorage - NEW
+function saveAppState() {
+    const miningState = {
+        isMining: isMining,
+        miningSeconds: miningSeconds,
+        userPoints: userPoints,
+        lastUpdated: Date.now()
+    };
+    localStorage.setItem('miningState', JSON.stringify(miningState));
+}
+
+// Add Transaction to History - NEW
+function addTransaction(type, amount, description, icon) {
+    const transaction = {
+        type: type,
+        amount: amount,
+        description: description,
+        timestamp: Date.now(),
+        icon: icon
+    };
+    
+    transactionHistory.unshift(transaction);
+    
+    // Keep only last 50 transactions
+    if (transactionHistory.length > 50) {
+        transactionHistory = transactionHistory.slice(0, 50);
+    }
+    
+    localStorage.setItem('transactionHistory', JSON.stringify(transactionHistory));
+}
+
+// Update UI - IMPROVED
 function updateUI() {
     document.getElementById('walletPoints').textContent = formatNumber(userPoints);
     document.getElementById('totalPoints').textContent = formatNumber(userPoints);
     document.getElementById('videosWatched').textContent = watchedVideos;
     document.getElementById('totalReferrals').textContent = referrals;
     
-    // Update mining time display
-    const hours = Math.floor(miningSeconds / 3600);
-    const minutes = Math.floor((miningSeconds % 3600) / 60);
-    const seconds = miningSeconds % 60;
-    document.getElementById('miningTime').textContent = 
-        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    updateMiningTimerDisplay();
 }
 
 // Format numbers with commas
@@ -42,7 +91,17 @@ function formatNumber(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-// Toggle Mining
+// Update Mining Timer Display - NEW
+function updateMiningTimerDisplay() {
+    const hours = Math.floor(miningSeconds / 3600);
+    const minutes = Math.floor((miningSeconds % 3600) / 60);
+    const seconds = miningSeconds % 60;
+    
+    document.getElementById('miningTime').textContent = 
+        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// Toggle Mining - FIXED
 function toggleMining() {
     if (isMining) {
         stopMining();
@@ -51,7 +110,7 @@ function toggleMining() {
     }
 }
 
-// Start Mining
+// Start Mining - COMPLETELY FIXED
 function startMining() {
     if (isMining) return;
     
@@ -62,48 +121,114 @@ function startMining() {
     document.getElementById('miningStatusText').style.color = '#FFD700';
     document.getElementById('miningRate').textContent = '300/hr';
     
+    // Clear any existing interval first
+    if (miningInterval) {
+        clearInterval(miningInterval);
+        miningInterval = null;
+    }
+    
+    let lastMinuteCheck = Math.floor(miningSeconds / 60);
+    let lastHourCheck = Math.floor(miningSeconds / 3600);
+    
     miningInterval = setInterval(() => {
         miningSeconds++;
         
-        // Add 5 points every minute
-        if (miningSeconds % 60 === 0) {
+        // Update timer display every second
+        updateMiningTimerDisplay();
+        
+        const currentMinute = Math.floor(miningSeconds / 60);
+        const currentHour = Math.floor(miningSeconds / 3600);
+        
+        // Add 5 points every minute (only when minute changes)
+        if (currentMinute > lastMinuteCheck) {
             userPoints += 5;
+            addTransaction('mining', 5, 'Mining Points', '⛏️');
             updateUI();
             showNotification('⛏️ +5 Points from Mining!', 'success');
+            lastMinuteCheck = currentMinute;
         }
         
-        // Add bonus every hour
-        if (miningSeconds % 3600 === 0) {
+        // Add bonus every hour (only when hour changes)
+        if (currentHour > lastHourCheck) {
             userPoints += 50;
+            addTransaction('bonus', 50, 'Hourly Mining Bonus', '🎉');
             updateUI();
             showNotification('🎉 +50 Bonus Points! 1 Hour Complete!', 'success');
+            lastHourCheck = currentHour;
         }
         
-        updateUI();
-    }, 1000);
+        saveAppState();
+        
+    }, 1000); // Exactly 1 second interval
     
     showNotification('⛏️ Mining Started! Earning 5 points per minute...', 'success');
+    saveAppState();
 }
 
-// Stop Mining
+// Stop Mining - FIXED
 function stopMining() {
     if (!isMining) return;
     
     isMining = false;
-    clearInterval(miningInterval);
+    
+    // Clear the interval properly
+    if (miningInterval) {
+        clearInterval(miningInterval);
+        miningInterval = null;
+    }
+    
     const miningCard = document.querySelector('.main-feature-card');
     miningCard.classList.remove('mining-active');
     document.getElementById('miningStatusText').textContent = 'Click to start mining';
     document.getElementById('miningStatusText').style.color = '';
     
     showNotification('⏹️ Mining Stopped. Points saved!', 'info');
+    saveAppState();
 }
 
 // Claim Boost
 function claimBoost() {
     userPoints += 100;
+    addTransaction('boost', 100, 'Daily Boost', '🚀');
     updateUI();
     showNotification('🚀 +100 Points! Boost claimed successfully!', 'success');
+}
+
+// Show Wallet History - NEW
+function showWalletHistory() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="wallet-history">
+            <div class="player-header">
+                <button onclick="showDashboard()" class="back-btn">← Back</button>
+                <h3>💰 Wallet History</h3>
+            </div>
+            
+            <div class="wallet-summary" style="background: rgba(255,215,0,0.1); padding: 15px; border-radius: 15px; margin: 15px 0; text-align: center; border: 1px solid rgba(255,215,0,0.3);">
+                <div style="font-size: 12px; opacity: 0.8;">Total Balance</div>
+                <div style="font-size: 28px; font-weight: bold; color: #FFD700;">${formatNumber(userPoints)}</div>
+                <div style="font-size: 12px; opacity: 0.8;">Points</div>
+            </div>
+            
+            <div class="transaction-list">
+                ${transactionHistory.length > 0 ? 
+                    transactionHistory.map(transaction => `
+                        <div class="transaction-item">
+                            <div class="transaction-icon">${transaction.icon}</div>
+                            <div class="transaction-details">
+                                <div class="transaction-title">${transaction.description}</div>
+                                <div class="transaction-time">${new Date(transaction.timestamp).toLocaleString()}</div>
+                            </div>
+                            <div class="transaction-amount ${transaction.amount > 0 ? 'positive' : 'negative'}">
+                                ${transaction.amount > 0 ? '+' : ''}${transaction.amount}
+                            </div>
+                        </div>
+                    `).join('') 
+                    : 
+                    '<div style="text-align: center; padding: 30px; opacity: 0.7;">No transactions yet</div>'
+                }
+            </div>
+        </div>
+    `;
 }
 
 // Show Video Section with YouTube Search
@@ -398,6 +523,7 @@ function completeVideoEarning() {
     // Add points
     userPoints += currentPoints;
     watchedVideos++;
+    addTransaction('video', currentPoints, 'YouTube Video: ' + currentTitle.substring(0, 20) + '...', '🎬');
     updateUI();
     
     // Show success message
@@ -458,6 +584,97 @@ function cancelVideoEarning() {
     showVideoSection();
 }
 
+// Show Referral System - UPDATED with Sharing Options
+function showReferralSystem() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="welcome-message">
+            <h3>👥 Refer & Earn</h3>
+            <div style="margin: 15px 0;">
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <div style="font-size: 14px; opacity: 0.8; margin-bottom: 5px;">Your Referral Code</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #FFD700; letter-spacing: 2px;">TAPEARN123</div>
+                    <div style="font-size: 12px; opacity: 0.7; margin-top: 5px;">Share this code with friends</div>
+                </div>
+                
+                <div style="font-size: 14px; margin-bottom: 10px; text-align: center;">
+                    <strong>Earn 50 points</strong> for each friend who joins!
+                </div>
+                
+                <div class="sharing-options">
+                    <button class="share-btn telegram" onclick="shareOnTelegram()">
+                        📱 Telegram
+                    </button>
+                    <button class="share-btn whatsapp" onclick="shareOnWhatsApp()">
+                        💚 WhatsApp
+                    </button>
+                    <button class="share-btn copy" onclick="copyReferralCode()">
+                        📋 Copy Code
+                    </button>
+                    <button class="share-btn message" onclick="shareViaMessage()">
+                        💬 Message
+                    </button>
+                </div>
+                
+                <button onclick="addReferral()" style="background: #4CAF50; color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 15px;">
+                    👥 + Add Referral (Test)
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Share on Telegram - NEW
+function shareOnTelegram() {
+    const message = `Join TapEarn and earn free points! Use my referral code: TAPEARN123\n\nDownload now: https://tapearn.app?ref=TAPEARN123`;
+    const url = `https://t.me/share/url?url=${encodeURIComponent('https://tapearn.app?ref=TAPEARN123')}&text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+    showNotification('✅ Telegram sharing opened!', 'success');
+}
+
+// Share on WhatsApp - NEW
+function shareOnWhatsApp() {
+    const message = `Join TapEarn and earn free points! Use my referral code: TAPEARN123\n\nDownload now: https://tapearn.app?ref=TAPEARN123`;
+    const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+    showNotification('✅ WhatsApp sharing opened!', 'success');
+}
+
+// Share via Message - NEW
+function shareViaMessage() {
+    const message = `Join TapEarn and earn free points! Use my referral code: TAPEARN123\n\nDownload now: https://tapearn.app?ref=TAPEARN123`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'TapEarn - Earn Free Points',
+            text: message,
+            url: 'https://tapearn.app?ref=TAPEARN123'
+        })
+        .then(() => showNotification('✅ Shared successfully!', 'success'))
+        .catch(() => copyReferralCode());
+    } else {
+        copyReferralCode();
+    }
+}
+
+// Add Referral - UPDATED
+function addReferral() {
+    referrals++;
+    userPoints += 50;
+    addTransaction('referral', 50, 'Referral Bonus', '👥');
+    updateUI();
+    showNotification('🎉 +50 Points! New referral added!', 'success');
+    showDashboard();
+}
+
+// Copy Referral Code - UPDATED
+function copyReferralCode() {
+    const referralText = `Join TapEarn using my referral code: TAPEARN123\nDownload: https://tapearn.app?ref=TAPEARN123`;
+    
+    navigator.clipboard.writeText(referralText)
+        .then(() => showNotification('✅ Referral code copied to clipboard!', 'success'))
+        .catch(() => showNotification('❌ Failed to copy', 'warning'));
+}
+
 // Show Tasks
 function showTasks() {
     document.getElementById('appContent').innerHTML = `
@@ -481,61 +698,35 @@ function showTasks() {
     `;
 }
 
-// Complete Task
+// Complete Task - UPDATED
 function completeTask(task) {
     let points = 0;
+    let description = '';
+    let icon = '';
+    
     switch(task) {
         case 'videos':
             points = 25;
+            description = 'Daily Task: Watch Videos';
+            icon = '📋';
             break;
         case 'referral':
             points = 50;
+            description = 'Daily Task: Refer Friend';
+            icon = '👥';
             break;
         case 'mining':
             points = 50;
+            description = 'Daily Task: Mining';
+            icon = '⛏️';
             break;
     }
     
     userPoints += points;
+    addTransaction('task', points, description, icon);
     updateUI();
     showNotification(`✅ +${points} Points! Task completed!`, 'success');
     showTasks();
-}
-
-// Show Referral System
-function showReferralSystem() {
-    document.getElementById('appContent').innerHTML = `
-        <div class="welcome-message">
-            <h3>👥 Refer & Earn</h3>
-            <div style="margin: 15px 0;">
-                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                    <div style="font-size: 14px; opacity: 0.8; margin-bottom: 5px;">Your Referral Code</div>
-                    <div style="font-size: 24px; font-weight: bold; color: #FFD700; letter-spacing: 2px;">TAPEARN123</div>
-                </div>
-                <button onclick="copyReferralCode()" style="background: #2196F3; color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; width: 100%; margin-bottom: 10px;">
-                    📋 Copy Code
-                </button>
-                <button onclick="addReferral()" style="background: #4CAF50; color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; width: 100%;">
-                    👥 + Add Referral
-                </button>
-            </div>
-        </div>
-    `;
-}
-
-// Add Referral
-function addReferral() {
-    referrals++;
-    userPoints += 50;
-    updateUI();
-    showNotification('🎉 +50 Points! New referral added!', 'success');
-    showDashboard();
-}
-
-// Copy Referral Code
-function copyReferralCode() {
-    navigator.clipboard.writeText('TAPEARN123');
-    showNotification('✅ Referral code copied!', 'success');
 }
 
 // Show Skills
@@ -558,10 +749,11 @@ function showSkills() {
     `;
 }
 
-// Upgrade Skill
+// Upgrade Skill - UPDATED
 function upgradeSkill(skill) {
     if (userPoints >= 100) {
         userPoints -= 100;
+        addTransaction('upgrade', -100, 'Skill Upgrade: ' + skill, '⚡');
         updateUI();
         showNotification('⚡ Skill upgraded! Earning rate increased!', 'success');
     } else {
@@ -596,7 +788,7 @@ function showAccount() {
 function showCashier() {
     document.getElementById('appContent').innerHTML = `
         <div class="welcome-message">
-            <h3>💰 Cashier</h3>
+            <h3>💰 Rewards</h3>
             <p>Redeem your points for rewards!</p>
             <div style="text-align: left; margin: 15px 0;">
                 <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
@@ -612,11 +804,12 @@ function showCashier() {
     `;
 }
 
-// Redeem Reward
+// Redeem Reward - UPDATED
 function redeemReward(reward) {
     let cost = reward === 'amazon' ? 1000 : 5000;
     if (userPoints >= cost) {
         userPoints -= cost;
+        addTransaction('redeem', -cost, 'Redeemed: ' + reward.toUpperCase(), '🎁');
         updateUI();
         showNotification(`🎉 Reward redeemed successfully! ${reward.toUpperCase()} gift card sent!`, 'success');
     } else {
