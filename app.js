@@ -35,6 +35,12 @@ let watchedXVideoIds = JSON.parse(localStorage.getItem('watchedXVideos')) || [];
 let likedXTweetIds = JSON.parse(localStorage.getItem('likedXTweets')) || [];
 let retweetedXTweetIds = JSON.parse(localStorage.getItem('retweetedXTweets')) || [];
 
+// Follow State
+let followedInstagramAccounts = JSON.parse(localStorage.getItem('followedInstagramAccounts')) || [];
+let followedXAccounts = JSON.parse(localStorage.getItem('followedXAccounts')) || [];
+let followedTelegramChannels = JSON.parse(localStorage.getItem('followedTelegramChannels')) || [];
+let subscribedYouTubeChannels = JSON.parse(localStorage.getItem('subscribedYouTubeChannels')) || [];
+
 // Real Instagram Videos Data
 const REAL_INSTAGRAM_VIDEOS = [
     {
@@ -309,6 +315,150 @@ const X_CONTENT = [
     }
 ];
 
+// Follow Tasks Data
+const FOLLOW_TASKS = {
+    instagram: [
+        {
+            id: 'instagram_follow_1',
+            username: 'fashion.ista',
+            name: 'Fashion World',
+            points: 25,
+            followers: '2.5M',
+            avatar: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=150&h=150&fit=crop'
+        },
+        {
+            id: 'instagram_follow_2',
+            username: 'travel.diaries',
+            name: 'Travel Diaries',
+            points: 30,
+            followers: '1.8M',
+            avatar: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=150&h=150&fit=crop'
+        },
+        {
+            id: 'instagram_follow_3',
+            username: 'foodie.heaven',
+            name: 'Foodie Heaven',
+            points: 20,
+            followers: '3.2M',
+            avatar: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=150&h=150&fit=crop'
+        },
+        {
+            id: 'instagram_follow_4',
+            username: 'fitness.motivation',
+            name: 'Fitness Motivation',
+            points: 35,
+            followers: '4.1M',
+            avatar: 'https://images.unsplash.com/photo-1534368270820-9de3d8053205?w=150&h=150&fit=crop'
+        }
+    ],
+    x: [
+        {
+            id: 'x_follow_1',
+            username: 'TechNews',
+            handle: '@TechUpdate',
+            points: 25,
+            followers: '2.1M',
+            avatar: 'https://images.unsplash.com/photo-1611605698335-8b1569810432?w=150&h=150&fit=crop',
+            description: 'Latest tech news and updates'
+        },
+        {
+            id: 'x_follow_2',
+            username: 'Crypto Expert',
+            handle: '@CryptoGuru',
+            points: 30,
+            followers: '1.5M',
+            avatar: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=150&h=150&fit=crop',
+            description: 'Crypto market analysis and signals'
+        },
+        {
+            id: 'x_follow_3',
+            username: 'SpaceX',
+            handle: '@SpaceX',
+            points: 40,
+            followers: '28.5M',
+            avatar: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=150&h=150&fit=crop',
+            description: 'Space exploration company'
+        },
+        {
+            id: 'x_follow_4',
+            username: 'Movie Updates',
+            handle: '@FilmNews',
+            points: 20,
+            followers: '3.8M',
+            avatar: 'https://images.unsplash.com/photo-1489599804158-8b3bf6d1a4ea?w=150&h=150&fit=crop',
+            description: 'Latest movie news and reviews'
+        }
+    ],
+    telegram: [
+        {
+            id: 'telegram_follow_1',
+            channel: 'Crypto Signals Pro',
+            points: 50,
+            members: '125K',
+            avatar: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=150&h=150&fit=crop',
+            description: 'Premium crypto trading signals'
+        },
+        {
+            id: 'telegram_follow_2',
+            channel: 'Forex Masters',
+            points: 45,
+            members: '89K',
+            avatar: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=150&h=150&fit=crop',
+            description: 'Forex trading education and signals'
+        },
+        {
+            id: 'telegram_follow_3',
+            channel: 'Tech Updates',
+            points: 35,
+            members: '210K',
+            avatar: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=150&h=150&fit=crop',
+            description: 'Latest technology news and updates'
+        },
+        {
+            id: 'telegram_follow_4',
+            channel: 'Gaming Community',
+            points: 30,
+            members: '156K',
+            avatar: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=150&h=150&fit=crop',
+            description: 'Gaming news and community'
+        }
+    ],
+    youtube: [
+        {
+            id: 'youtube_follow_1',
+            channel: 'Tech Review Channel',
+            points: 40,
+            subscribers: '2.5M',
+            avatar: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=150&h=150&fit=crop',
+            description: 'Tech product reviews and unboxing'
+        },
+        {
+            id: 'youtube_follow_2',
+            channel: 'Cooking Master',
+            points: 35,
+            subscribers: '3.8M',
+            avatar: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=150&h=150&fit=crop',
+            description: 'Easy cooking recipes and tutorials'
+        },
+        {
+            id: 'youtube_follow_3',
+            channel: 'Fitness Guru',
+            points: 45,
+            subscribers: '1.9M',
+            avatar: 'https://images.unsplash.com/photo-1534368270820-9de3d8053205?w=150&h=150&fit=crop',
+            description: 'Workout routines and fitness tips'
+        },
+        {
+            id: 'youtube_follow_4',
+            channel: 'Travel Vlogs',
+            points: 30,
+            subscribers: '2.2M',
+            avatar: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=150&h=150&fit=crop',
+            description: 'Travel adventures and guides'
+        }
+    ]
+};
+
 // Initialize App
 document.addEventListener('DOMContentLoaded', function() {
     loadAppState();
@@ -574,6 +724,7 @@ function showInstagramTab() {
             <div class="instagram-categories">
                 <button class="category-btn active" onclick="showInstagramReels()">🎬 Reels</button>
                 <button class="category-btn" onclick="showInstagramStories()">📖 Stories</button>
+                <button class="category-btn" onclick="showInstagramFollow()">👤 Follow</button>
                 <button class="category-btn" onclick="showTrendingInstagram()">🔥 Trending</button>
             </div>
             
@@ -609,6 +760,71 @@ function showInstagramStories() {
     
     const stories = REAL_INSTAGRAM_VIDEOS.filter(video => video.type === 'story');
     displayInstagramVideos(stories, 'Instagram Stories');
+}
+
+// Show Instagram Follow
+function showInstagramFollow() {
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    displayInstagramFollowAccounts();
+}
+
+// Display Instagram Follow Accounts
+function displayInstagramFollowAccounts() {
+    const container = document.getElementById('instagramResultsContainer');
+    
+    let html = `
+        <div class="section-title">
+            <h3>👤 Instagram Follow</h3>
+            <p class="section-subtitle">Follow accounts and earn points</p>
+        </div>
+        <div class="follow-accounts-grid">
+    `;
+    
+    FOLLOW_TASKS.instagram.forEach(account => {
+        const isFollowed = followedInstagramAccounts.includes(account.id);
+        
+        html += `
+            <div class="follow-account-card">
+                <div class="account-avatar">
+                    <img src="${account.avatar}" alt="${account.username}">
+                </div>
+                <div class="account-details">
+                    <h4 class="account-name">${account.name}</h4>
+                    <p class="account-username">@${account.username}</p>
+                    <p class="account-followers">${account.followers} followers</p>
+                </div>
+                <div class="account-actions">
+                    ${isFollowed ? 
+                        '<span class="follow-btn followed">✅ Followed</span>' : 
+                        `<button class="follow-btn" onclick="followInstagramAccount('${account.id}', ${account.points}, '${account.username}')">Follow +${account.points}</button>`
+                    }
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// Follow Instagram Account
+function followInstagramAccount(accountId, points, username) {
+    if (followedInstagramAccounts.includes(accountId)) {
+        showNotification('❌ You have already followed this account!', 'warning');
+        return;
+    }
+    
+    userPoints += points;
+    followedInstagramAccounts.push(accountId);
+    localStorage.setItem('followedInstagramAccounts', JSON.stringify(followedInstagramAccounts));
+    addTransaction('instagram_follow', points, 'Instagram Follow: ' + username, '👤');
+    updateUI();
+    showNotification(`✅ +${points} Points! You followed @${username}`, 'success');
+    
+    // Refresh the Instagram follow section to update the UI
+    showInstagramFollow();
 }
 
 // Show Trending Instagram
@@ -687,6 +903,250 @@ function displayInstagramVideos(videos, title) {
     container.innerHTML = html;
 }
 
+// Show Follow Section
+function showFollowSection() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="follow-section">
+            <div class="section-header">
+                <button onclick="showDashboard()" class="back-btn">← Back</button>
+                <h3>👥 Follow & Earn</h3>
+            </div>
+            
+            <div class="follow-platform-tabs">
+                <button class="platform-tab active" onclick="showAllFollowTasks()">All</button>
+                <button class="platform-tab" onclick="showInstagramFollowTasks()">📷 Instagram</button>
+                <button class="platform-tab" onclick="showXFollowTasks()">🐦 X</button>
+                <button class="platform-tab" onclick="showTelegramFollowTasks()">📱 Telegram</button>
+                <button class="platform-tab" onclick="showYouTubeFollowTasks()">🎬 YouTube</button>
+            </div>
+            
+            <div class="follow-stats">
+                <div class="follow-stat">
+                    <span class="stat-value">${Object.values(FOLLOW_TASKS).flat().length}</span>
+                    <span class="stat-label">Total Tasks</span>
+                </div>
+                <div class="follow-stat">
+                    <span class="stat-value">${Math.max(...Object.values(FOLLOW_TASKS).flat().map(v => v.points))}</span>
+                    <span class="stat-label">Max Points</span>
+                </div>
+                <div class="follow-stat">
+                    <span class="stat-value">${followedInstagramAccounts.length + followedXAccounts.length + followedTelegramChannels.length + subscribedYouTubeChannels.length}</span>
+                    <span class="stat-label">Completed</span>
+                </div>
+            </div>
+            
+            <div id="followResultsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading follow tasks...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    showAllFollowTasks();
+}
+
+// Show All Follow Tasks
+function showAllFollowTasks() {
+    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    const allTasks = [
+        ...FOLLOW_TASKS.instagram.map(task => ({...task, platform: 'instagram'})),
+        ...FOLLOW_TASKS.x.map(task => ({...task, platform: 'x'})),
+        ...FOLLOW_TASKS.telegram.map(task => ({...task, platform: 'telegram'})),
+        ...FOLLOW_TASKS.youtube.map(task => ({...task, platform: 'youtube'}))
+    ];
+    
+    displayFollowTasks(allTasks, 'All Follow Tasks');
+}
+
+// Show Instagram Follow Tasks
+function showInstagramFollowTasks() {
+    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    const tasks = FOLLOW_TASKS.instagram.map(task => ({...task, platform: 'instagram'}));
+    displayFollowTasks(tasks, 'Instagram Follow');
+}
+
+// Show X Follow Tasks
+function showXFollowTasks() {
+    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    const tasks = FOLLOW_TASKS.x.map(task => ({...task, platform: 'x'}));
+    displayFollowTasks(tasks, 'X Follow');
+}
+
+// Show Telegram Follow Tasks
+function showTelegramFollowTasks() {
+    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    const tasks = FOLLOW_TASKS.telegram.map(task => ({...task, platform: 'telegram'}));
+    displayFollowTasks(tasks, 'Telegram Join');
+}
+
+// Show YouTube Follow Tasks
+function showYouTubeFollowTasks() {
+    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    const tasks = FOLLOW_TASKS.youtube.map(task => ({...task, platform: 'youtube'}));
+    displayFollowTasks(tasks, 'YouTube Subscribe');
+}
+
+// Display Follow Tasks
+function displayFollowTasks(tasks, title) {
+    const container = document.getElementById('followResultsContainer');
+    
+    let html = `
+        <div class="section-title">
+            <h3>👥 ${title}</h3>
+            <p class="section-subtitle">${tasks.length} tasks found • Earn up to ${Math.max(...tasks.map(v => v.points))} points each</p>
+        </div>
+        <div class="follow-tasks-grid">
+    `;
+    
+    tasks.forEach((task) => {
+        let isCompleted = false;
+        let platformIcon = '';
+        let actionText = '';
+        
+        switch(task.platform) {
+            case 'instagram':
+                isCompleted = followedInstagramAccounts.includes(task.id);
+                platformIcon = '📷';
+                actionText = 'Follow';
+                break;
+            case 'x':
+                isCompleted = followedXAccounts.includes(task.id);
+                platformIcon = '🐦';
+                actionText = 'Follow';
+                break;
+            case 'telegram':
+                isCompleted = followedTelegramChannels.includes(task.id);
+                platformIcon = '📱';
+                actionText = 'Join';
+                break;
+            case 'youtube':
+                isCompleted = subscribedYouTubeChannels.includes(task.id);
+                platformIcon = '🎬';
+                actionText = 'Subscribe';
+                break;
+        }
+        
+        html += `
+            <div class="follow-task-card ${task.platform}">
+                <div class="follow-task-header">
+                    <div class="platform-icon">${platformIcon}</div>
+                    <div class="task-platform">${task.platform.charAt(0).toUpperCase() + task.platform.slice(1)}</div>
+                    <div class="task-points">+${task.points}</div>
+                </div>
+                
+                <div class="follow-task-content">
+                    <div class="task-avatar">
+                        <img src="${task.avatar}" alt="${task.name || task.channel || task.username}">
+                    </div>
+                    <div class="task-details">
+                        <h4 class="task-name">${task.name || task.channel || task.username}</h4>
+                        <p class="task-handle">${task.handle || task.username || `@${task.channel?.toLowerCase().replace(/\s+/g, '')}`}</p>
+                        <p class="task-description">${task.description || `${task.followers || task.members || task.subscribers} ${task.platform === 'telegram' ? 'members' : task.platform === 'youtube' ? 'subscribers' : 'followers'}`}</p>
+                    </div>
+                </div>
+                
+                <div class="follow-task-actions">
+                    ${isCompleted ? 
+                        '<span class="follow-task-completed">✅ Completed</span>' : 
+                        `<button class="follow-task-btn" onclick="completeFollowTask('${task.platform}', '${task.id}', ${task.points}, '${task.name || task.channel || task.username}')">
+                            ${actionText} +${task.points}
+                        </button>`
+                    }
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// Complete Follow Task
+function completeFollowTask(platform, taskId, points, name) {
+    let isCompleted = false;
+    
+    switch(platform) {
+        case 'instagram':
+            if (followedInstagramAccounts.includes(taskId)) {
+                isCompleted = true;
+            } else {
+                followedInstagramAccounts.push(taskId);
+                localStorage.setItem('followedInstagramAccounts', JSON.stringify(followedInstagramAccounts));
+            }
+            break;
+        case 'x':
+            if (followedXAccounts.includes(taskId)) {
+                isCompleted = true;
+            } else {
+                followedXAccounts.push(taskId);
+                localStorage.setItem('followedXAccounts', JSON.stringify(followedXAccounts));
+            }
+            break;
+        case 'telegram':
+            if (followedTelegramChannels.includes(taskId)) {
+                isCompleted = true;
+            } else {
+                followedTelegramChannels.push(taskId);
+                localStorage.setItem('followedTelegramChannels', JSON.stringify(followedTelegramChannels));
+            }
+            break;
+        case 'youtube':
+            if (subscribedYouTubeChannels.includes(taskId)) {
+                isCompleted = true;
+            } else {
+                subscribedYouTubeChannels.push(taskId);
+                localStorage.setItem('subscribedYouTubeChannels', JSON.stringify(subscribedYouTubeChannels));
+            }
+            break;
+    }
+    
+    if (isCompleted) {
+        showNotification('❌ You have already completed this task!', 'warning');
+        return;
+    }
+    
+    userPoints += points;
+    let transactionType = '';
+    let icon = '';
+    
+    switch(platform) {
+        case 'instagram':
+            transactionType = 'instagram_follow';
+            icon = '📷';
+            break;
+        case 'x':
+            transactionType = 'x_follow';
+            icon = '🐦';
+            break;
+        case 'telegram':
+            transactionType = 'telegram_join';
+            icon = '📱';
+            break;
+        case 'youtube':
+            transactionType = 'youtube_subscribe';
+            icon = '🎬';
+            break;
+    }
+    
+    addTransaction(transactionType, points, `${platform.charAt(0).toUpperCase() + platform.slice(1)}: ${name}`, icon);
+    updateUI();
+    showNotification(`✅ +${points} Points! ${platform} task completed!`, 'success');
+    
+    // Refresh the follow section to update the UI
+    showFollowSection();
+}
+
 // Show Telegram Section
 function showTelegramSection() {
     document.getElementById('appContent').innerHTML = `
@@ -700,6 +1160,7 @@ function showTelegramSection() {
                 <button class="category-btn active" onclick="showAllTelegramVideos()">All Videos</button>
                 <button class="category-btn" onclick="showTelegramAds()">📢 Ads</button>
                 <button class="category-btn" onclick="showTelegramVideos()">🎥 Videos</button>
+                <button class="category-btn" onclick="showTelegramFollow()">👥 Join</button>
                 <button class="category-btn" onclick="showTrendingTelegram()">🔥 Trending</button>
             </div>
             
@@ -732,6 +1193,71 @@ function showTelegramSection() {
         </div>
     `;
     showAllTelegramVideos();
+}
+
+// Show Telegram Follow
+function showTelegramFollow() {
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    displayTelegramFollowChannels();
+}
+
+// Display Telegram Follow Channels
+function displayTelegramFollowChannels() {
+    const container = document.getElementById('telegramResultsContainer');
+    
+    let html = `
+        <div class="section-title">
+            <h3>👥 Telegram Join</h3>
+            <p class="section-subtitle">Join channels and earn points</p>
+        </div>
+        <div class="follow-channels-grid">
+    `;
+    
+    FOLLOW_TASKS.telegram.forEach(channel => {
+        const isJoined = followedTelegramChannels.includes(channel.id);
+        
+        html += `
+            <div class="follow-channel-card">
+                <div class="channel-avatar">
+                    <img src="${channel.avatar}" alt="${channel.channel}">
+                </div>
+                <div class="channel-details">
+                    <h4 class="channel-name">${channel.channel}</h4>
+                    <p class="channel-members">${channel.members} members</p>
+                    <p class="channel-description">${channel.description}</p>
+                </div>
+                <div class="channel-actions">
+                    ${isJoined ? 
+                        '<span class="join-btn joined">✅ Joined</span>' : 
+                        `<button class="join-btn" onclick="joinTelegramChannel('${channel.id}', ${channel.points}, '${channel.channel}')">Join +${channel.points}</button>`
+                    }
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// Join Telegram Channel
+function joinTelegramChannel(channelId, points, channelName) {
+    if (followedTelegramChannels.includes(channelId)) {
+        showNotification('❌ You have already joined this channel!', 'warning');
+        return;
+    }
+    
+    userPoints += points;
+    followedTelegramChannels.push(channelId);
+    localStorage.setItem('followedTelegramChannels', JSON.stringify(followedTelegramChannels));
+    addTransaction('telegram_join', points, 'Telegram Join: ' + channelName, '📱');
+    updateUI();
+    showNotification(`✅ +${points} Points! You joined ${channelName}`, 'success');
+    
+    // Refresh the Telegram follow section to update the UI
+    showTelegramFollow();
 }
 
 // Show All Telegram Videos
@@ -937,6 +1463,7 @@ function showXSection() {
                 <button class="category-btn active" onclick="showAllXContent()">All Content</button>
                 <button class="category-btn" onclick="showXVideos()">🎬 Videos</button>
                 <button class="category-btn" onclick="showXTweets()">💬 Tweets</button>
+                <button class="category-btn" onclick="showXFollow()">👤 Follow</button>
                 <button class="category-btn" onclick="showTrendingX()">🔥 Trending</button>
             </div>
             
@@ -955,7 +1482,7 @@ function showXSection() {
                     <span class="stat-label">Max Points</span>
                 </div>
                 <div class="x-stat">
-                    <span class="stat-value">${watchedXVideoIds.length + likedXTweetIds.length + retweetedXTweetIds.length}</span>
+                    <span class="stat-value">${watchedXVideoIds.length + likedXTweetIds.length + retweetedXTweetIds.length + followedXAccounts.length}</span>
                     <span class="stat-label">Completed</span>
                 </div>
             </div>
@@ -969,6 +1496,72 @@ function showXSection() {
         </div>
     `;
     showAllXContent();
+}
+
+// Show X Follow
+function showXFollow() {
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    displayXFollowAccounts();
+}
+
+// Display X Follow Accounts
+function displayXFollowAccounts() {
+    const container = document.getElementById('xResultsContainer');
+    
+    let html = `
+        <div class="section-title">
+            <h3>👤 X Follow</h3>
+            <p class="section-subtitle">Follow accounts and earn points</p>
+        </div>
+        <div class="follow-accounts-grid">
+    `;
+    
+    FOLLOW_TASKS.x.forEach(account => {
+        const isFollowed = followedXAccounts.includes(account.id);
+        
+        html += `
+            <div class="follow-account-card x-follow">
+                <div class="account-avatar">
+                    <img src="${account.avatar}" alt="${account.username}">
+                </div>
+                <div class="account-details">
+                    <h4 class="account-name">${account.username}</h4>
+                    <p class="account-username">${account.handle}</p>
+                    <p class="account-followers">${account.followers} followers</p>
+                    <p class="account-description">${account.description}</p>
+                </div>
+                <div class="account-actions">
+                    ${isFollowed ? 
+                        '<span class="follow-btn followed">✅ Followed</span>' : 
+                        `<button class="follow-btn" onclick="followXAccount('${account.id}', ${account.points}, '${account.username}')">Follow +${account.points}</button>`
+                    }
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// Follow X Account
+function followXAccount(accountId, points, username) {
+    if (followedXAccounts.includes(accountId)) {
+        showNotification('❌ You have already followed this account!', 'warning');
+        return;
+    }
+    
+    userPoints += points;
+    followedXAccounts.push(accountId);
+    localStorage.setItem('followedXAccounts', JSON.stringify(followedXAccounts));
+    addTransaction('x_follow', points, 'X Follow: ' + username, '🐦');
+    updateUI();
+    showNotification(`✅ +${points} Points! You followed @${username}`, 'success');
+    
+    // Refresh the X follow section to update the UI
+    showXFollow();
 }
 
 // Show All X Content
@@ -1683,6 +2276,21 @@ function showReferralSystem() {
                 <div class="referral-code">TAPEARN123</div>
                 <p class="referral-note">Share this code with friends to earn 50 points each!</p>
                 
+                <div class="referral-stats">
+                    <div class="referral-stat">
+                        <span class="stat-value">${referrals}</span>
+                        <span class="stat-label">Total Referrals</span>
+                    </div>
+                    <div class="referral-stat">
+                        <span class="stat-value">${referrals * 50}</span>
+                        <span class="stat-label">Points Earned</span>
+                    </div>
+                    <div class="referral-stat">
+                        <span class="stat-value">50</span>
+                        <span class="stat-label">Per Referral</span>
+                    </div>
+                </div>
+                
                 <div class="sharing-options">
                     <button class="share-btn telegram" onclick="shareOnTelegram()">
                         📱 Telegram
@@ -1699,13 +2307,23 @@ function showReferralSystem() {
                     👥 Add Test Referral
                 </button>
             </div>
+            
+            <div class="referral-benefits">
+                <h4>🎁 Referral Benefits</h4>
+                <ul>
+                    <li>✅ Earn 50 points for each friend who joins</li>
+                    <li>✅ Your friend gets 25 bonus points</li>
+                    <li>✅ Unlimited referrals - no limits!</li>
+                    <li>✅ Points credited instantly</li>
+                </ul>
+            </div>
         </div>
     `;
 }
 
 // Share on Telegram
 function shareOnTelegram() {
-    const message = `Join TapEarn and earn free points! Use my referral code: TAPEARN123`;
+    const message = `Join TapEarn and earn free points! Use my referral code: TAPEARN123 - Download now: https://tapearn.app`;
     const url = `https://t.me/share/url?url=https://tapearn.app&text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
     showNotification('✅ Telegram sharing opened!', 'success');
@@ -1713,7 +2331,7 @@ function shareOnTelegram() {
 
 // Share on WhatsApp
 function shareOnWhatsApp() {
-    const message = `Join TapEarn and earn free points! Use my referral code: TAPEARN123`;
+    const message = `Join TapEarn and earn free points! Use my referral code: TAPEARN123 - Download now: https://tapearn.app`;
     const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
     showNotification('✅ WhatsApp sharing opened!', 'success');
@@ -1721,7 +2339,7 @@ function shareOnWhatsApp() {
 
 // Copy Referral Code
 function copyReferralCode() {
-    const referralText = `Join TapEarn using my referral code: TAPEARN123`;
+    const referralText = `Join TapEarn using my referral code: TAPEARN123 - Download now: https://tapearn.app`;
     navigator.clipboard.writeText(referralText)
         .then(() => showNotification('✅ Referral code copied!', 'success'))
         .catch(() => showNotification('❌ Failed to copy', 'warning'));
@@ -1734,6 +2352,9 @@ function addReferral() {
     addTransaction('referral', 50, 'Referral Bonus', '👥');
     updateUI();
     showNotification('🎉 +50 Points! New referral added!', 'success');
+    
+    // Refresh the referral section to update the UI
+    showReferralSystem();
 }
 
 // Show Tasks
@@ -1769,6 +2390,14 @@ function showTasks() {
                     </div>
                     <button onclick="completeTask('mining')" class="task-btn">Complete</button>
                 </div>
+                
+                <div class="task-item">
+                    <div class="task-info">
+                        <div class="task-title">Follow 2 accounts</div>
+                        <div class="task-reward">+40 pts</div>
+                    </div>
+                    <button onclick="completeTask('follow')" class="task-btn">Complete</button>
+                </div>
             </div>
         </div>
     `;
@@ -1795,6 +2424,11 @@ function completeTask(task) {
             points = 50;
             description = 'Daily Task: Mining';
             icon = '⛏️';
+            break;
+        case 'follow':
+            points = 40;
+            description = 'Daily Task: Follow Accounts';
+            icon = '👤';
             break;
     }
     
@@ -1828,6 +2462,14 @@ function showSkills() {
                         <div class="skill-cost">100 pts</div>
                     </div>
                     <button onclick="upgradeSkill('video')" class="skill-btn">Upgrade</button>
+                </div>
+                
+                <div class="skill-item">
+                    <div class="skill-info">
+                        <div class="skill-title">Referral Bonus</div>
+                        <div class="skill-cost">200 pts</div>
+                    </div>
+                    <button onclick="upgradeSkill('referral')" class="skill-btn">Upgrade</button>
                 </div>
             </div>
         </div>
@@ -1871,6 +2513,14 @@ function showCashier() {
                     </div>
                     <button onclick="redeemReward('paypal')" class="reward-btn">Redeem</button>
                 </div>
+                
+                <div class="reward-item">
+                    <div class="reward-info">
+                        <div class="reward-title">Google Play Card</div>
+                        <div class="reward-cost">2000 pts</div>
+                    </div>
+                    <button onclick="redeemReward('google')" class="reward-btn">Redeem</button>
+                </div>
             </div>
         </div>
     `;
@@ -1878,7 +2528,13 @@ function showCashier() {
 
 // Redeem Reward
 function redeemReward(reward) {
-    let cost = reward === 'amazon' ? 1000 : 5000;
+    let cost = 0;
+    switch(reward) {
+        case 'amazon': cost = 1000; break;
+        case 'paypal': cost = 5000; break;
+        case 'google': cost = 2000; break;
+    }
+    
     if (userPoints >= cost) {
         userPoints -= cost;
         addTransaction('redeem', -cost, 'Redeemed: ' + reward.toUpperCase(), '🎁');
