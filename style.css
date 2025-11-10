@@ -3221,4 +3221,43 @@ h2 {
     .stats-grid {
         grid-template-columns: 1fr;
     }
+    
+    .wallet-earnings-breakdown {
+        margin: 15px 0;
+    }
+    
+    .earning-item {
+        padding: 12px 0;
+    }
+    
+    .earning-icon {
+        font-size: 20px;
+    }
+    
+    .user-rank-info {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .user-details {
+        margin: 10px 0;
+    }
+    
+    .leaderboard-item {
+        padding: 12px 10px;
+    }
+    
+    .contact-form, .report-form {
+        padding: 15px;
+    }
+    
+    .form-group input, .form-group select, .form-group textarea {
+        padding: 10px 12px;
+    }
+    
+    .terms-content {
+        padding: 15px;
+        max-height: 350px;
+    }
 }
