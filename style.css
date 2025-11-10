@@ -1,2090 +1,442 @@
-/* Global Styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+/* Add these styles to your existing style.css */
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    color: white;
-    min-height: 100vh;
-    padding: 20px;
-}
-
-.container {
+/* Follow Section */
+.follow-section {
     max-width: 400px;
     margin: 0 auto;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
-    padding: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Header */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.wallet {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255, 215, 0, 0.1);
-    padding: 12px 18px;
-    border-radius: 15px;
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.wallet:hover {
-    background: rgba(255, 215, 0, 0.2);
-    transform: translateY(-2px);
-}
-
-.wallet-icon {
-    font-size: 20px;
-}
-
-.wallet-amount {
-    font-size: 20px;
-    font-weight: bold;
-    color: #FFD700;
-}
-
-.wallet-label {
-    font-size: 12px;
-    opacity: 0.7;
-}
-
-.user-info {
-    text-align: right;
-}
-
-.user-level {
-    font-size: 14px;
-    font-weight: bold;
-    color: #CD7F32;
-    margin-bottom: 2px;
-}
-
-.user-stats {
-    font-size: 12px;
-    opacity: 0.7;
-}
-
-h2 {
-    text-align: center;
-    margin-bottom: 25px;
-    font-size: 24px;
-    background: linear-gradient(45deg, #FFD700, #FFA726);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-/* Main Mining Feature */
-.main-features {
-    margin-bottom: 25px;
-}
-
-.main-feature-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 20px;
-    padding: 25px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-}
-
-.main-feature-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
-}
-
-.feature-main-icon {
-    font-size: 48px;
-    margin-bottom: 10px;
-    display: block;
-}
-
-.feature-main-title {
-    font-size: 20px;
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: white;
-}
-
-.feature-main-desc {
-    font-size: 14px;
-    opacity: 0.9;
-    margin-bottom: 20px;
-}
-
-.mining-stats {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 15px;
-}
-
-.mining-stat {
-    text-align: center;
-}
-
-.mining-value {
-    display: block;
-    font-size: 16px;
-    font-weight: bold;
-    color: #FFD700;
-    margin-bottom: 2px;
-}
-
-.mining-label {
-    font-size: 12px;
-    opacity: 0.8;
-}
-
-/* Quick Actions Mini */
-.quick-actions-mini {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-bottom: 25px;
-}
-
-.mini-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 15px;
-    padding: 15px 10px;
-    color: white;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    backdrop-filter: blur(10px);
-}
-
-.mini-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-}
-
-.mini-icon {
-    font-size: 22px;
-}
-
-.mini-text {
-    font-size: 12px;
-    font-weight: 600;
-}
-
-/* Boost Section */
-.boost-section {
-    background: rgba(255, 215, 0, 0.1);
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    border-radius: 15px;
-    padding: 18px;
-    margin-bottom: 20px;
-}
-
-.boost-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.boost-title {
-    font-size: 16px;
-    font-weight: bold;
-    color: #FFD700;
-}
-
-.boost-progress {
-    font-size: 14px;
-    opacity: 0.8;
-}
-
-.boost-bar {
-    background: rgba(255, 255, 255, 0.1);
-    height: 8px;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 15px;
-}
-
-.boost-fill {
-    background: linear-gradient(90deg, #FFD700, #FFA726);
-    height: 100%;
-    border-radius: 4px;
-    transition: width 0.3s ease;
-}
-
-.boost-btn {
-    background: linear-gradient(135deg, #FFD700, #FFA726);
-    color: #1a1a2e;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: bold;
-    width: 100%;
-    transition: transform 0.3s ease;
-    font-size: 14px;
-}
-
-.boost-btn:hover {
-    transform: translateY(-2px);
-}
-
-/* Community Section */
-.community-section {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 18px;
-    margin-bottom: 25px;
-    text-align: center;
-}
-
-.community-header {
-    margin-bottom: 12px;
-}
-
-.community-title {
-    font-size: 12px;
-    font-weight: bold;
-    opacity: 0.7;
-    letter-spacing: 1px;
-}
-
-.community-stats {
-    display: flex;
-    justify-content: space-around;
-}
-
-.community-stat {
-    text-align: center;
-}
-
-.community-value {
-    display: block;
-    font-size: 16px;
-    font-weight: bold;
-    color: #4CAF50;
-    margin-bottom: 2px;
-}
-
-.community-label {
-    font-size: 11px;
-    opacity: 0.7;
-}
-
-/* Bottom Navigation */
-.bottom-nav {
-    display: flex;
-    justify-content: space-around;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
-    padding: 12px 8px;
-    margin-bottom: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    cursor: pointer;
-    padding: 8px 12px;
-    border-radius: 10px;
-    transition: all 0.3s ease;
-    opacity: 0.7;
-}
-
-.nav-item.active {
-    background: rgba(255, 255, 255, 0.1);
-    opacity: 1;
-}
-
-.nav-item:hover {
-    opacity: 1;
-}
-
-.nav-icon {
-    font-size: 20px;
-}
-
-.nav-text {
-    font-size: 11px;
-    font-weight: 600;
-}
-
-/* Stats Grid Mini */
-.stats-grid-mini {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin: 20px 0;
-}
-
-.stat-card-mini {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 15px 10px;
-    border-radius: 12px;
-    text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.stat-number-mini {
-    font-size: 18px;
-    font-weight: bold;
-    color: #4CAF50;
-    display: block;
-    margin-bottom: 4px;
-}
-
-.stat-label-mini {
-    font-size: 11px;
-    opacity: 0.7;
-}
-
-/* Welcome Message */
-.welcome-message {
-    text-align: center;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.welcome-message h3 {
-    margin-bottom: 15px;
-    color: #FFA726;
-    font-size: 18px;
-}
-
-.welcome-note {
-    opacity: 0.7;
-    font-style: italic;
-    margin-top: 15px;
-    font-size: 14px;
-}
-
-/* Mining Active State */
-.mining-active {
-    background: linear-gradient(135deg, #4CAF50, #45a049) !important;
-    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3) !important;
-}
-
-.mining-active .feature-main-desc {
-    color: #FFD700 !important;
-    font-weight: bold;
-}
-
-/* Section Headers */
-.section-header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.back-btn {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background 0.3s;
-}
-
-.back-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.section-title {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.section-title h3 {
-    margin-bottom: 5px;
-    color: #FFA726;
-}
-
-.section-subtitle {
-    font-size: 12px;
-    opacity: 0.7;
-}
-
-/* Video Platform Tabs */
-.video-platform-tabs {
+.follow-platform-tabs {
     display: flex;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 6px;
     margin-bottom: 20px;
-}
-
-.platform-tab {
-    flex: 1;
-    padding: 12px 15px;
-    border: none;
-    background: transparent;
-    color: white;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.platform-tab.active {
-    background: rgba(255, 255, 255, 0.2);
-    color: #FFD700;
-}
-
-/* Instagram Categories */
-.instagram-categories {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
     overflow-x: auto;
-    padding: 8px 0;
 }
 
-.category-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
-    padding: 10px 18px;
-    color: white;
-    cursor: pointer;
-    white-space: nowrap;
-    font-size: 13px;
-    transition: all 0.3s ease;
-}
-
-.category-btn.active {
-    background: linear-gradient(45deg, #E1306C, #C13584);
-    border-color: #E1306C;
-}
-
-/* Telegram Categories */
-.telegram-categories {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-    overflow-x: auto;
-    padding: 8px 0;
-}
-
-/* X Categories */
-.x-categories {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-    overflow-x: auto;
-    padding: 8px 0;
-}
-
-/* Search Container */
-.search-container {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.search-container input {
-    flex: 1;
-    padding: 14px 18px;
-    border: none;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.9);
-    color: #333;
-    font-size: 14px;
-    outline: none;
-}
-
-.search-container button {
-    background: linear-gradient(135deg, #4CAF50, #45a049);
-    color: white;
-    border: none;
-    padding: 14px 18px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: transform 0.3s;
-    font-size: 14px;
-}
-
-.search-container button:hover {
-    transform: translateY(-2px);
-}
-
-/* Videos Grid */
-.videos-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-}
-
-.video-card {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.3s;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.video-card:hover {
-    transform: translateY(-5px);
-}
-
-.thumbnail {
-    position: relative;
-    width: 100%;
-    height: 120px;
-    overflow: hidden;
-}
-
-.thumbnail img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.points-badge {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    background: #4CAF50;
-    color: white;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: bold;
-}
-
-.youtube-badge {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: #FF0000;
-    color: white;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 10px;
-}
-
-.instagram-badge {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: linear-gradient(45deg, #405DE6, #E1306C);
-    color: white;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 10px;
-    font-weight: bold;
-}
-
-.video-duration {
-    position: absolute;
-    bottom: 8px;
-    right: 8px;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 10px;
-}
-
-.video-details {
-    padding: 12px;
-}
-
-.video-title {
-    font-size: 13px;
-    margin-bottom: 8px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    line-height: 1.3;
-}
-
-.video-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 11px;
-    opacity: 0.8;
-}
-
-.video-likes, .video-views {
-    font-size: 10px;
-}
-
-.watch-now {
-    color: #4CAF50;
-    font-weight: bold;
-}
-
-.watch-now.watched {
-    color: #FFA726;
-}
-
-/* Video Player Section */
-.video-player-section {
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.youtube-iframe-container {
-    position: relative;
-    width: 100%;
-    height: 220px;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 20px;
-    background: #000;
-}
-
-.youtube-iframe-container iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-}
-
-.instagram-player-container {
-    background: #000;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 20px;
-}
-
-.instagram-player-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border-bottom: 1px solid #333;
-}
-
-.instagram-user-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.user-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(45deg, #405DE6, #E1306C);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-}
-
-.user-details {
-    display: flex;
-    flex-direction: column;
-}
-
-.username {
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.location {
-    font-size: 11px;
-    opacity: 0.7;
-}
-
-.instagram-options {
-    font-size: 18px;
-    cursor: pointer;
-}
-
-.instagram-video-placeholder {
-    text-align: center;
-    padding: 40px 20px;
-    background: linear-gradient(45deg, #1a1a1a, #2d2d2d);
-}
-
-.instagram-logo {
-    font-size: 48px;
-    margin-bottom: 15px;
-    background: linear-gradient(45deg, #405DE6, #E1306C);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.instagram-stats {
-    display: flex;
-    gap: 15px;
-    margin: 10px 0;
-    justify-content: center;
-}
-
-.instagram-stats span {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 5px 10px;
-    border-radius: 15px;
-    font-size: 12px;
-}
-
-.video-simulation {
-    margin: 20px 0;
-}
-
-.simulation-bar {
-    height: 4px;
-    background: rgba(255, 255, 255, 0.3);
-    margin: 8px 0;
-    border-radius: 2px;
-    animation: pulse 2s infinite;
-}
-
-.instagram-player-actions {
-    display: flex;
-    justify-content: space-around;
-    padding: 15px;
-    border-top: 1px solid #333;
-}
-
-.action-btn {
-    font-size: 20px;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.action-btn:hover {
-    transform: scale(1.2);
-}
-
-/* Video Timer */
-.video-timer {
-    text-align: center;
-    padding: 15px;
-    background: rgba(255, 165, 0, 0.2);
-    border-radius: 10px;
-    border: 1px solid #FFA726;
-    margin-bottom: 20px;
-}
-
-.video-timer p {
-    margin-bottom: 5px;
-}
-
-.timer-note {
-    font-size: 12px;
-    opacity: 0.8;
-}
-
-.instagram-timer {
-    background: rgba(225, 48, 108, 0.2);
-    border-color: #E1306C;
-}
-
-/* Tracking Section */
-.tracking-section {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 20px;
-    margin: 20px 0;
-}
-
-.tracking-status {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 15px;
-}
-
-.status-indicator {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #4CAF50;
-    animation: pulse 2s infinite;
-}
-
-.status-text {
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.progress-container {
-    margin-bottom: 15px;
-}
-
-.progress-bar {
-    background: rgba(255, 255, 255, 0.3);
-    height: 6px;
-    border-radius: 3px;
-    overflow: hidden;
-    margin-bottom: 8px;
-}
-
-.progress-fill {
-    background: linear-gradient(90deg, #4CAF50, #45a049);
-    height: 100%;
-    width: 0%;
-    transition: width 0.3s;
-}
-
-.progress-text {
-    font-size: 12px;
-    text-align: center;
-    opacity: 0.8;
-}
-
-.tracking-controls {
-    display: flex;
-    gap: 10px;
-}
-
-.cancel-btn {
-    background: #FF6B6B;
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    width: 100%;
-    font-size: 14px;
-    transition: background 0.3s;
-}
-
-.cancel-btn:hover {
-    background: #FF5252;
-}
-
-/* Earning Success */
-.earning-success {
-    text-align: center;
-    padding: 30px 20px;
-}
-
-.success-icon {
-    font-size: 60px;
-    margin-bottom: 20px;
-}
-
-.points-earned {
-    font-size: 36px;
-    font-weight: bold;
-    background: linear-gradient(135deg, #4CAF50, #45a049);
-    color: white;
-    padding: 20px;
-    border-radius: 15px;
-    margin: 20px 0;
-}
-
-.success-details {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 20px;
-    margin: 20px 0;
-    text-align: left;
-}
-
-.detail-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 14px;
-}
-
-.detail-item:last-child {
-    border-bottom: none;
-}
-
-.detail-label {
-    opacity: 0.8;
-}
-
-.detail-value {
-    font-weight: bold;
-}
-
-.success-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.action-btn.primary {
-    background: #4CAF50;
-    color: white;
-    border: none;
-    padding: 15px 20px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 14px;
-    transition: background 0.3s;
-}
-
-.action-btn.secondary {
-    background: #667eea;
-    color: white;
-    border: none;
-    padding: 15px 20px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 14px;
-    transition: background 0.3s;
-}
-
-.action-btn:hover {
-    opacity: 0.9;
-}
-
-/* Wallet History */
-.wallet-history {
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.wallet-summary {
-    background: rgba(255, 215, 0, 0.1);
-    padding: 20px;
-    border-radius: 15px;
-    margin: 20px 0;
-    text-align: center;
-    border: 1px solid rgba(255, 215, 0, 0.3);
-}
-
-.wallet-balance {
-    font-size: 32px;
-    font-weight: bold;
-    color: #FFD700;
-    margin-bottom: 5px;
-}
-
-.transaction-list {
-    max-height: 400px;
-    overflow-y: auto;
-    margin: 20px 0;
-}
-
-.transaction-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    margin-bottom: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.transaction-icon {
-    font-size: 20px;
-    margin-right: 15px;
-}
-
-.transaction-details {
-    flex: 1;
-}
-
-.transaction-title {
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 2px;
-}
-
-.transaction-time {
-    font-size: 11px;
-    opacity: 0.7;
-}
-
-.transaction-amount {
-    font-size: 16px;
-    font-weight: bold;
-}
-
-.transaction-amount.positive {
-    color: #4CAF50;
-}
-
-.transaction-amount.negative {
-    color: #FF6B6B;
-}
-
-.no-transactions {
-    text-align: center;
-    padding: 40px 20px;
-    opacity: 0.7;
-}
-
-/* Referral Section */
-.referral-section {
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.referral-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
-    padding: 25px;
-    text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.referral-code {
-    font-size: 28px;
-    font-weight: bold;
-    color: #FFD700;
-    letter-spacing: 2px;
-    margin: 15px 0;
-    padding: 15px;
-    background: rgba(255, 215, 0, 0.1);
-    border-radius: 10px;
-    border: 1px solid rgba(255, 215, 0, 0.3);
-}
-
-.referral-note {
-    opacity: 0.8;
-    margin-bottom: 20px;
-    font-size: 14px;
-}
-
-.sharing-options {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin: 20px 0;
-}
-
-.share-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 15px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    color: white;
-    font-size: 14px;
-}
-
-.share-btn.telegram {
-    background: #0088cc;
-}
-
-.share-btn.whatsapp {
-    background: #25D366;
-}
-
-.share-btn.copy {
-    background: #667eea;
-}
-
-.share-btn:hover {
-    transform: translateY(-2px);
-    opacity: 0.9;
-}
-
-/* Tasks Section */
-.tasks-section {
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.tasks-list {
-    margin: 20px 0;
-}
-
-.task-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    margin-bottom: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.task-info {
-    flex: 1;
-}
-
-.task-title {
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 2px;
-}
-
-.task-reward {
-    font-size: 12px;
-    color: #4CAF50;
-    font-weight: bold;
-}
-
-.task-btn {
-    background: #4CAF50;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: background 0.3s;
-}
-
-.task-btn:hover {
-    background: #45a049;
-}
-
-/* Skills Section */
-.skills-section {
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.skills-list {
-    margin: 20px 0;
-}
-
-.skill-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    margin-bottom: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.skill-info {
-    flex: 1;
-}
-
-.skill-title {
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 2px;
-}
-
-.skill-cost {
-    font-size: 12px;
-    color: #FFA726;
-    font-weight: bold;
-}
-
-.skill-btn {
-    background: #FFA726;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: background 0.3s;
-}
-
-.skill-btn:hover {
-    background: #FF9800;
-}
-
-/* Cashier Section */
-.cashier-section {
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.rewards-list {
-    margin: 20px 0;
-}
-
-.reward-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    margin-bottom: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.reward-info {
-    flex: 1;
-}
-
-.reward-title {
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 2px;
-}
-
-.reward-cost {
-    font-size: 12px;
-    color: #FFD700;
-    font-weight: bold;
-}
-
-.reward-btn {
-    background: #FFD700;
-    color: #1a1a2e;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: bold;
-    transition: background 0.3s;
-}
-
-.reward-btn:hover {
-    background: #FFC400;
-}
-
-/* Loading Spinner */
-.loading {
-    text-align: center;
-    padding: 50px 20px;
-}
-
-.spinner {
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top: 4px solid white;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 20px;
-}
-
-/* Notifications */
-.notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: rgba(255, 255, 255, 0.95);
-    color: #333;
-    padding: 15px 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    z-index: 1000;
-    max-width: 300px;
-    animation: slideIn 0.3s ease-out;
-}
-
-.notification.success {
-    border-left: 4px solid #4CAF50;
-}
-
-.notification.info {
-    border-left: 4px solid #2196F3;
-}
-
-.notification.warning {
-    border-left: 4px solid #FFA726;
-}
-
-.notification-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.notification-close {
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    color: #666;
-}
-
-/* Telegram Section Styles */
-.telegram-section {
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.telegram-stats {
+.follow-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     margin: 15px 0;
 }
 
-.telegram-stat {
-    background: rgba(0, 136, 204, 0.2);
-    border: 1px solid rgba(0, 136, 204, 0.3);
+.follow-stat {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     padding: 12px 8px;
     text-align: center;
 }
 
-.stat-value {
-    display: block;
-    font-size: 16px;
-    font-weight: bold;
-    color: #0088cc;
-    margin-bottom: 2px;
-}
-
-.stat-label {
-    font-size: 10px;
-    opacity: 0.8;
-}
-
-.telegram-videos-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+/* Follow Tasks Grid */
+.follow-tasks-grid {
+    display: flex;
+    flex-direction: column;
     gap: 15px;
     margin-top: 15px;
 }
 
-.telegram-video-card {
-    background: rgba(255, 255, 255, 0.1);
+.follow-task-card {
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 15px;
-    overflow: hidden;
-    cursor: pointer;
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     transition: transform 0.3s;
-    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.telegram-video-card:hover {
-    transform: translateY(-5px);
+.follow-task-card:hover {
+    transform: translateY(-2px);
 }
 
-.telegram-thumbnail {
-    position: relative;
-    width: 100%;
-    height: 120px;
+.follow-task-card.instagram {
+    border-left: 4px solid #E1306C;
+}
+
+.follow-task-card.x {
+    border-left: 4px solid #1DA1F2;
+}
+
+.follow-task-card.telegram {
+    border-left: 4px solid #0088cc;
+}
+
+.follow-task-card.youtube {
+    border-left: 4px solid #FF0000;
+}
+
+.follow-task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.platform-icon {
+    font-size: 20px;
+}
+
+.task-platform {
+    font-size: 12px;
+    font-weight: bold;
+    opacity: 0.8;
+    flex: 1;
+    margin-left: 10px;
+}
+
+.task-points {
+    background: #4CAF50;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.follow-task-content {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.task-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
     overflow: hidden;
+    flex-shrink: 0;
 }
 
-.telegram-thumbnail img {
+.task-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.telegram-points-badge {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    background: #0088cc;
-    color: white;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 11px;
+.task-details {
+    flex: 1;
+}
+
+.task-name {
+    font-size: 14px;
     font-weight: bold;
+    margin-bottom: 2px;
 }
 
-.telegram-type-badge {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 10px;
-    font-weight: bold;
-}
-
-.telegram-type-badge.ad {
-    background: #FF6B6B;
-}
-
-.telegram-type-badge.video {
-    background: #4CAF50;
-}
-
-.telegram-duration {
-    position: absolute;
-    bottom: 8px;
-    right: 8px;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 10px;
-}
-
-.telegram-video-details {
-    padding: 12px;
-}
-
-.telegram-video-title {
-    font-size: 13px;
-    margin-bottom: 8px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    line-height: 1.3;
-}
-
-.telegram-video-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 11px;
-    opacity: 0.8;
+.task-handle {
+    font-size: 12px;
+    opacity: 0.7;
     margin-bottom: 5px;
 }
 
-.telegram-channel {
-    font-weight: bold;
-    color: #0088cc;
+.task-description {
+    font-size: 11px;
+    opacity: 0.8;
+    line-height: 1.3;
 }
 
-.telegram-category {
-    background: rgba(0, 136, 204, 0.2);
-    padding: 2px 6px;
+.follow-task-actions {
+    text-align: center;
+}
+
+.follow-task-btn {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    padding: 10px 20px;
     border-radius: 8px;
-    font-size: 9px;
-}
-
-.telegram-views {
-    font-size: 10px;
-}
-
-.telegram-watch {
-    color: #4CAF50;
+    cursor: pointer;
     font-weight: bold;
-    font-size: 10px;
+    font-size: 13px;
+    width: 100%;
+    transition: transform 0.3s;
 }
 
-.telegram-watch.watched {
+.follow-task-btn:hover {
+    transform: translateY(-2px);
+}
+
+.follow-task-completed {
     color: #FFA726;
+    font-weight: bold;
+    font-size: 13px;
 }
 
-/* Telegram Player Styles */
-.telegram-player-container {
-    background: #000;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 20px;
-}
-
-.telegram-player-header {
+/* Follow Accounts Grid */
+.follow-accounts-grid {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.follow-account-card {
     background: rgba(255, 255, 255, 0.05);
-    border-bottom: 1px solid #333;
-}
-
-.telegram-channel-info {
+    border-radius: 15px;
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    transition: transform 0.3s;
+}
+
+.follow-account-card:hover {
+    transform: translateY(-2px);
+}
+
+.follow-account-card.x-follow {
+    border-left: 4px solid #1DA1F2;
+}
+
+.account-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.account-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.account-details {
+    flex: 1;
+}
+
+.account-name {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.account-username {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-bottom: 5px;
+}
+
+.account-followers {
+    font-size: 11px;
+    opacity: 0.8;
+}
+
+.account-description {
+    font-size: 11px;
+    opacity: 0.8;
+    line-height: 1.3;
+    margin-top: 5px;
+}
+
+.account-actions {
+    flex-shrink: 0;
+}
+
+.follow-btn {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 12px;
+    transition: transform 0.3s;
+}
+
+.follow-btn:hover {
+    transform: translateY(-2px);
+}
+
+.follow-btn.followed {
+    background: transparent;
+    color: #FFA726;
+    border: 1px solid #FFA726;
+    cursor: default;
+}
+
+/* Follow Channels Grid */
+.follow-channels-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.follow-channel-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: transform 0.3s;
+}
+
+.follow-channel-card:hover {
+    transform: translateY(-2px);
 }
 
 .channel-avatar {
-    width: 36px;
-    height: 36px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    background: linear-gradient(45deg, #0088cc, #00a2e8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.channel-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .channel-details {
-    display: flex;
-    flex-direction: column;
+    flex: 1;
 }
 
 .channel-name {
+    font-size: 14px;
     font-weight: bold;
-    font-size: 14px;
+    margin-bottom: 2px;
 }
 
-.channel-status {
-    font-size: 11px;
-    opacity: 0.7;
-}
-
-.telegram-options {
-    font-size: 18px;
-    cursor: pointer;
-}
-
-.telegram-video-placeholder {
-    text-align: center;
-    padding: 40px 20px;
-    background: linear-gradient(45deg, #1a1a1a, #2d2d2d);
-}
-
-.telegram-logo {
-    font-size: 48px;
-    margin-bottom: 15px;
-    background: linear-gradient(45deg, #0088cc, #00a2e8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.telegram-stats {
-    display: flex;
-    gap: 10px;
-    margin: 15px 0;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.telegram-stats span {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 5px 10px;
-    border-radius: 15px;
+.channel-members {
     font-size: 12px;
+    opacity: 0.7;
+    margin-bottom: 5px;
 }
 
-.telegram-simulation {
-    margin: 20px 0;
+.channel-description {
+    font-size: 11px;
+    opacity: 0.8;
+    line-height: 1.3;
 }
 
-.simulation-progress {
-    height: 4px;
-    background: #0088cc;
-    border-radius: 2px;
-    margin: 15px 0;
-    animation: progressAnimation 3s linear infinite;
+.channel-actions {
+    flex-shrink: 0;
 }
 
-.telegram-message {
-    margin-top: 20px;
-}
-
-.message-bubble {
-    background: rgba(0, 136, 204, 0.3);
-    border: 1px solid #0088cc;
-    padding: 12px 15px;
-    border-radius: 15px;
-    display: inline-block;
-    max-width: 80%;
-    font-size: 14px;
-}
-
-.telegram-player-actions {
-    display: flex;
-    justify-content: space-around;
-    padding: 15px;
-    border-top: 1px solid #333;
-}
-
-.telegram-action-btn {
-    font-size: 20px;
+.join-btn {
+    background: linear-gradient(135deg, #0088cc, #00a2e8);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: transform 0.2s;
+    font-weight: bold;
+    font-size: 12px;
+    transition: transform 0.3s;
 }
 
-.telegram-action-btn:hover {
-    transform: scale(1.2);
+.join-btn:hover {
+    transform: translateY(-2px);
 }
 
-.telegram-timer {
-    background: rgba(0, 136, 204, 0.2);
-    border-color: #0088cc;
+.join-btn.joined {
+    background: transparent;
+    color: #FFA726;
+    border: 1px solid #FFA726;
+    cursor: default;
 }
 
-/* X Section Styles */
-.x-section {
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.x-stats {
+/* Referral Section Updates */
+.referral-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     margin: 15px 0;
 }
 
-.x-stat {
-    background: rgba(29, 155, 240, 0.2);
-    border: 1px solid rgba(29, 155, 240, 0.3);
+.referral-stat {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     padding: 12px 8px;
     text-align: center;
 }
 
-.x-content-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-top: 15px;
-}
-
-.x-video-card {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.3s;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.x-video-card:hover {
-    transform: translateY(-5px);
-}
-
-.x-thumbnail {
-    position: relative;
-    width: 100%;
-    height: 120px;
-    overflow: hidden;
-}
-
-.x-thumbnail img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.x-points-badge {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    background: #1DA1F2;
-    color: white;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: bold;
-}
-
-.x-type-badge {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 10px;
-    font-weight: bold;
-}
-
-.x-type-badge.video {
-    background: #1DA1F2;
-}
-
-.x-duration {
-    position: absolute;
-    bottom: 8px;
-    right: 8px;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 10px;
-}
-
-.x-content-details {
-    padding: 12px;
-}
-
-.x-content-title {
-    font-size: 13px;
-    margin-bottom: 8px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    line-height: 1.3;
-}
-
-.x-user-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-}
-
-.x-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: linear-gradient(45deg, #1DA1F2, #0f8ada);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-}
-
-.x-user-details {
-    display: flex;
-    flex-direction: column;
-}
-
-.x-username {
-    font-weight: bold;
-    font-size: 12px;
-}
-
-.x-handle {
-    font-size: 10px;
-    opacity: 0.7;
-}
-
-.x-content-text {
-    font-size: 12px;
-    margin-bottom: 8px;
-    opacity: 0.9;
-    line-height: 1.3;
-}
-
-.x-stats-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 8px;
-}
-
-.x-stat {
-    font-size: 10px;
-    opacity: 0.8;
-}
-
-.x-actions {
-    text-align: center;
-}
-
-.x-action-available {
-    color: #1DA1F2;
-    font-weight: bold;
-    font-size: 11px;
-}
-
-.x-action-completed {
-    color: #FFA726;
-    font-weight: bold;
-    font-size: 11px;
-}
-
-/* X Tweet Cards */
-.x-tweet-card {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.x-tweet-header {
-    margin-bottom: 10px;
-}
-
-.x-tweet-content {
-    margin-bottom: 10px;
-}
-
-.x-tweet-text {
-    font-size: 13px;
-    line-height: 1.4;
-    margin-bottom: 10px;
-}
-
-.x-tweet-media {
-    width: 100%;
-    border-radius: 12px;
-    margin-bottom: 10px;
-}
-
-.x-tweet-stats {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 12px;
-    font-size: 11px;
-    opacity: 0.8;
-}
-
-.x-tweet-actions {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding-top: 12px;
-}
-
-.x-action-buttons {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
-}
-
-.x-action-btn {
-    flex: 1;
-    background: rgba(29, 155, 240, 0.2);
-    color: white;
-    border: 1px solid #1DA1F2;
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 11px;
-    font-weight: bold;
-    transition: all 0.3s ease;
-}
-
-.x-action-btn:hover {
-    background: rgba(29, 155, 240, 0.3);
-    transform: translateY(-2px);
-}
-
-.x-action-btn.like {
-    background: rgba(249, 24, 128, 0.2);
-    border-color: #F91880;
-}
-
-.x-action-btn.retweet {
-    background: rgba(0, 186, 124, 0.2);
-    border-color: #00BA7C;
-}
-
-.x-total-points {
-    text-align: center;
-    font-size: 11px;
-    font-weight: bold;
-    color: #1DA1F2;
-    padding: 6px;
-    background: rgba(29, 155, 240, 0.1);
-    border-radius: 6px;
-}
-
-.x-total-points.completed {
-    color: #FFA726;
-    background: rgba(255, 167, 38, 0.1);
-}
-
-/* X Player Styles */
-.x-player-container {
-    background: #000;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 20px;
-}
-
-.x-player-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
+.referral-benefits {
     background: rgba(255, 255, 255, 0.05);
-    border-bottom: 1px solid #333;
-}
-
-.x-options {
-    font-size: 18px;
-    cursor: pointer;
-}
-
-.x-video-placeholder {
-    text-align: center;
-    padding: 40px 20px;
-    background: linear-gradient(45deg, #1a1a1a, #2d2d2d);
-}
-
-.x-logo {
-    font-size: 48px;
-    margin-bottom: 15px;
-    background: linear-gradient(45deg, #1DA1F2, #0f8ada);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.x-simulation {
-    margin: 20px 0;
-}
-
-.x-progress {
-    height: 4px;
-    background: #1DA1F2;
-    border-radius: 2px;
-    margin: 15px 0;
-    animation: progressAnimation 3s linear infinite;
-}
-
-.x-message {
-    margin-top: 20px;
-}
-
-.x-bubble {
-    background: rgba(29, 155, 240, 0.3);
-    border: 1px solid #1DA1F2;
-    padding: 12px 15px;
     border-radius: 15px;
-    display: inline-block;
-    max-width: 80%;
+    padding: 20px;
+    margin-top: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.referral-benefits h4 {
+    margin-bottom: 12px;
+    color: #FFA726;
+}
+
+.referral-benefits ul {
+    list-style: none;
+    padding: 0;
+}
+
+.referral-benefits li {
+    padding: 8px 0;
     font-size: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.x-player-actions {
-    display: flex;
-    justify-content: space-around;
-    padding: 15px;
-    border-top: 1px solid #333;
+.referral-benefits li:last-child {
+    border-bottom: none;
 }
 
-.x-action-btn {
-    font-size: 20px;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.x-action-btn:hover {
-    transform: scale(1.2);
-}
-
-.x-timer {
-    background: rgba(29, 155, 240, 0.2);
-    border-color: #1DA1F2;
-}
-
-/* Animations */
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-@keyframes progressAnimation {
-    0% { width: 0%; }
-    100% { width: 100%; }
-}
-
-/* Responsive Design */
+/* Responsive Design Updates */
 @media (max-width: 480px) {
-    .container {
-        padding: 15px;
-        margin: 5px;
+    .follow-platform-tabs {
+        padding: 4px;
     }
     
-    .quick-actions-mini {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
-    }
-    
-    .mini-btn {
-        padding: 12px 8px;
-    }
-    
-    .mini-icon {
-        font-size: 20px;
-    }
-    
-    .mini-text {
-        font-size: 11px;
-    }
-    
-    .bottom-nav {
-        padding: 10px 5px;
-    }
-    
-    .nav-item {
-        padding: 6px 10px;
-    }
-    
-    .nav-icon {
-        font-size: 18px;
-    }
-    
-    .nav-text {
-        font-size: 10px;
-    }
-
-    .videos-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .search-container input {
-        padding: 12px 15px;
-    }
-
-    .search-container button {
-        padding: 12px 15px;
-    }
-
-    .sharing-options {
-        grid-template-columns: 1fr;
-    }
-
-    .youtube-iframe-container {
-        height: 200px;
-    }
-
-    .telegram-videos-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .telegram-stats {
+    .follow-stats {
         grid-template-columns: repeat(3, 1fr);
         gap: 8px;
     }
     
-    .telegram-stat {
+    .follow-stat {
         padding: 10px 5px;
     }
     
-    .stat-value {
-        font-size: 14px;
-    }
-    
-    .stat-label {
-        font-size: 9px;
-    }
-
-    .x-stats {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-    }
-    
-    .x-stat {
-        padding: 10px 5px;
-    }
-    
-    .x-action-buttons {
+    .follow-task-content {
         flex-direction: column;
+        text-align: center;
+    }
+    
+    .task-avatar {
+        margin: 0 auto;
+    }
+    
+    .follow-account-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .account-avatar {
+        margin: 0 auto;
+    }
+    
+    .follow-channel-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .channel-avatar {
+        margin: 0 auto;
+    }
+    
+    .referral-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    
+    .referral-stat {
+        padding: 10px 5px;
     }
 }
