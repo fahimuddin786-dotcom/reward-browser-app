@@ -40,6 +40,13 @@ body {
     padding: 10px 15px;
     border-radius: 15px;
     border: 1px solid rgba(255, 215, 0, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.wallet:hover {
+    background: rgba(255, 215, 0, 0.2);
+    transform: translateY(-2px);
 }
 
 .wallet-icon {
@@ -384,6 +391,105 @@ h2 {
 .mining-active .feature-main-desc {
     color: #FFD700 !important;
     font-weight: bold;
+}
+
+/* Wallet History */
+.wallet-history {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.transaction-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 15px 0;
+}
+
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.transaction-icon {
+    font-size: 20px;
+    margin-right: 12px;
+}
+
+.transaction-details {
+    flex: 1;
+}
+
+.transaction-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.transaction-time {
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+.transaction-amount {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.transaction-amount.positive {
+    color: #4CAF50;
+}
+
+.transaction-amount.negative {
+    color: #FF6B6B;
+}
+
+/* Referral Sharing */
+.sharing-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.share-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.share-btn.telegram {
+    background: #0088cc;
+}
+
+.share-btn.whatsapp {
+    background: #25D366;
+}
+
+.share-btn.copy {
+    background: #667eea;
+}
+
+.share-btn.message {
+    background: #FFA726;
+}
+
+.share-btn:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
 }
 
 /* YouTube Videos Section */
@@ -846,5 +952,9 @@ h2 {
 
     .youtube-iframe-container {
         height: 200px;
+    }
+
+    .sharing-options {
+        grid-template-columns: 1fr;
     }
 }
