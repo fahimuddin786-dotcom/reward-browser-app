@@ -30,6 +30,11 @@ let watchedInstagramVideoIds = JSON.parse(localStorage.getItem('watchedInstagram
 // Telegram Video State
 let watchedTelegramVideoIds = JSON.parse(localStorage.getItem('watchedTelegramVideos')) || [];
 
+// X (Twitter) State
+let watchedXVideoIds = JSON.parse(localStorage.getItem('watchedXVideos')) || [];
+let likedXTweetIds = JSON.parse(localStorage.getItem('likedXTweets')) || [];
+let retweetedXTweetIds = JSON.parse(localStorage.getItem('retweetedXTweets')) || [];
+
 // Real Instagram Videos Data
 const REAL_INSTAGRAM_VIDEOS = [
     {
@@ -185,6 +190,122 @@ const TELEGRAM_VIDEOS = [
         views: '2.8M',
         type: 'video',
         category: 'technology'
+    }
+];
+
+// X (Twitter) Content Data
+const X_CONTENT = [
+    {
+        id: 'x_video_1',
+        type: 'video',
+        thumbnail: 'https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=300&h=200&fit=crop',
+        title: '🚀 SpaceX Rocket Launch - Amazing Footage',
+        username: 'SpaceX',
+        handle: '@SpaceX',
+        points: 20,
+        duration: '1:15',
+        views: '2.5M',
+        likes: '150K',
+        retweets: '45K',
+        timestamp: '2 hours ago',
+        content: 'Watch our latest Falcon 9 launch and landing! 🚀✨',
+        video_url: 'https://example.com/spacex-launch.mp4'
+    },
+    {
+        id: 'x_tweet_1',
+        type: 'tweet',
+        points: 15,
+        username: 'Elon Musk',
+        handle: '@elonmusk',
+        content: 'The future of AI is going to be incredible! 🤖 Working on some exciting updates for Grok...',
+        likes: '250K',
+        retweets: '85K',
+        timestamp: '5 hours ago',
+        media: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=300&h=200&fit=crop'
+    },
+    {
+        id: 'x_video_2',
+        type: 'video',
+        thumbnail: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=200&fit=crop',
+        title: '💪 Amazing Workout Transformation',
+        username: 'Fitness Motivation',
+        handle: '@FitMotivation',
+        points: 18,
+        duration: '0:45',
+        views: '1.8M',
+        likes: '95K',
+        retweets: '22K',
+        timestamp: '1 day ago',
+        content: '6 months transformation! Never give up on your goals 💯',
+        video_url: 'https://example.com/fitness-transformation.mp4'
+    },
+    {
+        id: 'x_tweet_2',
+        type: 'tweet',
+        points: 12,
+        username: 'Tech News',
+        handle: '@TechUpdate',
+        content: 'BREAKING: New iPhone 16 features leaked! 📱 Revolutionary camera system and AI enhancements.',
+        likes: '180K',
+        retweets: '65K',
+        timestamp: '3 hours ago',
+        media: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=200&fit=crop'
+    },
+    {
+        id: 'x_video_3',
+        type: 'video',
+        thumbnail: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=300&h=200&fit=crop',
+        title: '🎵 Viral Dance Challenge',
+        username: 'Dance Trends',
+        handle: '@DanceViral',
+        points: 16,
+        duration: '0:30',
+        views: '3.2M',
+        likes: '210K',
+        retweets: '78K',
+        timestamp: '6 hours ago',
+        content: 'Can you beat this dance challenge? 💃 Show us your moves!',
+        video_url: 'https://example.com/dance-challenge.mp4'
+    },
+    {
+        id: 'x_tweet_3',
+        type: 'tweet',
+        points: 10,
+        username: 'Crypto Expert',
+        handle: '@CryptoGuru',
+        content: 'Bitcoin showing strong bullish signals! 📈 This could be the start of the next rally. #BTC #Crypto',
+        likes: '45K',
+        retweets: '18K',
+        timestamp: '8 hours ago',
+        media: 'https://images.unsplash.com/photo-1516245834210-8e0a79664e4e?w=300&h=200&fit=crop'
+    },
+    {
+        id: 'x_video_4',
+        type: 'video',
+        thumbnail: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=300&h=200&fit=crop',
+        title: '🍳 5 Minute Breakfast Recipes',
+        username: 'Quick Recipes',
+        handle: '@QuickEats',
+        points: 14,
+        duration: '1:00',
+        views: '1.2M',
+        likes: '68K',
+        retweets: '25K',
+        timestamp: '1 day ago',
+        content: 'Start your day right with these quick and healthy breakfast ideas! 🥑',
+        video_url: 'https://example.com/breakfast-recipes.mp4'
+    },
+    {
+        id: 'x_tweet_4',
+        type: 'tweet',
+        points: 8,
+        username: 'Movie Updates',
+        handle: '@FilmNews',
+        content: 'First look at the new Avengers movie! 🎬 Which character are you most excited to see?',
+        likes: '120K',
+        retweets: '42K',
+        timestamp: '4 hours ago',
+        media: 'https://images.unsplash.com/photo-1635805737707-575885ab0820?w=300&h=200&fit=crop'
     }
 ];
 
@@ -803,6 +924,338 @@ function selectTelegramVideo(videoId, points, title, channel, type) {
     startVideoTracking();
 }
 
+// Show X Section
+function showXSection() {
+    document.getElementById('appContent').innerHTML = `
+        <div class="x-section">
+            <div class="section-header">
+                <button onclick="showDashboard()" class="back-btn">← Back</button>
+                <h3>🐦 X (Twitter) Tasks</h3>
+            </div>
+            
+            <div class="x-categories">
+                <button class="category-btn active" onclick="showAllXContent()">All Content</button>
+                <button class="category-btn" onclick="showXVideos()">🎬 Videos</button>
+                <button class="category-btn" onclick="showXTweets()">💬 Tweets</button>
+                <button class="category-btn" onclick="showTrendingX()">🔥 Trending</button>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="xSearchInput" placeholder="Search X content..." value="trending">
+                <button onclick="searchXContent()">🔍 Search</button>
+            </div>
+            
+            <div class="x-stats">
+                <div class="x-stat">
+                    <span class="stat-value">${X_CONTENT.length}</span>
+                    <span class="stat-label">Total Tasks</span>
+                </div>
+                <div class="x-stat">
+                    <span class="stat-value">${Math.max(...X_CONTENT.map(v => v.points))}</span>
+                    <span class="stat-label">Max Points</span>
+                </div>
+                <div class="x-stat">
+                    <span class="stat-value">${watchedXVideoIds.length + likedXTweetIds.length + retweetedXTweetIds.length}</span>
+                    <span class="stat-label">Completed</span>
+                </div>
+            </div>
+            
+            <div id="xResultsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading X content...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    showAllXContent();
+}
+
+// Show All X Content
+function showAllXContent() {
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    displayXContent(X_CONTENT, 'All X Content');
+}
+
+// Show X Videos
+function showXVideos() {
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    const videos = X_CONTENT.filter(item => item.type === 'video');
+    displayXContent(videos, 'X Videos');
+}
+
+// Show X Tweets
+function showXTweets() {
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    const tweets = X_CONTENT.filter(item => item.type === 'tweet');
+    displayXContent(tweets, 'X Tweets');
+}
+
+// Show Trending X
+function showTrendingX() {
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    const trending = [...X_CONTENT].sort((a, b) => b.points - a.points).slice(0, 6);
+    displayXContent(trending, 'Trending on X');
+}
+
+// Search X Content
+function searchXContent() {
+    const query = document.getElementById('xSearchInput').value.trim() || 'trending';
+    const container = document.getElementById('xResultsContainer');
+    
+    container.innerHTML = `
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Searching X for "${query}"...</p>
+        </div>
+    `;
+
+    setTimeout(() => {
+        const filteredContent = X_CONTENT.filter(item => 
+            item.title?.toLowerCase().includes(query.toLowerCase()) ||
+            item.username.toLowerCase().includes(query.toLowerCase()) ||
+            item.content.toLowerCase().includes(query.toLowerCase()) ||
+            item.handle.toLowerCase().includes(query.toLowerCase())
+        );
+        
+        displayXContent(filteredContent.length > 0 ? filteredContent : X_CONTENT, `Results for "${query}"`);
+    }, 1500);
+}
+
+// Display X Content
+function displayXContent(content, title) {
+    const container = document.getElementById('xResultsContainer');
+    
+    let html = `
+        <div class="section-title">
+            <h3>🐦 ${title}</h3>
+            <p class="section-subtitle">${content.length} tasks found • Earn up to ${Math.max(...content.map(v => v.points))} points each</p>
+        </div>
+        <div class="x-content-grid">
+    `;
+    
+    content.forEach((item) => {
+        const isWatched = watchedXVideoIds.includes(item.id);
+        const isLiked = likedXTweetIds.includes(item.id);
+        const isRetweeted = retweetedXTweetIds.includes(item.id);
+        
+        if (item.type === 'video') {
+            html += `
+                <div class="x-video-card" onclick="selectXVideo('${item.id}', ${item.points}, '${item.title.replace(/'/g, "\\'")}', '${item.username.replace(/'/g, "\\'")}', '${item.handle.replace(/'/g, "\\'")}')">
+                    <div class="x-thumbnail">
+                        <img src="${item.thumbnail}" alt="${item.title}">
+                        <div class="x-points-badge">+${item.points} pts</div>
+                        <div class="x-type-badge video">🎬 Video</div>
+                        <div class="x-duration">${item.duration}</div>
+                    </div>
+                    <div class="x-content-details">
+                        <h4 class="x-content-title">${item.title}</h4>
+                        <div class="x-user-info">
+                            <div class="x-avatar"></div>
+                            <div class="x-user-details">
+                                <div class="x-username">${item.username}</div>
+                                <div class="x-handle">${item.handle}</div>
+                            </div>
+                        </div>
+                        <p class="x-content-text">${item.content}</p>
+                        <div class="x-stats-row">
+                            <span class="x-stat">👁️ ${item.views}</span>
+                            <span class="x-stat">❤️ ${item.likes}</span>
+                            <span class="x-stat">🔄 ${item.retweets}</span>
+                        </div>
+                        <div class="x-actions">
+                            ${isWatched ? 
+                                '<span class="x-action-completed">✅ Video Watched</span>' : 
+                                '<span class="x-action-available">▶️ Watch Video</span>'
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            const canLike = !isLiked;
+            const canRetweet = !isRetweeted;
+            const totalPoints = (canLike ? 5 : 0) + (canRetweet ? 5 : 0);
+            
+            html += `
+                <div class="x-tweet-card">
+                    <div class="x-tweet-header">
+                        <div class="x-user-info">
+                            <div class="x-avatar"></div>
+                            <div class="x-user-details">
+                                <div class="x-username">${item.username}</div>
+                                <div class="x-handle">${item.handle} • ${item.timestamp}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="x-tweet-content">
+                        <p class="x-tweet-text">${item.content}</p>
+                        ${item.media ? `<img src="${item.media}" alt="Tweet media" class="x-tweet-media">` : ''}
+                    </div>
+                    <div class="x-tweet-stats">
+                        <span class="x-tweet-stat">${item.likes} Likes</span>
+                        <span class="x-tweet-stat">${item.retweets} Retweets</span>
+                    </div>
+                    <div class="x-tweet-actions">
+                        <div class="x-action-buttons">
+                            ${canLike ? 
+                                `<button class="x-action-btn like" onclick="likeXTweet('${item.id}', ${item.points}, '${item.content.substring(0, 30).replace(/'/g, "\\'")}...')">
+                                    ❤️ Like (+5 pts)
+                                </button>` : 
+                                '<span class="x-action-completed">✅ Liked</span>'
+                            }
+                            ${canRetweet ? 
+                                `<button class="x-action-btn retweet" onclick="retweetXTweet('${item.id}', ${item.points}, '${item.content.substring(0, 30).replace(/'/g, "\\'")}...')">
+                                    🔄 Retweet (+5 pts)
+                                </button>` : 
+                                '<span class="x-action-completed">✅ Retweeted</span>'
+                            }
+                        </div>
+                        ${totalPoints > 0 ? 
+                            `<div class="x-total-points">Earn up to +${totalPoints} points</div>` : 
+                            '<div class="x-total-points completed">✅ All tasks completed</div>'
+                        }
+                    </div>
+                </div>
+            `;
+        }
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// Select X Video for Earning
+function selectXVideo(videoId, points, title, username, handle) {
+    if (watchedXVideoIds.includes(videoId)) {
+        showNotification('❌ You have already earned points for this video!', 'warning');
+        return;
+    }
+    
+    currentVideoId = videoId;
+    currentPoints = points;
+    currentTitle = title;
+    
+    const videoData = X_CONTENT.find(v => v.id === videoId);
+    
+    document.getElementById('appContent').innerHTML = `
+        <div class="video-player-section">
+            <div class="section-header">
+                <button onclick="showXSection()" class="back-btn">← Back to X</button>
+                <h3>🎯 Earn Points</h3>
+            </div>
+            
+            <div class="x-player-container">
+                <div class="x-player-header">
+                    <div class="x-user-info">
+                        <div class="x-avatar"></div>
+                        <div class="x-user-details">
+                            <div class="x-username">${username}</div>
+                            <div class="x-handle">${handle}</div>
+                        </div>
+                    </div>
+                    <div class="x-options">⋯</div>
+                </div>
+                
+                <div class="x-video-placeholder">
+                    <div class="x-logo">🐦</div>
+                    <h3>X Video</h3>
+                    <p>"${title}"</p>
+                    <div class="x-stats">
+                        <span>⏱️ ${videoData.duration}</span>
+                        <span>👁️ ${videoData.views}</span>
+                        <span>💰 +${points} points</span>
+                    </div>
+                    <div class="x-simulation">
+                        <div class="simulation-progress x-progress"></div>
+                        <div class="x-message">
+                            <div class="message-bubble x-bubble">Watch this video to earn ${points} points!</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="x-player-actions">
+                    <div class="x-action-btn">❤️</div>
+                    <div class="x-action-btn">💬</div>
+                    <div class="x-action-btn">🔄</div>
+                    <div class="x-action-btn">📤</div>
+                </div>
+            </div>
+            
+            <div class="video-timer x-timer">
+                <p>⏰ <strong>Watch for 1 minute to earn ${points} points</strong></p>
+                <p class="timer-note">Don't close this page - points awarded automatically</p>
+            </div>
+            
+            <div class="tracking-section">
+                <div class="tracking-status">
+                    <div class="status-indicator" id="statusIndicator"></div>
+                    <div class="status-text" id="statusText">
+                        🎯 Ready to earn ${points} points
+                    </div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">
+                        Waiting for video completion...
+                    </div>
+                </div>
+                
+                <div class="tracking-controls">
+                    <button onclick="cancelVideoEarning()" class="cancel-btn">
+                        ❌ Cancel Earning
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    startVideoTracking();
+}
+
+// Like X Tweet
+function likeXTweet(tweetId, points, content) {
+    if (likedXTweetIds.includes(tweetId)) {
+        showNotification('❌ You have already liked this tweet!', 'warning');
+        return;
+    }
+    
+    userPoints += 5;
+    likedXTweetIds.push(tweetId);
+    localStorage.setItem('likedXTweets', JSON.stringify(likedXTweetIds));
+    addTransaction('x_like', 5, 'X Like: ' + content, '❤️');
+    updateUI();
+    showNotification('❤️ +5 Points! Tweet liked successfully!', 'success');
+    
+    // Refresh the X section to update the UI
+    showXSection();
+}
+
+// Retweet X Tweet
+function retweetXTweet(tweetId, points, content) {
+    if (retweetedXTweetIds.includes(tweetId)) {
+        showNotification('❌ You have already retweeted this tweet!', 'warning');
+        return;
+    }
+    
+    userPoints += 5;
+    retweetedXTweetIds.push(tweetId);
+    localStorage.setItem('retweetedXTweets', JSON.stringify(retweetedXTweetIds));
+    addTransaction('x_retweet', 5, 'X Retweet: ' + content, '🔄');
+    updateUI();
+    showNotification('🔄 +5 Points! Tweet retweeted successfully!', 'success');
+    
+    // Refresh the X section to update the UI
+    showXSection();
+}
+
 // Search YouTube Videos
 async function searchYouTubeVideos() {
     const query = document.getElementById('youtubeSearchInput').value.trim() || 'trending shorts';
@@ -1128,6 +1581,7 @@ function updateVideoTrackingProgress(current, max) {
 function completeVideoEarning() {
     const isInstagram = watchedInstagramVideoIds.includes(currentVideoId) || REAL_INSTAGRAM_VIDEOS.some(v => v.id === currentVideoId);
     const isTelegram = watchedTelegramVideoIds.includes(currentVideoId) || TELEGRAM_VIDEOS.some(v => v.id === currentVideoId);
+    const isX = watchedXVideoIds.includes(currentVideoId) || X_CONTENT.some(v => v.id === currentVideoId && v.type === 'video');
     
     if (isInstagram) {
         // Instagram video
@@ -1143,6 +1597,13 @@ function completeVideoEarning() {
             localStorage.setItem('watchedTelegramVideos', JSON.stringify(watchedTelegramVideoIds));
         }
         addTransaction('telegram', currentPoints, 'Telegram: ' + currentTitle.substring(0, 20) + '...', '📱');
+    } else if (isX) {
+        // X video
+        if (currentVideoId && !watchedXVideoIds.includes(currentVideoId)) {
+            watchedXVideoIds.push(currentVideoId);
+            localStorage.setItem('watchedXVideos', JSON.stringify(watchedXVideoIds));
+        }
+        addTransaction('x_video', currentPoints, 'X Video: ' + currentTitle.substring(0, 20) + '...', '🐦');
     } else {
         // YouTube video
         if (currentVideoId && !watchedVideoIds.includes(currentVideoId)) {
