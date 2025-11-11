@@ -16,7 +16,12 @@ function getSessionKey(key) {
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('session') || 'default';
     const userId = urlParams.get('userid') || 'default_user';
-    return `${key}_${sessionId}_${userId}`;
+    const timestamp = urlParams.get('timestamp') || Date.now();
+    const isFresh = urlParams.get('fresh') || 'false';
+    const refCode = urlParams.get('ref') || 'no_ref';
+    
+    // Super unique key - impossible to conflict
+    return `TAPEARN_${key}_${sessionId}_${userId}_${timestamp}_${isFresh}_${refCode}`;
 }
 
 // Check if fresh start requested
@@ -27,18 +32,28 @@ function shouldStartFresh() {
 
 // Clear all existing data for fresh start
 function clearExistingData() {
+    console.log('🧹 Clearing ALL existing data for fresh start');
+    
+    // Get all keys from localStorage
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (key.includes('userProfile') || key.includes('transactionHistory') || 
-            key.includes('referralData') || key.includes('watchedVideos') || 
-            key.includes('miningState') || key.includes('followed'))) {
+        if (key && key.includes('TAPEARN_')) {
             keysToRemove.push(key);
         }
     }
     
-    keysToRemove.forEach(key => localStorage.removeItem(key));
-    console.log('🧹 Cleared existing data for fresh start');
+    // Remove all app-related keys
+    keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+        console.log('Removed:', key);
+    });
+    
+    // Clear session storage too
+    sessionStorage.clear();
+    
+    console.log('✅ All previous data cleared');
+    showNotification('🔄 Fresh start completed! Starting with clean data.', 'success');
 }
 
 // Initialize with session management
@@ -47,7 +62,6 @@ function initializeSession() {
     
     if (shouldStartFresh()) {
         clearExistingData();
-        showNotification('🔄 Starting fresh session with new account!', 'success');
     }
     
     // Generate session-specific keys
@@ -56,7 +70,7 @@ function initializeSession() {
     const sessionReferralKey = getSessionKey('referralData');
     const sessionMiningKey = getSessionKey('miningState');
     
-    console.log(`🆕 Session initialized: ${sessionUserProfileKey}`);
+    console.log(`🆕 Enhanced Session initialized: ${sessionUserProfileKey}`);
     
     return {
         userProfileKey: sessionUserProfileKey,
@@ -69,36 +83,45 @@ function initializeSession() {
 // Initialize sessions
 const sessionKeys = initializeSession();
 
-// User Profile with Enhanced Session Management
-let userProfile = JSON.parse(localStorage.getItem(sessionKeys.userProfileKey)) || {
-    telegramUsername: '',
-    userId: generateUserId(),
-    joinDate: new Date().toISOString(),
-    isPremium: false,
-    level: 'Bronze',
-    firstName: '',
-    lastName: '',
-    sessionId: new URLSearchParams(window.location.search).get('session') || 'default',
-    isNewUser: true
-};
-
-// Check if this is a referred new user
-function checkNewUserReferral() {
+// Create fresh user profile
+function createFreshUserProfile() {
     const urlParams = new URLSearchParams(window.location.search);
-    const isNewUser = urlParams.get('newuser') === 'true';
-    const referralCode = urlParams.get('ref');
+    const tg = window.Telegram?.WebApp;
+    const user = tg?.initDataUnsafe?.user;
     
-    if (isNewUser && referralCode && userProfile.isNewUser) {
-        // Give welcome bonus to new referred user
-        userPoints += 25;
-        userProfile.isNewUser = false;
-        addTransaction('welcome_bonus', 25, 'Welcome Bonus - Referred User', '🎁');
-        showNotification('🎉 +25 Welcome Bonus! You were referred by a friend!', 'success');
-        updateUI();
-        
-        console.log('✅ New referred user bonus awarded');
-    }
+    const freshProfile = {
+        telegramUsername: user?.username || '',
+        userId: urlParams.get('userid') || generateUserId(),
+        joinDate: new Date().toISOString(),
+        isPremium: false,
+        level: 'Bronze',
+        firstName: user?.first_name || '',
+        lastName: user?.last_name || '',
+        sessionId: urlParams.get('session') || 'default',
+        isNewUser: true,
+        createdAt: Date.now()
+    };
+    
+    console.log('🆕 Fresh user profile created:', freshProfile);
+    return freshProfile;
 }
+
+// Create fresh referral data
+function createFreshReferralData() {
+    const freshReferralData = {
+        referralCode: generateReferralCode(),
+        referredUsers: [],
+        totalEarned: 0,
+        pendingReferrals: [],
+        sessionId: new URLSearchParams(window.location.search).get('session') || 'default'
+    };
+    
+    console.log('🆕 Fresh referral data created');
+    return freshReferralData;
+}
+
+// User Profile with Enhanced Session Management
+let userProfile = JSON.parse(localStorage.getItem(sessionKeys.userProfileKey)) || createFreshUserProfile();
 
 // Transaction History with Session Management
 let transactionHistory = JSON.parse(localStorage.getItem(sessionKeys.transactionKey)) || [
@@ -106,13 +129,7 @@ let transactionHistory = JSON.parse(localStorage.getItem(sessionKeys.transaction
 ];
 
 // Referral System with Session Management
-let referralData = JSON.parse(localStorage.getItem(sessionKeys.referralKey)) || {
-    referralCode: generateReferralCode(),
-    referredUsers: [],
-    totalEarned: 0,
-    pendingReferrals: [],
-    sessionId: new URLSearchParams(window.location.search).get('session') || 'default'
-};
+let referralData = JSON.parse(localStorage.getItem(sessionKeys.referralKey)) || createFreshReferralData();
 
 // YouTube Video State with Session Management
 let currentVideoId = null;
@@ -453,15 +470,15 @@ function generateReferralCode() {
     const sessionId = urlParams.get('session') || 'default';
     
     if (userProfile.telegramUsername) {
-        return 'TAPEARN_' + userProfile.telegramUsername.toUpperCase() + '_' + sessionId;
+        return 'TAPEARN_' + userProfile.telegramUsername.toUpperCase() + '_' + sessionId + '_' + Date.now();
     } else {
-        return 'TAPEARN_' + userProfile.userId + '_' + sessionId;
+        return 'TAPEARN_' + userProfile.userId + '_' + sessionId + '_' + Date.now();
     }
 }
 
 // Initialize App with Enhanced Session Management
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🆕 Initializing app with session management...');
+    console.log('🆕 Initializing app with enhanced session management...');
     
     initializeTelegramIntegration();
     loadAppState();
@@ -487,19 +504,13 @@ function initializeTelegramIntegration() {
         // Get user data from Telegram
         const user = tg.initDataUnsafe.user;
         if (user) {
-            // Only update if this is a new session or fresh start
+            // Always create fresh profile for new sessions
             const urlParams = new URLSearchParams(window.location.search);
             const isFresh = urlParams.has('fresh') || !userProfile.telegramUsername;
             
             if (isFresh) {
-                userProfile.telegramUsername = user.username || '';
-                userProfile.userId = 'TG_' + user.id + '_' + Date.now();
-                userProfile.firstName = user.first_name || '';
-                userProfile.lastName = user.last_name || '';
-                userProfile.sessionId = new URLSearchParams(window.location.search).get('session') || 'default';
-                
-                // Generate fresh referral code based on Telegram username
-                referralData.referralCode = generateReferralCode();
+                userProfile = createFreshUserProfile();
+                referralData = createFreshReferralData();
                 
                 console.log('✅ Fresh Telegram user detected:', userProfile);
             }
@@ -527,13 +538,9 @@ function simulateTelegramEnvironment() {
     const isFresh = urlParams.has('fresh') || !userProfile.telegramUsername;
     
     if (isFresh) {
-        userProfile.telegramUsername = 'demo_user_' + Math.random().toString(36).substr(2, 5);
-        userProfile.sessionId = new URLSearchParams(window.location.search).get('session') || 'default';
+        userProfile = createFreshUserProfile();
+        referralData = createFreshReferralData();
         localStorage.setItem(sessionKeys.userProfileKey, JSON.stringify(userProfile));
-    }
-    
-    if (!referralData.referralCode || isFresh) {
-        referralData.referralCode = generateReferralCode();
         localStorage.setItem(sessionKeys.referralKey, JSON.stringify(referralData));
     }
 }
@@ -583,6 +590,27 @@ function processReferralJoin(referralCode) {
     updateUI();
     
     console.log('✅ Referral processed for:', referrerUsername);
+}
+
+// Check if this is a referred new user
+function checkNewUserReferral() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isNewUser = urlParams.get('newuser') === 'true';
+    const referralCode = urlParams.get('ref');
+    
+    if (isNewUser && referralCode && userProfile.isNewUser) {
+        // Give welcome bonus to new referred user
+        userPoints += 25;
+        userProfile.isNewUser = false;
+        addTransaction('welcome_bonus', 25, 'Welcome Bonus - Referred User', '🎁');
+        showNotification('🎉 +25 Welcome Bonus! You were referred by a friend!', 'success');
+        updateUI();
+        
+        // Save updated profile
+        localStorage.setItem(sessionKeys.userProfileKey, JSON.stringify(userProfile));
+        
+        console.log('✅ New referred user bonus awarded');
+    }
 }
 
 // Enhanced Load App State from Session Storage
