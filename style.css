@@ -794,7 +794,6 @@ h2 {
     text-align: center;
     padding: 15px;
     background: rgba(255, 165, 0, 0.2);
-    border-radius: 10px;
     border: 1px solid #FFA726;
     margin-bottom: 20px;
 }
@@ -1727,30 +1726,72 @@ h2 {
     transform: translateY(-2px);
 }
 
-/* Referral Section */
-.referral-section {
-    max-width: 400px;
-    margin: 0 auto;
+/* Enhanced Referral System Styles */
+
+/* User Profile Card */
+.user-profile-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.profile-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.profile-details {
+    flex: 1;
+}
+
+.profile-name {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.profile-level {
+    font-size: 12px;
+    opacity: 0.8;
+    background: rgba(205, 127, 50, 0.3);
+    color: #CD7F32;
+    padding: 2px 8px;
+    border-radius: 10px;
+    display: inline-block;
+}
+
+/* Enhanced Referral Card */
 .referral-card {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 15px;
     padding: 25px;
     text-align: center;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 20px;
 }
 
 .referral-code {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: bold;
     color: #FFD700;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
     margin: 15px 0;
     padding: 15px;
     background: rgba(255, 215, 0, 0.1);
     border-radius: 10px;
     border: 1px solid rgba(255, 215, 0, 0.3);
+    word-break: break-all;
 }
 
 .referral-note {
@@ -1759,6 +1800,7 @@ h2 {
     font-size: 14px;
 }
 
+/* Enhanced Referral Stats */
 .referral-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -1787,9 +1829,10 @@ h2 {
     opacity: 0.8;
 }
 
+/* Enhanced Sharing Options */
 .sharing-options {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
     margin: 20px 0;
 }
@@ -1826,17 +1869,19 @@ h2 {
     opacity: 0.9;
 }
 
+/* Enhanced Referral Benefits */
 .referral-benefits {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 15px;
     padding: 20px;
-    margin-top: 20px;
+    margin-bottom: 20px;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .referral-benefits h4 {
     margin-bottom: 12px;
     color: #FFA726;
+    text-align: center;
 }
 
 .referral-benefits ul {
@@ -1854,218 +1899,181 @@ h2 {
     border-bottom: none;
 }
 
-/* Tasks Section */
-.tasks-section {
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.tasks-list {
-    margin: 20px 0;
-}
-
-.task-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
+/* Referral Instructions */
+.referral-instructions {
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    margin-bottom: 10px;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.task-info {
+.referral-instructions h4 {
+    margin-bottom: 15px;
+    color: #FFA726;
+    text-align: center;
+}
+
+.steps {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.step {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.step-number {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.step-content {
     flex: 1;
 }
 
-.task-title {
+.step-content strong {
+    display: block;
+    margin-bottom: 4px;
     font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 2px;
 }
 
-.task-reward {
+.step-content p {
     font-size: 12px;
+    opacity: 0.8;
+    margin: 0;
+}
+
+/* Pending Referrals */
+.pending-referrals {
+    background: rgba(255, 165, 0, 0.1);
+    border: 1px solid rgba(255, 165, 0, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.pending-referrals h4 {
+    margin-bottom: 10px;
+    color: #FFA726;
+    font-size: 14px;
+}
+
+.pending-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pending-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+.pending-user {
+    font-weight: bold;
+}
+
+.pending-status {
+    color: #FFA726;
+    font-size: 11px;
+}
+
+/* Referral History */
+.referral-history {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.referral-history h4 {
+    margin-bottom: 15px;
+    color: #FFA726;
+    text-align: center;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.user-name {
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.history-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.history-points {
     color: #4CAF50;
     font-weight: bold;
+    font-size: 13px;
 }
 
-.task-btn {
-    background: #4CAF50;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: background 0.3s;
+.history-date {
+    font-size: 10px;
+    opacity: 0.7;
 }
 
-.task-btn:hover {
-    background: #45a049;
-}
-
-/* Skills Section */
-.skills-section {
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.skills-list {
-    margin: 20px 0;
-}
-
-.skill-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    margin-bottom: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.skill-info {
-    flex: 1;
-}
-
-.skill-title {
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 2px;
-}
-
-.skill-cost {
-    font-size: 12px;
-    color: #FFA726;
-    font-weight: bold;
-}
-
-.skill-btn {
-    background: #FFA726;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: background 0.3s;
-}
-
-.skill-btn:hover {
-    background: #FF9800;
-}
-
-/* Cashier Section */
-.cashier-section {
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.rewards-list {
-    margin: 20px 0;
-}
-
-.reward-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    margin-bottom: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.reward-info {
-    flex: 1;
-}
-
-.reward-title {
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 2px;
-}
-
-.reward-cost {
-    font-size: 12px;
-    color: #FFD700;
-    font-weight: bold;
-}
-
-.reward-btn {
-    background: #FFD700;
-    color: #1a1a2e;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: bold;
-    transition: background 0.3s;
-}
-
-.reward-btn:hover {
-    background: #FFC400;
-}
-
-/* Loading Spinner */
-.loading {
+.no-referrals {
     text-align: center;
-    padding: 50px 20px;
-}
-
-.spinner {
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top: 4px solid white;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 20px;
-}
-
-/* Notifications */
-.notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: rgba(255, 255, 255, 0.95);
-    color: #333;
-    padding: 15px 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    z-index: 1000;
-    max-width: 300px;
-    animation: slideIn 0.3s ease-out;
-}
-
-.notification.success {
-    border-left: 4px solid #4CAF50;
-}
-
-.notification.info {
-    border-left: 4px solid #2196F3;
-}
-
-.notification.warning {
-    border-left: 4px solid #FFA726;
-}
-
-.notification-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.notification-close {
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    color: #666;
+    padding: 30px 20px;
+    opacity: 0.7;
+    font-style: italic;
 }
 
 /* Telegram Section Styles */
@@ -3038,6 +3046,220 @@ h2 {
     cursor: default;
 }
 
+/* Tasks Section */
+.tasks-section {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.tasks-list {
+    margin: 20px 0;
+}
+
+.task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.task-info {
+    flex: 1;
+}
+
+.task-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.task-reward {
+    font-size: 12px;
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.task-btn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.3s;
+}
+
+.task-btn:hover {
+    background: #45a049;
+}
+
+/* Skills Section */
+.skills-section {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.skills-list {
+    margin: 20px 0;
+}
+
+.skill-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.skill-info {
+    flex: 1;
+}
+
+.skill-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.skill-cost {
+    font-size: 12px;
+    color: #FFA726;
+    font-weight: bold;
+}
+
+.skill-btn {
+    background: #FFA726;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.3s;
+}
+
+.skill-btn:hover {
+    background: #FF9800;
+}
+
+/* Cashier Section */
+.cashier-section {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.rewards-list {
+    margin: 20px 0;
+}
+
+.reward-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reward-info {
+    flex: 1;
+}
+
+.reward-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.reward-cost {
+    font-size: 12px;
+    color: #FFD700;
+    font-weight: bold;
+}
+
+.reward-btn {
+    background: #FFD700;
+    color: #1a1a2e;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.reward-btn:hover {
+    background: #FFC400;
+}
+
+/* Loading Spinner */
+.loading {
+    text-align: center;
+    padding: 50px 20px;
+}
+
+.spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 4px solid white;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+/* Notifications */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    max-width: 300px;
+    animation: slideIn 0.3s ease-out;
+}
+
+.notification.success {
+    border-left: 4px solid #4CAF50;
+}
+
+.notification.info {
+    border-left: 4px solid #2196F3;
+}
+
+.notification.warning {
+    border-left: 4px solid #FFA726;
+}
+
+.notification-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #666;
+}
+
 /* Animations */
 @keyframes slideIn {
     from {
@@ -3064,6 +3286,19 @@ h2 {
 @keyframes progressAnimation {
     0% { width: 0%; }
     100% { width: 100%; }
+}
+
+/* Telegram Theme Variables */
+:root {
+    --tg-theme-bg-color: #1a1a2e;
+    --tg-theme-text-color: #ffffff;
+    --tg-theme-button-color: #4CAF50;
+}
+
+/* Apply Telegram theme if available */
+body {
+    background: var(--tg-theme-bg-color, linear-gradient(135deg, #1a1a2e 0%, #16213e 100%));
+    color: var(--tg-theme-text-color, white);
 }
 
 /* Responsive Design */
@@ -3259,5 +3494,40 @@ h2 {
     .terms-content {
         padding: 15px;
         max-height: 350px;
+    }
+
+    /* Enhanced Referral Responsive */
+    .steps {
+        gap: 12px;
+    }
+    
+    .step {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .step-number {
+        align-self: center;
+    }
+    
+    .history-item {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+    }
+    
+    .history-details {
+        align-items: center;
+    }
+    
+    .user-profile-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+    
+    .profile-avatar {
+        align-self: center;
     }
 }
