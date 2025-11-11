@@ -5,60 +5,138 @@ const YOUTUBE_API_KEY = 'AIzaSyBATxf5D7ZDeiQ61dbEdzEd4Tq72N713Y8';
 let isMining = false;
 let miningSeconds = 0;
 let miningInterval = null;
-let userPoints = 5564;
-let watchedVideos = 24;
-let referrals = 3;
+let userPoints = 0; // Start from 0 for new users
+let watchedVideos = 0;
+let referrals = 0;
 
-// User Profile with Telegram Integration
-let userProfile = JSON.parse(localStorage.getItem('userProfile')) || {
+// ==================== ENHANCED USER SESSION MANAGEMENT ====================
+
+// Generate session-based storage keys
+function getSessionKey(key) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session') || 'default';
+    const userId = urlParams.get('userid') || 'default_user';
+    return `${key}_${sessionId}_${userId}`;
+}
+
+// Check if fresh start requested
+function shouldStartFresh() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.has('fresh') || urlParams.has('clear_cache');
+}
+
+// Clear all existing data for fresh start
+function clearExistingData() {
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.includes('userProfile') || key.includes('transactionHistory') || 
+            key.includes('referralData') || key.includes('watchedVideos') || 
+            key.includes('miningState') || key.includes('followed'))) {
+            keysToRemove.push(key);
+        }
+    }
+    
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    console.log('🧹 Cleared existing data for fresh start');
+}
+
+// Initialize with session management
+function initializeSession() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    if (shouldStartFresh()) {
+        clearExistingData();
+        showNotification('🔄 Starting fresh session with new account!', 'success');
+    }
+    
+    // Generate session-specific keys
+    const sessionUserProfileKey = getSessionKey('userProfile');
+    const sessionTransactionKey = getSessionKey('transactionHistory');
+    const sessionReferralKey = getSessionKey('referralData');
+    const sessionMiningKey = getSessionKey('miningState');
+    
+    console.log(`🆕 Session initialized: ${sessionUserProfileKey}`);
+    
+    return {
+        userProfileKey: sessionUserProfileKey,
+        transactionKey: sessionTransactionKey,
+        referralKey: sessionReferralKey,
+        miningKey: sessionMiningKey
+    };
+}
+
+// Initialize sessions
+const sessionKeys = initializeSession();
+
+// User Profile with Enhanced Session Management
+let userProfile = JSON.parse(localStorage.getItem(sessionKeys.userProfileKey)) || {
     telegramUsername: '',
     userId: generateUserId(),
     joinDate: new Date().toISOString(),
     isPremium: false,
     level: 'Bronze',
     firstName: '',
-    lastName: ''
+    lastName: '',
+    sessionId: new URLSearchParams(window.location.search).get('session') || 'default',
+    isNewUser: true
 };
 
-// Transaction History
-let transactionHistory = JSON.parse(localStorage.getItem('transactionHistory')) || [
-    { type: 'mining', amount: 5, description: 'Mining Points', timestamp: Date.now() - 3600000, icon: '⛏️' },
-    { type: 'video', amount: 15, description: 'YouTube Video', timestamp: Date.now() - 7200000, icon: '🎬' },
-    { type: 'instagram', amount: 12, description: 'Instagram Reel', timestamp: Date.now() - 10800000, icon: '📷' },
-    { type: 'referral', amount: 50, description: 'Referral Bonus', timestamp: Date.now() - 86400000, icon: '👥' }
+// Check if this is a referred new user
+function checkNewUserReferral() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isNewUser = urlParams.get('newuser') === 'true';
+    const referralCode = urlParams.get('ref');
+    
+    if (isNewUser && referralCode && userProfile.isNewUser) {
+        // Give welcome bonus to new referred user
+        userPoints += 25;
+        userProfile.isNewUser = false;
+        addTransaction('welcome_bonus', 25, 'Welcome Bonus - Referred User', '🎁');
+        showNotification('🎉 +25 Welcome Bonus! You were referred by a friend!', 'success');
+        updateUI();
+        
+        console.log('✅ New referred user bonus awarded');
+    }
+}
+
+// Transaction History with Session Management
+let transactionHistory = JSON.parse(localStorage.getItem(sessionKeys.transactionKey)) || [
+    { type: 'welcome', amount: 25, description: 'Welcome Bonus', timestamp: Date.now(), icon: '🎁' }
 ];
 
-// Referral System
-let referralData = JSON.parse(localStorage.getItem('referralData')) || {
+// Referral System with Session Management
+let referralData = JSON.parse(localStorage.getItem(sessionKeys.referralKey)) || {
     referralCode: generateReferralCode(),
     referredUsers: [],
-    totalEarned: 150,
-    pendingReferrals: []
+    totalEarned: 0,
+    pendingReferrals: [],
+    sessionId: new URLSearchParams(window.location.search).get('session') || 'default'
 };
 
-// YouTube Video State
+// YouTube Video State with Session Management
 let currentVideoId = null;
 let currentPoints = 0;
 let currentTitle = '';
 let videoTrackingInterval = null;
-let watchedVideoIds = JSON.parse(localStorage.getItem('watchedVideos')) || [];
 
-// Instagram Video State
-let watchedInstagramVideoIds = JSON.parse(localStorage.getItem('watchedInstagramVideos')) || [];
+// Generate session-specific storage keys for videos
+function getVideoStorageKey(baseKey) {
+    return getSessionKey(baseKey);
+}
 
-// Telegram Video State
-let watchedTelegramVideoIds = JSON.parse(localStorage.getItem('watchedTelegramVideos')) || [];
+let watchedVideoIds = JSON.parse(localStorage.getItem(getVideoStorageKey('watchedVideos'))) || [];
+let watchedInstagramVideoIds = JSON.parse(localStorage.getItem(getVideoStorageKey('watchedInstagramVideos'))) || [];
+let watchedTelegramVideoIds = JSON.parse(localStorage.getItem(getVideoStorageKey('watchedTelegramVideos'))) || [];
+let watchedXVideoIds = JSON.parse(localStorage.getItem(getVideoStorageKey('watchedXVideos'))) || [];
+let likedXTweetIds = JSON.parse(localStorage.getItem(getVideoStorageKey('likedXTweets'))) || [];
+let retweetedXTweetIds = JSON.parse(localStorage.getItem(getVideoStorageKey('retweetedXTweets'))) || [];
 
-// X (Twitter) State
-let watchedXVideoIds = JSON.parse(localStorage.getItem('watchedXVideos')) || [];
-let likedXTweetIds = JSON.parse(localStorage.getItem('likedXTweets')) || [];
-let retweetedXTweetIds = JSON.parse(localStorage.getItem('retweetedXTweets')) || [];
-
-// Follow State
-let followedInstagramAccounts = JSON.parse(localStorage.getItem('followedInstagramAccounts')) || [];
-let followedXAccounts = JSON.parse(localStorage.getItem('followedXAccounts')) || [];
-let followedTelegramChannels = JSON.parse(localStorage.getItem('followedTelegramChannels')) || [];
-let subscribedYouTubeChannels = JSON.parse(localStorage.getItem('subscribedYouTubeChannels')) || [];
+// Follow State with Session Management
+let followedInstagramAccounts = JSON.parse(localStorage.getItem(getVideoStorageKey('followedInstagramAccounts'))) || [];
+let followedXAccounts = JSON.parse(localStorage.getItem(getVideoStorageKey('followedXAccounts'))) || [];
+let followedTelegramChannels = JSON.parse(localStorage.getItem(getVideoStorageKey('followedTelegramChannels'))) || [];
+let subscribedYouTubeChannels = JSON.parse(localStorage.getItem(getVideoStorageKey('subscribedYouTubeChannels'))) || [];
 
 // Social Tasks Data
 const SOCIAL_TASKS = {
@@ -357,35 +435,47 @@ const LEADERBOARD_DATA = [
     { rank: 5, name: 'MiningExpert', points: 8760, level: 'Silver', avatar: '⛏️' },
     { rank: 6, name: 'VideoWatcher', points: 7540, level: 'Silver', avatar: '🎬' },
     { rank: 7, name: 'ReferralGuru', points: 6890, level: 'Bronze', avatar: '👥' },
-    { rank: 8, name: 'You', points: 5564, level: 'Bronze', avatar: '😊' },
+    { rank: 8, name: 'You', points: 0, level: 'Bronze', avatar: '😊' },
     { rank: 9, name: 'TaskComplete', points: 4320, level: 'Bronze', avatar: '✅' },
     { rank: 10, name: 'Newbie123', points: 2980, level: 'Bronze', avatar: '🆕' }
 ];
 
 // Generate Unique User ID
 function generateUserId() {
-    return 'USER_' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session') || 'default';
+    return 'USER_' + sessionId + '_' + Math.random().toString(36).substr(2, 9).toUpperCase();
 }
 
-// Generate Referral Code based on Telegram Username
+// Generate Referral Code based on Session
 function generateReferralCode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session') || 'default';
+    
     if (userProfile.telegramUsername) {
-        return 'TAPEARN_' + userProfile.telegramUsername.toUpperCase();
+        return 'TAPEARN_' + userProfile.telegramUsername.toUpperCase() + '_' + sessionId;
     } else {
-        return 'TAPEARN_' + userProfile.userId;
+        return 'TAPEARN_' + userProfile.userId + '_' + sessionId;
     }
 }
 
-// Initialize App with Telegram Integration
+// Initialize App with Enhanced Session Management
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🆕 Initializing app with session management...');
+    
     initializeTelegramIntegration();
     loadAppState();
     checkReferralOnStart();
+    checkNewUserReferral();
     updateUI();
-    console.log('🎯 TapEarn App Initialized - Telegram Referral System Active');
+    
+    console.log('🎯 TapEarn App Initialized - Enhanced Session System Active');
+    console.log('🔑 Session Key:', sessionKeys.userProfileKey);
+    console.log('👤 User ID:', userProfile.userId);
+    console.log('🔍 Current Session:', showSessionInfo());
 });
 
-// Telegram Mini App Integration
+// Enhanced Telegram Mini App Integration
 function initializeTelegramIntegration() {
     // Check if we're in Telegram Web App
     if (window.Telegram && window.Telegram.WebApp) {
@@ -397,19 +487,26 @@ function initializeTelegramIntegration() {
         // Get user data from Telegram
         const user = tg.initDataUnsafe.user;
         if (user) {
-            userProfile.telegramUsername = user.username || '';
-            userProfile.userId = 'TG_' + user.id;
-            userProfile.firstName = user.first_name || '';
-            userProfile.lastName = user.last_name || '';
+            // Only update if this is a new session or fresh start
+            const urlParams = new URLSearchParams(window.location.search);
+            const isFresh = urlParams.has('fresh') || !userProfile.telegramUsername;
             
-            // Generate referral code based on Telegram username
-            referralData.referralCode = generateReferralCode();
+            if (isFresh) {
+                userProfile.telegramUsername = user.username || '';
+                userProfile.userId = 'TG_' + user.id + '_' + Date.now();
+                userProfile.firstName = user.first_name || '';
+                userProfile.lastName = user.last_name || '';
+                userProfile.sessionId = new URLSearchParams(window.location.search).get('session') || 'default';
+                
+                // Generate fresh referral code based on Telegram username
+                referralData.referralCode = generateReferralCode();
+                
+                console.log('✅ Fresh Telegram user detected:', userProfile);
+            }
             
-            // Save updated profile
-            localStorage.setItem('userProfile', JSON.stringify(userProfile));
-            localStorage.setItem('referralData', JSON.stringify(referralData));
-            
-            console.log('✅ Telegram user detected:', userProfile);
+            // Save updated profile with session key
+            localStorage.setItem(sessionKeys.userProfileKey, JSON.stringify(userProfile));
+            localStorage.setItem(sessionKeys.referralKey, JSON.stringify(referralData));
         }
         
         // Set theme
@@ -424,30 +521,39 @@ function initializeTelegramIntegration() {
     }
 }
 
-// Simulate Telegram environment for development
+// Enhanced Simulate Telegram environment
 function simulateTelegramEnvironment() {
-    if (!userProfile.telegramUsername) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isFresh = urlParams.has('fresh') || !userProfile.telegramUsername;
+    
+    if (isFresh) {
         userProfile.telegramUsername = 'demo_user_' + Math.random().toString(36).substr(2, 5);
-        localStorage.setItem('userProfile', JSON.stringify(userProfile));
+        userProfile.sessionId = new URLSearchParams(window.location.search).get('session') || 'default';
+        localStorage.setItem(sessionKeys.userProfileKey, JSON.stringify(userProfile));
     }
     
-    if (!referralData.referralCode) {
+    if (!referralData.referralCode || isFresh) {
         referralData.referralCode = generateReferralCode();
-        localStorage.setItem('referralData', JSON.stringify(referralData));
+        localStorage.setItem(sessionKeys.referralKey, JSON.stringify(referralData));
     }
 }
 
-// Check for referral on app start
+// Enhanced Check for referral on app start
 function checkReferralOnStart() {
     const urlParams = new URLSearchParams(window.location.search);
-    const referralCode = urlParams.get('ref') || urlParams.get('start');
+    const referralCode = urlParams.get('ref');
+    const sessionId = urlParams.get('session') || 'default';
     
-    if (referralCode && !localStorage.getItem('referralProcessed')) {
+    // Create session-specific referral processed key
+    const referralProcessedKey = `referralProcessed_${sessionId}`;
+    
+    if (referralCode && !localStorage.getItem(referralProcessedKey)) {
         processReferralJoin(referralCode);
+        localStorage.setItem(referralProcessedKey, 'true');
     }
 }
 
-// Process referral when new user joins
+// Enhanced Process referral when new user joins
 function processReferralJoin(referralCode) {
     // Prevent self-referral
     if (referralCode === referralData.referralCode) {
@@ -455,16 +561,10 @@ function processReferralJoin(referralCode) {
         return;
     }
     
-    // Check if already processed
-    if (localStorage.getItem('referralProcessed')) {
-        console.log('✅ Referral already processed');
-        return;
-    }
+    // Extract referrer info from code
+    const referrerUsername = referralCode.replace('TAPEARN_', '').split('_')[0].toLowerCase();
     
-    // Extract referrer username from code
-    const referrerUsername = referralCode.replace('TAPEARN_', '').toLowerCase();
-    
-    // Add to pending referrals (in real app, this would go to backend)
+    // Add to pending referrals
     referralData.pendingReferrals.push({
         code: referralCode,
         referrer: referrerUsername,
@@ -472,10 +572,8 @@ function processReferralJoin(referralCode) {
         status: 'pending'
     });
     
-    // Mark as processed
-    localStorage.setItem('referralProcessed', 'true');
-    localStorage.setItem('referredBy', referrerUsername);
-    localStorage.setItem('referralData', JSON.stringify(referralData));
+    // Save with session key
+    localStorage.setItem(sessionKeys.referralKey, JSON.stringify(referralData));
     
     // Give welcome bonus to new user
     userPoints += 25;
@@ -487,14 +585,14 @@ function processReferralJoin(referralCode) {
     console.log('✅ Referral processed for:', referrerUsername);
 }
 
-// Load App State from LocalStorage
+// Enhanced Load App State from Session Storage
 function loadAppState() {
-    const savedState = localStorage.getItem('miningState');
+    const savedState = localStorage.getItem(sessionKeys.miningKey);
     if (savedState) {
         const state = JSON.parse(savedState);
         isMining = state.isMining || false;
         miningSeconds = state.miningSeconds || 0;
-        userPoints = state.userPoints || 5564;
+        userPoints = state.userPoints || 0;
         
         if (isMining) {
             startMining();
@@ -502,25 +600,27 @@ function loadAppState() {
     }
 }
 
-// Save App State to LocalStorage
+// Enhanced Save App State to Session Storage
 function saveAppState() {
     const miningState = {
         isMining: isMining,
         miningSeconds: miningSeconds,
         userPoints: userPoints,
-        lastUpdated: Date.now()
+        lastUpdated: Date.now(),
+        sessionId: new URLSearchParams(window.location.search).get('session') || 'default'
     };
-    localStorage.setItem('miningState', JSON.stringify(miningState));
+    localStorage.setItem(sessionKeys.miningKey, JSON.stringify(miningState));
 }
 
-// Add Transaction to History
+// Enhanced Add Transaction to History
 function addTransaction(type, amount, description, icon) {
     const transaction = {
         type: type,
         amount: amount,
         description: description,
         timestamp: Date.now(),
-        icon: icon
+        icon: icon,
+        sessionId: new URLSearchParams(window.location.search).get('session') || 'default'
     };
     
     transactionHistory.unshift(transaction);
@@ -529,7 +629,17 @@ function addTransaction(type, amount, description, icon) {
         transactionHistory = transactionHistory.slice(0, 50);
     }
     
-    localStorage.setItem('transactionHistory', JSON.stringify(transactionHistory));
+    localStorage.setItem(sessionKeys.transactionKey, JSON.stringify(transactionHistory));
+}
+
+// Enhanced Save Video Watched State
+function saveVideoState(storageKey, videoArray) {
+    localStorage.setItem(getVideoStorageKey(storageKey), JSON.stringify(videoArray));
+}
+
+// Enhanced Save Follow State
+function saveFollowState(storageKey, followArray) {
+    localStorage.setItem(getVideoStorageKey(storageKey), JSON.stringify(followArray));
 }
 
 // Update UI
@@ -740,7 +850,7 @@ function showWalletDetails() {
     `;
 }
 
-// Show Referral System with Telegram Integration
+// Show Referral System with Enhanced Session Management
 function showReferralSystem() {
     const totalEarned = referralData.referredUsers.reduce((sum, user) => sum + user.pointsEarned, 0);
     const pendingCount = referralData.pendingReferrals.length;
@@ -757,6 +867,7 @@ function showReferralSystem() {
                 <div class="profile-details">
                     <div class="profile-name">${userProfile.telegramUsername || 'User'}</div>
                     <div class="profile-level">${userProfile.level} Level</div>
+                    <div class="profile-session">Session: ${userProfile.sessionId.substring(0, 8)}...</div>
                 </div>
             </div>
             
@@ -884,7 +995,7 @@ function showReferralSystem() {
 
 // Share with Telegram Deep Link
 function shareOnTelegramWithDeepLink() {
-    const referralLink = `https://t.me/tapearn_bot?start=${referralData.referralCode}`;
+    const referralLink = `https://t.me/tapearn_bot?start=ref${userProfile.userId}`;
     const message = `Join TapEarn and earn free points! Use my referral code: ${referralData.referralCode}\n\nGet your bonus: ${referralLink}`;
     
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(message)}`;
@@ -894,7 +1005,7 @@ function shareOnTelegramWithDeepLink() {
 
 // Copy referral link with deep link
 function copyReferralWithDeepLink() {
-    const referralLink = `https://t.me/tapearn_bot?start=${referralData.referralCode}`;
+    const referralLink = `https://t.me/tapearn_bot?start=ref${userProfile.userId}`;
     const referralText = `Join TapEarn using my referral! \nCode: ${referralData.referralCode}\nLink: ${referralLink}\n\nGet 25 bonus points when you join!`;
     
     navigator.clipboard.writeText(referralText)
@@ -904,7 +1015,7 @@ function copyReferralWithDeepLink() {
 
 // Share on WhatsApp with Deep Link
 function shareOnWhatsAppWithDeepLink() {
-    const referralLink = `https://t.me/tapearn_bot?start=${referralData.referralCode}`;
+    const referralLink = `https://t.me/tapearn_bot?start=ref${userProfile.userId}`;
     const message = `Join TapEarn and earn free points! Use my referral code: ${referralData.referralCode}\n\nGet your bonus: ${referralLink}`;
     
     const shareUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
@@ -931,7 +1042,7 @@ function addTestReferral() {
     addTransaction('referral', 50, 'Referral: ' + testUsername, '👥');
     
     // Save data
-    localStorage.setItem('referralData', JSON.stringify(referralData));
+    localStorage.setItem(sessionKeys.referralKey, JSON.stringify(referralData));
     
     // Update UI
     updateUI();
@@ -1002,6 +1113,18 @@ function showDashboard() {
 
 // Show Leaderboard
 function showLeaderboard() {
+    // Update "You" in leaderboard with current points
+    const updatedLeaderboard = LEADERBOARD_DATA.map(user => 
+        user.name === 'You' ? {...user, points: userPoints} : user
+    ).sort((a, b) => b.points - a.points)
+    .map((user, index) => ({...user, rank: index + 1}));
+
+    const userRank = updatedLeaderboard.find(u => u.name === 'You')?.rank || 8;
+    const userLevel = userPoints >= 10000 ? 'Diamond' : 
+                     userPoints >= 5000 ? 'Platinum' : 
+                     userPoints >= 2000 ? 'Gold' : 
+                     userPoints >= 1000 ? 'Silver' : 'Bronze';
+
     document.getElementById('appContent').innerHTML = `
         <div class="leaderboard-section">
             <div class="section-header">
@@ -1011,17 +1134,17 @@ function showLeaderboard() {
             
             <div class="user-rank-card">
                 <div class="user-rank-info">
-                    <div class="user-rank">#${LEADERBOARD_DATA.find(u => u.name === 'You').rank}</div>
+                    <div class="user-rank">#${userRank}</div>
                     <div class="user-details">
                         <div class="user-name">You</div>
                         <div class="user-points">${formatNumber(userPoints)} points</div>
                     </div>
-                    <div class="user-level-badge bronze">Bronze</div>
+                    <div class="user-level-badge ${userLevel.toLowerCase()}">${userLevel}</div>
                 </div>
             </div>
             
             <div class="leaderboard-list">
-                ${LEADERBOARD_DATA.map(user => `
+                ${updatedLeaderboard.map(user => `
                     <div class="leaderboard-item ${user.name === 'You' ? 'current-user' : ''}">
                         <div class="user-rank">${user.rank}</div>
                         <div class="user-avatar">${user.avatar}</div>
@@ -1496,7 +1619,7 @@ function followInstagramAccount(accountId, points, username) {
     
     userPoints += points;
     followedInstagramAccounts.push(accountId);
-    localStorage.setItem('followedInstagramAccounts', JSON.stringify(followedInstagramAccounts));
+    saveFollowState('followedInstagramAccounts', followedInstagramAccounts);
     addTransaction('instagram_follow', points, 'Instagram Follow: ' + username, '👤');
     updateUI();
     showNotification(`✅ +${points} Points! You followed @${username}`, 'success');
@@ -1760,7 +1883,7 @@ function completeFollowTask(platform, taskId, points, name) {
                 isCompleted = true;
             } else {
                 followedInstagramAccounts.push(taskId);
-                localStorage.setItem('followedInstagramAccounts', JSON.stringify(followedInstagramAccounts));
+                saveFollowState('followedInstagramAccounts', followedInstagramAccounts);
             }
             break;
         case 'x':
@@ -1768,7 +1891,7 @@ function completeFollowTask(platform, taskId, points, name) {
                 isCompleted = true;
             } else {
                 followedXAccounts.push(taskId);
-                localStorage.setItem('followedXAccounts', JSON.stringify(followedXAccounts));
+                saveFollowState('followedXAccounts', followedXAccounts);
             }
             break;
         case 'telegram':
@@ -1776,7 +1899,7 @@ function completeFollowTask(platform, taskId, points, name) {
                 isCompleted = true;
             } else {
                 followedTelegramChannels.push(taskId);
-                localStorage.setItem('followedTelegramChannels', JSON.stringify(followedTelegramChannels));
+                saveFollowState('followedTelegramChannels', followedTelegramChannels);
             }
             break;
         case 'youtube':
@@ -1784,7 +1907,7 @@ function completeFollowTask(platform, taskId, points, name) {
                 isCompleted = true;
             } else {
                 subscribedYouTubeChannels.push(taskId);
-                localStorage.setItem('subscribedYouTubeChannels', JSON.stringify(subscribedYouTubeChannels));
+                saveFollowState('subscribedYouTubeChannels', subscribedYouTubeChannels);
             }
             break;
     }
@@ -1929,7 +2052,7 @@ function joinTelegramChannel(channelId, points, channelName) {
     
     userPoints += points;
     followedTelegramChannels.push(channelId);
-    localStorage.setItem('followedTelegramChannels', JSON.stringify(followedTelegramChannels));
+    saveFollowState('followedTelegramChannels', followedTelegramChannels);
     addTransaction('telegram_join', points, 'Telegram Join: ' + channelName, '📱');
     updateUI();
     showNotification(`✅ +${points} Points! You joined ${channelName}`, 'success');
@@ -2233,7 +2356,7 @@ function followXAccount(accountId, points, username) {
     
     userPoints += points;
     followedXAccounts.push(accountId);
-    localStorage.setItem('followedXAccounts', JSON.stringify(followedXAccounts));
+    saveFollowState('followedXAccounts', followedXAccounts);
     addTransaction('x_follow', points, 'X Follow: ' + username, '🐦');
     updateUI();
     showNotification(`✅ +${points} Points! You followed @${username}`, 'success');
@@ -2500,7 +2623,7 @@ function likeXTweet(tweetId, points, content) {
     
     userPoints += 5;
     likedXTweetIds.push(tweetId);
-    localStorage.setItem('likedXTweets', JSON.stringify(likedXTweetIds));
+    saveVideoState('likedXTweets', likedXTweetIds);
     addTransaction('x_like', 5, 'X Like: ' + content, '❤️');
     updateUI();
     showNotification('❤️ +5 Points! Tweet liked successfully!', 'success');
@@ -2518,7 +2641,7 @@ function retweetXTweet(tweetId, points, content) {
     
     userPoints += 5;
     retweetedXTweetIds.push(tweetId);
-    localStorage.setItem('retweetedXTweets', JSON.stringify(retweetedXTweetIds));
+    saveVideoState('retweetedXTweets', retweetedXTweetIds);
     addTransaction('x_retweet', 5, 'X Retweet: ' + content, '🔄');
     updateUI();
     showNotification('🔄 +5 Points! Tweet retweeted successfully!', 'success');
@@ -2858,28 +2981,28 @@ function completeVideoEarning() {
         // Instagram video
         if (currentVideoId && !watchedInstagramVideoIds.includes(currentVideoId)) {
             watchedInstagramVideoIds.push(currentVideoId);
-            localStorage.setItem('watchedInstagramVideos', JSON.stringify(watchedInstagramVideoIds));
+            saveVideoState('watchedInstagramVideos', watchedInstagramVideoIds);
         }
         addTransaction('instagram', currentPoints, 'Instagram: ' + currentTitle.substring(0, 20) + '...', '📷');
     } else if (isTelegram) {
         // Telegram video
         if (currentVideoId && !watchedTelegramVideoIds.includes(currentVideoId)) {
             watchedTelegramVideoIds.push(currentVideoId);
-            localStorage.setItem('watchedTelegramVideos', JSON.stringify(watchedTelegramVideoIds));
+            saveVideoState('watchedTelegramVideos', watchedTelegramVideoIds);
         }
         addTransaction('telegram', currentPoints, 'Telegram: ' + currentTitle.substring(0, 20) + '...', '📱');
     } else if (isX) {
         // X video
         if (currentVideoId && !watchedXVideoIds.includes(currentVideoId)) {
             watchedXVideoIds.push(currentVideoId);
-            localStorage.setItem('watchedXVideos', JSON.stringify(watchedXVideoIds));
+            saveVideoState('watchedXVideos', watchedXVideoIds);
         }
         addTransaction('x_video', currentPoints, 'X Video: ' + currentTitle.substring(0, 20) + '...', '🐦');
     } else {
         // YouTube video
         if (currentVideoId && !watchedVideoIds.includes(currentVideoId)) {
             watchedVideoIds.push(currentVideoId);
-            localStorage.setItem('watchedVideos', JSON.stringify(watchedVideoIds));
+            saveVideoState('watchedVideos', watchedVideoIds);
         }
         addTransaction('video', currentPoints, 'YouTube: ' + currentTitle.substring(0, 20) + '...', '🎬');
     }
@@ -3129,6 +3252,21 @@ function redeemReward(reward) {
     }
 }
 
+// Add new function to show session info (for debugging)
+function showSessionInfo() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionInfo = {
+        sessionId: urlParams.get('session') || 'default',
+        userId: urlParams.get('userid') || 'not_provided',
+        isFresh: urlParams.has('fresh'),
+        isNewUser: urlParams.get('newuser') === 'true',
+        hasReferral: !!urlParams.get('ref')
+    };
+    
+    console.log('🔍 Session Info:', sessionInfo);
+    return sessionInfo;
+}
+
 // Notification System
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
@@ -3146,3 +3284,6 @@ function showNotification(message, type = 'info') {
         }
     }, 4000);
 }
+
+// Export for global access
+window.showSessionInfo = showSessionInfo;
