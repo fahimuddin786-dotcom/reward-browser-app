@@ -9,6 +9,17 @@ let userPoints = 5564;
 let watchedVideos = 24;
 let referrals = 3;
 
+// User Profile with Telegram Integration
+let userProfile = JSON.parse(localStorage.getItem('userProfile')) || {
+    telegramUsername: '',
+    userId: generateUserId(),
+    joinDate: new Date().toISOString(),
+    isPremium: false,
+    level: 'Bronze',
+    firstName: '',
+    lastName: ''
+};
+
 // Transaction History
 let transactionHistory = JSON.parse(localStorage.getItem('transactionHistory')) || [
     { type: 'mining', amount: 5, description: 'Mining Points', timestamp: Date.now() - 3600000, icon: '⛏️' },
@@ -16,6 +27,14 @@ let transactionHistory = JSON.parse(localStorage.getItem('transactionHistory')) 
     { type: 'instagram', amount: 12, description: 'Instagram Reel', timestamp: Date.now() - 10800000, icon: '📷' },
     { type: 'referral', amount: 50, description: 'Referral Bonus', timestamp: Date.now() - 86400000, icon: '👥' }
 ];
+
+// Referral System
+let referralData = JSON.parse(localStorage.getItem('referralData')) || {
+    referralCode: generateReferralCode(),
+    referredUsers: [],
+    totalEarned: 150,
+    pendingReferrals: []
+};
 
 // YouTube Video State
 let currentVideoId = null;
@@ -188,58 +207,6 @@ const REAL_INSTAGRAM_VIDEOS = [
         views: '12.7M',
         music: 'Trending Sound',
         type: 'reel'
-    },
-    {
-        id: 'instagram_real_3',
-        video_url: 'https://example.com/instagram-reel-3.mp4',
-        thumbnail: 'https://images.unsplash.com/photo-1526947425960-945c6e72858f?w=300&h=400&fit=crop',
-        title: '🍛 Street Food Review - Delhi Chaat',
-        username: 'foodie.delhi',
-        points: 10,
-        likes: '3.2M',
-        duration: '0:35',
-        views: '25.4M',
-        music: 'Street Food Vibe',
-        type: 'reel'
-    },
-    {
-        id: 'instagram_real_4',
-        video_url: 'https://example.com/instagram-reel-4.mp4',
-        thumbnail: 'https://images.unsplash.com/photo-1511988617509-a57c8a288659?w=300&h=400&fit=crop',
-        title: '💪 Fitness Motivation - Home Workout',
-        username: 'fitness.guru',
-        points: 14,
-        likes: '1.5M',
-        duration: '0:50',
-        views: '8.9M',
-        music: 'Workout Music Mix',
-        type: 'reel'
-    },
-    {
-        id: 'instagram_story_1',
-        video_url: 'https://example.com/instagram-story-1.mp4',
-        thumbnail: 'https://images.unsplash.com/photo-1552058544-f2b08422138a?w=300&h=500&fit=crop',
-        title: '🌟 Celebrity Daily Life Story',
-        username: 'bollywood_star',
-        points: 8,
-        likes: '950K',
-        duration: '0:15',
-        views: '5.2M',
-        music: 'Original Sound',
-        type: 'story'
-    },
-    {
-        id: 'instagram_story_2',
-        video_url: 'https://example.com/instagram-story-2.mp4',
-        thumbnail: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=300&h=500&fit=crop',
-        title: '💃 Dance Practice Session',
-        username: 'dance_queen',
-        points: 7,
-        likes: '1.1M',
-        duration: '0:20',
-        views: '7.8M',
-        music: 'Practice Beat',
-        type: 'story'
     }
 ];
 
@@ -268,54 +235,6 @@ const TELEGRAM_VIDEOS = [
         views: '1.8M',
         type: 'ad',
         category: 'forex'
-    },
-    {
-        id: 'telegram_ad_3',
-        video_url: 'https://example.com/telegram-ad-3.mp4',
-        thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=300&h=200&fit=crop',
-        title: '🛒 Amazon Deals - 90% OFF Today',
-        channel: 'Deal Hunters',
-        points: 12,
-        duration: '0:40',
-        views: '3.2M',
-        type: 'ad',
-        category: 'shopping'
-    },
-    {
-        id: 'telegram_video_1',
-        video_url: 'https://example.com/telegram-video-1.mp4',
-        thumbnail: 'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=300&h=200&fit=crop',
-        title: '🎮 Free Fire Tournament - Join Now!',
-        channel: 'Gaming Community',
-        points: 20,
-        duration: '1:20',
-        views: '5.4M',
-        type: 'video',
-        category: 'gaming'
-    },
-    {
-        id: 'telegram_video_2',
-        video_url: 'https://example.com/telegram-video-2.mp4',
-        thumbnail: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=300&h=200&fit=crop',
-        title: '📈 Stock Market Analysis - Weekly',
-        channel: 'Stock Experts',
-        points: 25,
-        duration: '2:15',
-        views: '1.2M',
-        type: 'video',
-        category: 'education'
-    },
-    {
-        id: 'telegram_video_3',
-        video_url: 'https://example.com/telegram-video-3.mp4',
-        thumbnail: 'https://images.unsplash.com/photo-1533750349088-cd871a92f312?w=300&h=200&fit=crop',
-        title: '🤖 AI Tools 2024 - Must Have Apps',
-        channel: 'Tech Updates',
-        points: 22,
-        duration: '1:45',
-        views: '2.8M',
-        type: 'video',
-        category: 'technology'
     }
 ];
 
@@ -348,90 +267,6 @@ const X_CONTENT = [
         retweets: '85K',
         timestamp: '5 hours ago',
         media: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=300&h=200&fit=crop'
-    },
-    {
-        id: 'x_video_2',
-        type: 'video',
-        thumbnail: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=200&fit=crop',
-        title: '💪 Amazing Workout Transformation',
-        username: 'Fitness Motivation',
-        handle: '@FitMotivation',
-        points: 18,
-        duration: '0:45',
-        views: '1.8M',
-        likes: '95K',
-        retweets: '22K',
-        timestamp: '1 day ago',
-        content: '6 months transformation! Never give up on your goals 💯',
-        video_url: 'https://example.com/fitness-transformation.mp4'
-    },
-    {
-        id: 'x_tweet_2',
-        type: 'tweet',
-        points: 12,
-        username: 'Tech News',
-        handle: '@TechUpdate',
-        content: 'BREAKING: New iPhone 16 features leaked! 📱 Revolutionary camera system and AI enhancements.',
-        likes: '180K',
-        retweets: '65K',
-        timestamp: '3 hours ago',
-        media: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=200&fit=crop'
-    },
-    {
-        id: 'x_video_3',
-        type: 'video',
-        thumbnail: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=300&h=200&fit=crop',
-        title: '🎵 Viral Dance Challenge',
-        username: 'Dance Trends',
-        handle: '@DanceViral',
-        points: 16,
-        duration: '0:30',
-        views: '3.2M',
-        likes: '210K',
-        retweets: '78K',
-        timestamp: '6 hours ago',
-        content: 'Can you beat this dance challenge? 💃 Show us your moves!',
-        video_url: 'https://example.com/dance-challenge.mp4'
-    },
-    {
-        id: 'x_tweet_3',
-        type: 'tweet',
-        points: 10,
-        username: 'Crypto Expert',
-        handle: '@CryptoGuru',
-        content: 'Bitcoin showing strong bullish signals! 📈 This could be the start of the next rally. #BTC #Crypto',
-        likes: '45K',
-        retweets: '18K',
-        timestamp: '8 hours ago',
-        media: 'https://images.unsplash.com/photo-1516245834210-8e0a79664e4e?w=300&h=200&fit=crop'
-    },
-    {
-        id: 'x_video_4',
-        type: 'video',
-        thumbnail: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=300&h=200&fit=crop',
-        title: '🍳 5 Minute Breakfast Recipes',
-        username: 'Quick Recipes',
-        handle: '@QuickEats',
-        points: 14,
-        duration: '1:00',
-        views: '1.2M',
-        likes: '68K',
-        retweets: '25K',
-        timestamp: '1 day ago',
-        content: 'Start your day right with these quick and healthy breakfast ideas! 🥑',
-        video_url: 'https://example.com/breakfast-recipes.mp4'
-    },
-    {
-        id: 'x_tweet_4',
-        type: 'tweet',
-        points: 8,
-        username: 'Movie Updates',
-        handle: '@FilmNews',
-        content: 'First look at the new Avengers movie! 🎬 Which character are you most excited to see?',
-        likes: '120K',
-        retweets: '42K',
-        timestamp: '4 hours ago',
-        media: 'https://images.unsplash.com/photo-1635805737707-575885ab0820?w=300&h=200&fit=crop'
     }
 ];
 
@@ -453,22 +288,6 @@ const FOLLOW_TASKS = {
             points: 30,
             followers: '1.8M',
             avatar: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=150&h=150&fit=crop'
-        },
-        {
-            id: 'instagram_follow_3',
-            username: 'foodie.heaven',
-            name: 'Foodie Heaven',
-            points: 20,
-            followers: '3.2M',
-            avatar: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=150&h=150&fit=crop'
-        },
-        {
-            id: 'instagram_follow_4',
-            username: 'fitness.motivation',
-            name: 'Fitness Motivation',
-            points: 35,
-            followers: '4.1M',
-            avatar: 'https://images.unsplash.com/photo-1534368270820-9de3d8053205?w=150&h=150&fit=crop'
         }
     ],
     x: [
@@ -489,24 +308,6 @@ const FOLLOW_TASKS = {
             followers: '1.5M',
             avatar: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=150&h=150&fit=crop',
             description: 'Crypto market analysis and signals'
-        },
-        {
-            id: 'x_follow_3',
-            username: 'SpaceX',
-            handle: '@SpaceX',
-            points: 40,
-            followers: '28.5M',
-            avatar: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=150&h=150&fit=crop',
-            description: 'Space exploration company'
-        },
-        {
-            id: 'x_follow_4',
-            username: 'Movie Updates',
-            handle: '@FilmNews',
-            points: 20,
-            followers: '3.8M',
-            avatar: 'https://images.unsplash.com/photo-1489599804158-8b3bf6d1a4ea?w=150&h=150&fit=crop',
-            description: 'Latest movie news and reviews'
         }
     ],
     telegram: [
@@ -525,22 +326,6 @@ const FOLLOW_TASKS = {
             members: '89K',
             avatar: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=150&h=150&fit=crop',
             description: 'Forex trading education and signals'
-        },
-        {
-            id: 'telegram_follow_3',
-            channel: 'Tech Updates',
-            points: 35,
-            members: '210K',
-            avatar: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=150&h=150&fit=crop',
-            description: 'Latest technology news and updates'
-        },
-        {
-            id: 'telegram_follow_4',
-            channel: 'Gaming Community',
-            points: 30,
-            members: '156K',
-            avatar: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=150&h=150&fit=crop',
-            description: 'Gaming news and community'
         }
     ],
     youtube: [
@@ -559,22 +344,6 @@ const FOLLOW_TASKS = {
             subscribers: '3.8M',
             avatar: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=150&h=150&fit=crop',
             description: 'Easy cooking recipes and tutorials'
-        },
-        {
-            id: 'youtube_follow_3',
-            channel: 'Fitness Guru',
-            points: 45,
-            subscribers: '1.9M',
-            avatar: 'https://images.unsplash.com/photo-1534368270820-9de3d8053205?w=150&h=150&fit=crop',
-            description: 'Workout routines and fitness tips'
-        },
-        {
-            id: 'youtube_follow_4',
-            channel: 'Travel Vlogs',
-            points: 30,
-            subscribers: '2.2M',
-            avatar: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=150&h=150&fit=crop',
-            description: 'Travel adventures and guides'
         }
     ]
 };
@@ -593,12 +362,130 @@ const LEADERBOARD_DATA = [
     { rank: 10, name: 'Newbie123', points: 2980, level: 'Bronze', avatar: '🆕' }
 ];
 
-// Initialize App
+// Generate Unique User ID
+function generateUserId() {
+    return 'USER_' + Math.random().toString(36).substr(2, 9).toUpperCase();
+}
+
+// Generate Referral Code based on Telegram Username
+function generateReferralCode() {
+    if (userProfile.telegramUsername) {
+        return 'TAPEARN_' + userProfile.telegramUsername.toUpperCase();
+    } else {
+        return 'TAPEARN_' + userProfile.userId;
+    }
+}
+
+// Initialize App with Telegram Integration
 document.addEventListener('DOMContentLoaded', function() {
+    initializeTelegramIntegration();
     loadAppState();
+    checkReferralOnStart();
     updateUI();
-    console.log('🎯 TapEarn App Initialized - All Features Working');
+    console.log('🎯 TapEarn App Initialized - Telegram Referral System Active');
 });
+
+// Telegram Mini App Integration
+function initializeTelegramIntegration() {
+    // Check if we're in Telegram Web App
+    if (window.Telegram && window.Telegram.WebApp) {
+        const tg = window.Telegram.WebApp;
+        
+        // Expand the app
+        tg.expand();
+        
+        // Get user data from Telegram
+        const user = tg.initDataUnsafe.user;
+        if (user) {
+            userProfile.telegramUsername = user.username || '';
+            userProfile.userId = 'TG_' + user.id;
+            userProfile.firstName = user.first_name || '';
+            userProfile.lastName = user.last_name || '';
+            
+            // Generate referral code based on Telegram username
+            referralData.referralCode = generateReferralCode();
+            
+            // Save updated profile
+            localStorage.setItem('userProfile', JSON.stringify(userProfile));
+            localStorage.setItem('referralData', JSON.stringify(referralData));
+            
+            console.log('✅ Telegram user detected:', userProfile);
+        }
+        
+        // Set theme
+        document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#1a1a2e');
+        document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#ffffff');
+        document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#4CAF50');
+        
+    } else {
+        // Simulate Telegram environment for development
+        console.log('🚧 Development mode - Telegram Web App not detected');
+        simulateTelegramEnvironment();
+    }
+}
+
+// Simulate Telegram environment for development
+function simulateTelegramEnvironment() {
+    if (!userProfile.telegramUsername) {
+        userProfile.telegramUsername = 'demo_user_' + Math.random().toString(36).substr(2, 5);
+        localStorage.setItem('userProfile', JSON.stringify(userProfile));
+    }
+    
+    if (!referralData.referralCode) {
+        referralData.referralCode = generateReferralCode();
+        localStorage.setItem('referralData', JSON.stringify(referralData));
+    }
+}
+
+// Check for referral on app start
+function checkReferralOnStart() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const referralCode = urlParams.get('ref') || urlParams.get('start');
+    
+    if (referralCode && !localStorage.getItem('referralProcessed')) {
+        processReferralJoin(referralCode);
+    }
+}
+
+// Process referral when new user joins
+function processReferralJoin(referralCode) {
+    // Prevent self-referral
+    if (referralCode === referralData.referralCode) {
+        console.log('❌ Self-referral detected');
+        return;
+    }
+    
+    // Check if already processed
+    if (localStorage.getItem('referralProcessed')) {
+        console.log('✅ Referral already processed');
+        return;
+    }
+    
+    // Extract referrer username from code
+    const referrerUsername = referralCode.replace('TAPEARN_', '').toLowerCase();
+    
+    // Add to pending referrals (in real app, this would go to backend)
+    referralData.pendingReferrals.push({
+        code: referralCode,
+        referrer: referrerUsername,
+        timestamp: Date.now(),
+        status: 'pending'
+    });
+    
+    // Mark as processed
+    localStorage.setItem('referralProcessed', 'true');
+    localStorage.setItem('referredBy', referrerUsername);
+    localStorage.setItem('referralData', JSON.stringify(referralData));
+    
+    // Give welcome bonus to new user
+    userPoints += 25;
+    addTransaction('referral_bonus', 25, 'Welcome Bonus - Referred by ' + referrerUsername, '🎁');
+    
+    showNotification(`🎉 +25 Welcome Bonus! You were referred by ${referrerUsername}`, 'success');
+    updateUI();
+    
+    console.log('✅ Referral processed for:', referrerUsername);
+}
 
 // Load App State from LocalStorage
 function loadAppState() {
@@ -853,188 +740,207 @@ function showWalletDetails() {
     `;
 }
 
-// Show Social Tasks Section
-function showSocialTasks() {
+// Show Referral System with Telegram Integration
+function showReferralSystem() {
+    const totalEarned = referralData.referredUsers.reduce((sum, user) => sum + user.pointsEarned, 0);
+    const pendingCount = referralData.pendingReferrals.length;
+    
     document.getElementById('appContent').innerHTML = `
-        <div class="social-tasks-section">
+        <div class="referral-section">
             <div class="section-header">
                 <button onclick="showDashboard()" class="back-btn">← Back</button>
-                <h3>🌐 Social Media Tasks</h3>
+                <h3>👥 Refer & Earn</h3>
             </div>
             
-            <div class="social-platform-tabs">
-                <button class="platform-tab active" onclick="showAllSocialTasks()">All Tasks</button>
-                <button class="platform-tab" onclick="showYouTubeTasks()">YouTube</button>
-                <button class="platform-tab" onclick="showTwitterTasks()">Twitter</button>
-                <button class="platform-tab" onclick="showInstagramTasks()">Instagram</button>
-                <button class="platform-tab" onclick="showTelegramTasks()">Telegram</button>
-            </div>
-            
-            <div class="social-tasks-stats">
-                <div class="social-stat">
-                    <span class="stat-value">${Object.values(SOCIAL_TASKS).flat().length}</span>
-                    <span class="stat-label">Total Tasks</span>
-                </div>
-                <div class="social-stat">
-                    <span class="stat-value">${Math.max(...Object.values(SOCIAL_TASKS).flat().map(v => v.points))}</span>
-                    <span class="stat-label">Max Points</span>
-                </div>
-                <div class="social-stat">
-                    <span class="stat-value">${Object.values(SOCIAL_TASKS).flat().filter(task => task.completed).length}</span>
-                    <span class="stat-label">Completed</span>
+            <div class="user-profile-card">
+                <div class="profile-avatar">👤</div>
+                <div class="profile-details">
+                    <div class="profile-name">${userProfile.telegramUsername || 'User'}</div>
+                    <div class="profile-level">${userProfile.level} Level</div>
                 </div>
             </div>
             
-            <div id="socialTasksContainer">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading social tasks...</p>
+            <div class="referral-card">
+                <div class="referral-code">${referralData.referralCode}</div>
+                <p class="referral-note">Your unique Telegram referral code</p>
+                
+                <div class="referral-stats">
+                    <div class="referral-stat">
+                        <span class="stat-value">${referralData.referredUsers.length}</span>
+                        <span class="stat-label">Confirmed</span>
+                    </div>
+                    <div class="referral-stat">
+                        <span class="stat-value">${pendingCount}</span>
+                        <span class="stat-label">Pending</span>
+                    </div>
+                    <div class="referral-stat">
+                        <span class="stat-value">${totalEarned}</span>
+                        <span class="stat-label">Earned</span>
+                    </div>
                 </div>
+                
+                <div class="sharing-options">
+                    <button class="share-btn telegram" onclick="shareOnTelegramWithDeepLink()">
+                        📱 Share on Telegram
+                    </button>
+                    <button class="share-btn copy" onclick="copyReferralWithDeepLink()">
+                        📋 Copy Referral Link
+                    </button>
+                    <button class="share-btn whatsapp" onclick="shareOnWhatsAppWithDeepLink()">
+                        💚 Share on WhatsApp
+                    </button>
+                </div>
+                
+                ${pendingCount > 0 ? `
+                    <div class="pending-referrals">
+                        <h4>⏳ Pending Referrals (${pendingCount})</h4>
+                        <div class="pending-list">
+                            ${referralData.pendingReferrals.map(ref => `
+                                <div class="pending-item">
+                                    <span class="pending-user">${ref.referrer}</span>
+                                    <span class="pending-status">Waiting confirmation</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                <button onclick="addTestReferral()" class="action-btn primary" style="margin-top: 15px;">
+                    👥 Add Test Referral
+                </button>
+            </div>
+            
+            <div class="referral-benefits">
+                <h4>🎁 How Referral Works</h4>
+                <ul>
+                    <li>✅ Share your unique Telegram referral link</li>
+                    <li>✅ Friends join using YOUR link</li>
+                    <li>✅ You get <strong>50 points</strong> when they sign up</li>
+                    <li>✅ Your friend gets <strong>25 bonus points</strong></li>
+                    <li>✅ Track all referrals in real-time</li>
+                </ul>
+            </div>
+
+            <div class="referral-instructions">
+                <h4>📝 Step-by-Step Guide</h4>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <strong>Copy your referral link</strong>
+                            <p>Click "Copy Referral Link" button</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <strong>Share with friends</strong>
+                            <p>Send via Telegram, WhatsApp, or any platform</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <strong>Friends join</strong>
+                            <p>They click your link and sign up</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <strong>Get rewards</strong>
+                            <p>You both receive bonus points automatically</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="referral-history">
+                <h4>📊 Referral History</h4>
+                ${referralData.referredUsers.length > 0 ? `
+                    <div class="history-list">
+                        ${referralData.referredUsers.map(user => `
+                            <div class="history-item">
+                                <div class="history-user">
+                                    <span class="user-avatar">👤</span>
+                                    <span class="user-name">${user.username}</span>
+                                </div>
+                                <div class="history-details">
+                                    <span class="history-points">+${user.pointsEarned} pts</span>
+                                    <span class="history-date">${new Date(user.timestamp).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : `
+                    <div class="no-referrals">
+                        <p>No confirmed referrals yet. Share your link to start earning!</p>
+                    </div>
+                `}
             </div>
         </div>
     `;
-    showAllSocialTasks();
 }
 
-// Show All Social Tasks
-function showAllSocialTasks() {
-    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
-    event.target.classList.add('active');
+// Share with Telegram Deep Link
+function shareOnTelegramWithDeepLink() {
+    const referralLink = `https://t.me/tapearn_bot?start=${referralData.referralCode}`;
+    const message = `Join TapEarn and earn free points! Use my referral code: ${referralData.referralCode}\n\nGet your bonus: ${referralLink}`;
     
-    const allTasks = [
-        ...SOCIAL_TASKS.youtube,
-        ...SOCIAL_TASKS.twitter,
-        ...SOCIAL_TASKS.instagram,
-        ...SOCIAL_TASKS.telegram
-    ];
+    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(message)}`;
+    window.open(shareUrl, '_blank');
+    showNotification('✅ Telegram sharing opened! Share with your friends.', 'success');
+}
+
+// Copy referral link with deep link
+function copyReferralWithDeepLink() {
+    const referralLink = `https://t.me/tapearn_bot?start=${referralData.referralCode}`;
+    const referralText = `Join TapEarn using my referral! \nCode: ${referralData.referralCode}\nLink: ${referralLink}\n\nGet 25 bonus points when you join!`;
     
-    displaySocialTasks(allTasks, 'All Social Tasks');
+    navigator.clipboard.writeText(referralText)
+        .then(() => showNotification('✅ Referral link copied! Share with friends.', 'success'))
+        .catch(() => showNotification('❌ Failed to copy', 'warning'));
 }
 
-// Show YouTube Tasks
-function showYouTubeTasks() {
-    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
-    event.target.classList.add('active');
-    displaySocialTasks(SOCIAL_TASKS.youtube, 'YouTube Tasks');
-}
-
-// Show Twitter Tasks
-function showTwitterTasks() {
-    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
-    event.target.classList.add('active');
-    displaySocialTasks(SOCIAL_TASKS.twitter, 'Twitter Tasks');
-}
-
-// Show Instagram Tasks
-function showInstagramTasks() {
-    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
-    event.target.classList.add('active');
-    displaySocialTasks(SOCIAL_TASKS.instagram, 'Instagram Tasks');
-}
-
-// Show Telegram Tasks
-function showTelegramTasks() {
-    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
-    event.target.classList.add('active');
-    displaySocialTasks(SOCIAL_TASKS.telegram, 'Telegram Tasks');
-}
-
-// Display Social Tasks
-function displaySocialTasks(tasks, title) {
-    const container = document.getElementById('socialTasksContainer');
+// Share on WhatsApp with Deep Link
+function shareOnWhatsAppWithDeepLink() {
+    const referralLink = `https://t.me/tapearn_bot?start=${referralData.referralCode}`;
+    const message = `Join TapEarn and earn free points! Use my referral code: ${referralData.referralCode}\n\nGet your bonus: ${referralLink}`;
     
-    let html = `
-        <div class="section-title">
-            <h3>🌐 ${title}</h3>
-            <p class="section-subtitle">${tasks.length} tasks found • Earn up to ${Math.max(...tasks.map(v => v.points))} points each</p>
-        </div>
-        <div class="social-tasks-grid">
-    `;
+    const shareUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(shareUrl, '_blank');
+    showNotification('✅ WhatsApp sharing opened!', 'success');
+}
+
+// Add test referral (for demo purposes)
+function addTestReferral() {
+    const testUsername = 'test_user_' + Math.random().toString(36).substr(2, 5);
     
-    tasks.forEach((task) => {
-        html += `
-            <div class="social-task-card ${task.platform}">
-                <div class="social-task-header">
-                    <div class="task-platform-icon">${task.icon}</div>
-                    <div class="task-platform-name">${task.platform.charAt(0).toUpperCase() + task.platform.slice(1)}</div>
-                    <div class="task-points">+${task.points}</div>
-                </div>
-                
-                <div class="social-task-content">
-                    <h4 class="task-title">${task.title}</h4>
-                    <p class="task-description">${task.description}</p>
-                </div>
-                
-                <div class="social-task-actions">
-                    ${task.completed ? 
-                        '<span class="social-task-completed">✅ Completed</span>' : 
-                        `<button class="social-task-btn" onclick="completeSocialTask('${task.id}', ${task.points}, '${task.title}', '${task.platform}')">
-                            Complete +${task.points}
-                        </button>`
-                    }
-                </div>
-            </div>
-        `;
+    // Add to referred users
+    referralData.referredUsers.push({
+        username: testUsername,
+        pointsEarned: 50,
+        timestamp: Date.now()
     });
     
-    html += '</div>';
-    container.innerHTML = html;
-}
-
-// Complete Social Task
-function completeSocialTask(taskId, points, title, platform) {
-    // Find the task in SOCIAL_TASKS
-    let taskFound = false;
-    for (const platformKey in SOCIAL_TASKS) {
-        const taskIndex = SOCIAL_TASKS[platformKey].findIndex(task => task.id === taskId);
-        if (taskIndex !== -1) {
-            if (SOCIAL_TASKS[platformKey][taskIndex].completed) {
-                showNotification('❌ You have already completed this task!', 'warning');
-                return;
-            }
-            SOCIAL_TASKS[platformKey][taskIndex].completed = true;
-            taskFound = true;
-            break;
-        }
-    }
+    // Update points
+    userPoints += 50;
+    referrals = referralData.referredUsers.length;
     
-    if (!taskFound) {
-        showNotification('❌ Task not found!', 'warning');
-        return;
-    }
+    // Add transaction
+    addTransaction('referral', 50, 'Referral: ' + testUsername, '👥');
     
-    userPoints += points;
-    let transactionType = '';
-    let icon = '';
+    // Save data
+    localStorage.setItem('referralData', JSON.stringify(referralData));
     
-    switch(platform) {
-        case 'youtube':
-            transactionType = 'youtube_task';
-            icon = '📺';
-            break;
-        case 'twitter':
-            transactionType = 'twitter_task';
-            icon = '🐦';
-            break;
-        case 'instagram':
-            transactionType = 'instagram_task';
-            icon = '📷';
-            break;
-        case 'telegram':
-            transactionType = 'telegram_task';
-            icon = '📱';
-            break;
-    }
-    
-    addTransaction(transactionType, points, `${platform.charAt(0).toUpperCase() + platform.slice(1)} Task: ${title}`, icon);
+    // Update UI
     updateUI();
-    showNotification(`✅ +${points} Points! ${platform} task completed!`, 'success');
+    showNotification(`🎉 +50 Points! New referral from ${testUsername}`, 'success');
     
-    // Refresh the social tasks section to update the UI
-    showSocialTasks();
+    // Refresh referral section
+    showReferralSystem();
 }
 
-// [Previous functions for wallet history, dashboard, etc. remain the same...]
 // Show Wallet History
 function showWalletHistory() {
     document.getElementById('appContent').innerHTML = `
@@ -1432,7 +1338,6 @@ function showTerms() {
     `;
 }
 
-// [Previous functions for video sections, follow sections, etc. remain the same...]
 // Show Video Section
 function showVideoSection() {
     document.getElementById('appContent').innerHTML = `
@@ -2339,14 +2244,14 @@ function followXAccount(accountId, points, username) {
 
 // Show All X Content
 function showAllXContent() {
-    document.querySelectorAll('.category-btn').forEach(btn => tab.classList.remove('active'));
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
     displayXContent(X_CONTENT, 'All X Content');
 }
 
 // Show X Videos
 function showXVideos() {
-    document.querySelectorAll('.category-btn').forEach(btn => tab.classList.remove('active'));
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
     const videos = X_CONTENT.filter(item => item.type === 'video');
     displayXContent(videos, 'X Videos');
@@ -2354,7 +2259,7 @@ function showXVideos() {
 
 // Show X Tweets
 function showXTweets() {
-    document.querySelectorAll('.category-btn').forEach(btn => tab.classList.remove('active'));
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
     const tweets = X_CONTENT.filter(item => item.type === 'tweet');
     displayXContent(tweets, 'X Tweets');
@@ -2362,7 +2267,7 @@ function showXTweets() {
 
 // Show Trending X
 function showTrendingX() {
-    document.querySelectorAll('.category-btn').forEach(btn => tab.classList.remove('active'));
+    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
     const trending = [...X_CONTENT].sort((a, b) => b.points - a.points).slice(0, 6);
     displayXContent(trending, 'Trending on X');
@@ -3034,100 +2939,6 @@ function cancelVideoEarning() {
     }
     showNotification('❌ Points earning cancelled', 'warning');
     showVideoSection();
-}
-
-// Show Referral System
-function showReferralSystem() {
-    document.getElementById('appContent').innerHTML = `
-        <div class="referral-section">
-            <div class="section-header">
-                <button onclick="showDashboard()" class="back-btn">← Back</button>
-                <h3>👥 Refer & Earn</h3>
-            </div>
-            
-            <div class="referral-card">
-                <div class="referral-code">TAPEARN123</div>
-                <p class="referral-note">Share this code with friends to earn 50 points each!</p>
-                
-                <div class="referral-stats">
-                    <div class="referral-stat">
-                        <span class="stat-value">${referrals}</span>
-                        <span class="stat-label">Total Referrals</span>
-                    </div>
-                    <div class="referral-stat">
-                        <span class="stat-value">${referrals * 50}</span>
-                        <span class="stat-label">Points Earned</span>
-                    </div>
-                    <div class="referral-stat">
-                        <span class="stat-value">50</span>
-                        <span class="stat-label">Per Referral</span>
-                    </div>
-                </div>
-                
-                <div class="sharing-options">
-                    <button class="share-btn telegram" onclick="shareOnTelegram()">
-                        📱 Telegram
-                    </button>
-                    <button class="share-btn whatsapp" onclick="shareOnWhatsApp()">
-                        💚 WhatsApp
-                    </button>
-                    <button class="share-btn copy" onclick="copyReferralCode()">
-                        📋 Copy Code
-                    </button>
-                </div>
-                
-                <button onclick="addReferral()" class="action-btn primary">
-                    👥 Add Test Referral
-                </button>
-            </div>
-            
-            <div class="referral-benefits">
-                <h4>🎁 Referral Benefits</h4>
-                <ul>
-                    <li>✅ Earn 50 points for each friend who joins</li>
-                    <li>✅ Your friend gets 25 bonus points</li>
-                    <li>✅ Unlimited referrals - no limits!</li>
-                    <li>✅ Points credited instantly</li>
-                </ul>
-            </div>
-        </div>
-    `;
-}
-
-// Share on Telegram
-function shareOnTelegram() {
-    const message = `Join TapEarn and earn free points! Use my referral code: TAPEARN123 - Download now: https://tapearn.app`;
-    const url = `https://t.me/share/url?url=https://tapearn.app&text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
-    showNotification('✅ Telegram sharing opened!', 'success');
-}
-
-// Share on WhatsApp
-function shareOnWhatsApp() {
-    const message = `Join TapEarn and earn free points! Use my referral code: TAPEARN123 - Download now: https://tapearn.app`;
-    const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
-    showNotification('✅ WhatsApp sharing opened!', 'success');
-}
-
-// Copy Referral Code
-function copyReferralCode() {
-    const referralText = `Join TapEarn using my referral code: TAPEARN123 - Download now: https://tapearn.app`;
-    navigator.clipboard.writeText(referralText)
-        .then(() => showNotification('✅ Referral code copied!', 'success'))
-        .catch(() => showNotification('❌ Failed to copy', 'warning'));
-}
-
-// Add Referral
-function addReferral() {
-    referrals++;
-    userPoints += 50;
-    addTransaction('referral', 50, 'Referral Bonus', '👥');
-    updateUI();
-    showNotification('🎉 +50 Points! New referral added!', 'success');
-    
-    // Refresh the referral section to update the UI
-    showReferralSystem();
 }
 
 // Show Tasks
