@@ -16,12 +16,9 @@ function getSessionKey(key) {
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('session') || 'default';
     const userId = urlParams.get('userid') || 'default_user';
-    const timestamp = urlParams.get('timestamp') || Date.now();
-    const isFresh = urlParams.get('fresh') || 'false';
-    const refCode = urlParams.get('ref') || 'no_ref';
     
-    // Super unique key - impossible to conflict
-    return `TAPEARN_${key}_${sessionId}_${userId}_${timestamp}_${isFresh}_${refCode}`;
+    // Use only sessionId and userId for consistent keys
+    return `TAPEARN_${key}_${sessionId}_${userId}`;
 }
 
 // Check if fresh start requested
@@ -54,6 +51,48 @@ function clearExistingData() {
     
     console.log('✅ All previous data cleared');
     showNotification('🔄 Fresh start completed! Starting with clean data.', 'success');
+}
+
+// ✅ ENHANCED: Session consistency check
+function ensureSessionConsistency() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentSession = urlParams.get('session');
+    const currentUserId = urlParams.get('userid');
+    
+    if (!currentSession || !currentUserId) {
+        console.log('❌ Missing session parameters');
+        return false;
+    }
+    
+    // Check if we have existing data for this user
+    const existingSessionKey = `TAPEARN_userProfile_${currentUserId}`;
+    const existingData = localStorage.getItem(existingSessionKey);
+    
+    if (existingData) {
+        console.log('✅ Found existing user data, ensuring session consistency');
+        // Migrate data to current session if needed
+        migrateUserData(currentUserId, currentSession);
+    }
+    
+    return true;
+}
+
+// ✅ Migrate user data to current session
+function migrateUserData(userId, newSession) {
+    const oldKeys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.includes(`_${userId}_`)) {
+            oldKeys.push(key);
+        }
+    }
+    
+    oldKeys.forEach(oldKey => {
+        const value = localStorage.getItem(oldKey);
+        const newKey = oldKey.replace(/SESSION_[^_]+_/, `SESSION_${newSession}_`);
+        localStorage.setItem(newKey, value);
+        console.log(`🔄 Migrated: ${oldKey} → ${newKey}`);
+    });
 }
 
 // Initialize with session management
@@ -694,41 +733,6 @@ function saveAppState() {
     console.log('💾 App state saved:', miningState);
 }
 
-// Enhanced Initialize Session - FIXED VERSION
-function initializeSession() {
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    if (shouldStartFresh()) {
-        clearExistingData();
-    }
-    
-    // Generate session-specific keys
-    const sessionUserProfileKey = getSessionKey('userProfile');
-    const sessionTransactionKey = getSessionKey('transactionHistory');
-    const sessionReferralKey = getSessionKey('referralData');
-    const sessionMiningKey = getSessionKey('miningState');
-    
-    console.log(`🆕 Enhanced Session initialized: ${sessionUserProfileKey}`);
-    
-    return {
-        userProfileKey: sessionUserProfileKey,
-        transactionKey: sessionTransactionKey,
-        referralKey: sessionReferralKey,
-        miningKey: sessionMiningKey
-    };
-}
-
-// Enhanced Generate session-based storage keys - FIXED VERSION
-function getSessionKey(key) {
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionId = urlParams.get('session') || 'default';
-    const userId = urlParams.get('userid') || 'default_user';
-    
-    // Use only sessionId and userId for consistent keys
-    // Remove timestamp and other variables that change
-    return `TAPEARN_${key}_${sessionId}_${userId}`;
-}
-
 // Add this new function to debug storage
 function debugStorage() {
     console.log('🔍 DEBUG STORAGE:');
@@ -752,6 +756,7 @@ function debugStorage() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🆕 Initializing app with enhanced session management...');
     
+    ensureSessionConsistency();
     initializeTelegramIntegration();
     loadAppState();
     checkReferralOnStart();
