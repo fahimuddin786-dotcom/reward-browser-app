@@ -476,21 +476,33 @@ function generateReferralCode() {
     }
 }
 
-// Initialize App with Enhanced Session Management
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🆕 Initializing app with enhanced session management...');
+// ✅ TELEGRAM BOT POINTS SYNC FUNCTION
+function savePointsToBot(points, type, description) {
+    const pointsData = {
+        points: points,
+        type: type,
+        description: description,
+        sessionId: userProfile.sessionId,
+        timestamp: Date.now(),
+        userId: userProfile.userId
+    };
     
-    initializeTelegramIntegration();
-    loadAppState();
-    checkReferralOnStart();
-    checkNewUserReferral();
-    updateUI();
-    
-    console.log('🎯 TapEarn App Initialized - Enhanced Session System Active');
-    console.log('🔑 Session Key:', sessionKeys.userProfileKey);
-    console.log('👤 User ID:', userProfile.userId);
-    console.log('🔍 Current Session:', showSessionInfo());
-});
+    // Telegram Bot ko message bhejo
+    if (window.Telegram && window.Telegram.WebApp) {
+        try {
+            const message = 'POINTS_UPDATE:' + JSON.stringify(pointsData);
+            window.Telegram.WebApp.sendData(message);
+            console.log('💾 Points sent to bot:', pointsData);
+            return true;
+        } catch (error) {
+            console.log('❌ Error sending points to bot:', error);
+            return false;
+        }
+    } else {
+        console.log('📱 Telegram Web App not available - points saved locally only');
+        return false;
+    }
+}
 
 // Enhanced Telegram Mini App Integration
 function initializeTelegramIntegration() {
@@ -778,7 +790,7 @@ function testPointsPersistence() {
     showNotification('🧪 Points persistence test completed! Check console.', 'info');
 }
 
-// Enhanced Add Transaction to History
+// Enhanced Add Transaction to History - WITH BOT SYNC
 function addTransaction(type, amount, description, icon) {
     const transaction = {
         type: type,
@@ -796,6 +808,11 @@ function addTransaction(type, amount, description, icon) {
     }
     
     localStorage.setItem(sessionKeys.transactionKey, JSON.stringify(transactionHistory));
+    
+    // ✅ BOT SYNC: Only sync positive points (earnings) to bot
+    if (amount > 0) {
+        savePointsToBot(amount, type, description);
+    }
 }
 
 // Enhanced Save Video Watched State
@@ -916,6 +933,7 @@ function stopMining() {
 // Claim Boost
 function claimBoost() {
     userPoints += 100;
+    // ✅ BOT SYNC: Boost points save karo
     addTransaction('boost', 100, 'Daily Boost', '🚀');
     saveAppState(); // ✅ Save points to localStorage
     updateUI();
@@ -2109,8 +2127,10 @@ function completeFollowTask(platform, taskId, points, name) {
             break;
     }
     
+    // ✅ BOT SYNC: Follow task points save karo
     addTransaction(transactionType, points, `${platform.charAt(0).toUpperCase() + platform.slice(1)}: ${name}`, icon);
-    saveAppState(); // ✅ Save points to localStorage
+    
+    saveAppState();
     updateUI();
     showNotification(`✅ +${points} Points! ${platform} task completed!`, 'success');
     
@@ -3151,39 +3171,50 @@ function completeVideoEarning() {
     const isTelegram = watchedTelegramVideoIds.includes(currentVideoId) || TELEGRAM_VIDEOS.some(v => v.id === currentVideoId);
     const isX = watchedXVideoIds.includes(currentVideoId) || X_CONTENT.some(v => v.id === currentVideoId && v.type === 'video');
     
+    let transactionType = 'video';
+    let platform = 'YouTube';
+    
     if (isInstagram) {
         // Instagram video
         if (currentVideoId && !watchedInstagramVideoIds.includes(currentVideoId)) {
             watchedInstagramVideoIds.push(currentVideoId);
             saveVideoState('watchedInstagramVideos', watchedInstagramVideoIds);
         }
-        addTransaction('instagram', currentPoints, 'Instagram: ' + currentTitle.substring(0, 20) + '...', '📷');
+        transactionType = 'instagram';
+        platform = 'Instagram';
     } else if (isTelegram) {
         // Telegram video
         if (currentVideoId && !watchedTelegramVideoIds.includes(currentVideoId)) {
             watchedTelegramVideoIds.push(currentVideoId);
             saveVideoState('watchedTelegramVideos', watchedTelegramVideoIds);
         }
-        addTransaction('telegram', currentPoints, 'Telegram: ' + currentTitle.substring(0, 20) + '...', '📱');
+        transactionType = 'telegram';
+        platform = 'Telegram';
     } else if (isX) {
         // X video
         if (currentVideoId && !watchedXVideoIds.includes(currentVideoId)) {
             watchedXVideoIds.push(currentVideoId);
             saveVideoState('watchedXVideos', watchedXVideoIds);
         }
-        addTransaction('x_video', currentPoints, 'X Video: ' + currentTitle.substring(0, 20) + '...', '🐦');
+        transactionType = 'x_video';
+        platform = 'X';
     } else {
         // YouTube video
         if (currentVideoId && !watchedVideoIds.includes(currentVideoId)) {
             watchedVideoIds.push(currentVideoId);
             saveVideoState('watchedVideos', watchedVideoIds);
         }
-        addTransaction('video', currentPoints, 'YouTube: ' + currentTitle.substring(0, 20) + '...', '🎬');
+        transactionType = 'video';
+        platform = 'YouTube';
     }
     
     userPoints += currentPoints;
     watchedVideos++;
-    saveAppState(); // ✅ Save points to localStorage
+    
+    // ✅ BOT SYNC: Video points save karo bot mein
+    addTransaction(transactionType, currentPoints, `${platform}: ${currentTitle.substring(0, 20)}...`, platform === 'Instagram' ? '📷' : platform === 'Telegram' ? '📱' : platform === 'X' ? '🐦' : '🎬');
+    
+    saveAppState();
     updateUI();
     
     showEarningSuccess();
@@ -3315,6 +3346,7 @@ function completeTask(task) {
     }
     
     userPoints += points;
+    // ✅ BOT SYNC: Task points save karo
     addTransaction('task', points, description, icon);
     saveAppState(); // ✅ Save points to localStorage
     updateUI();
