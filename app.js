@@ -9,6 +9,40 @@ let userPoints = 0;
 let watchedVideos = 0;
 let referrals = 0;
 
+// ✅ ENHANCED: Safe storage with size limits
+function safeStorageSet(key, value) {
+    try {
+        // Limit large data
+        if (typeof value === 'string' && value.length > 100000) {
+            console.log('⚠️ Large data detected, truncating:', key);
+            value = value.substring(0, 100000);
+        }
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+    } catch (error) {
+        console.log('❌ Storage error for key:', key, error);
+        // Try to clear some space
+        try {
+            localStorage.removeItem(key);
+            localStorage.setItem(key, JSON.stringify(value));
+            return true;
+        } catch (e) {
+            console.log('❌ Failed to save data:', e);
+            return false;
+        }
+    }
+}
+
+function safeStorageGet(key, defaultValue = null) {
+    try {
+        const item = localStorage.getItem(key);
+        return item ? JSON.parse(item) : defaultValue;
+    } catch (error) {
+        console.log('❌ Storage read error for key:', key, error);
+        return defaultValue;
+    }
+}
+
 // ==================== ENHANCED DATA PERSISTENCE - WEB APP ====================
 
 // ✅ FIXED: Never clear data automatically - only when explicitly requested
@@ -116,7 +150,7 @@ function ensureSessionConsistency() {
     }
     
     const existingSessionKey = `TAPEARN_userProfile_${currentUserId}`;
-    const existingData = localStorage.getItem(existingSessionKey);
+    const existingData = safeStorageGet(existingSessionKey);
     
     if (existingData) {
         console.log('✅ Found existing user data, ensuring session consistency');
@@ -137,9 +171,9 @@ function migrateUserData(userId, newSession) {
     }
     
     oldKeys.forEach(oldKey => {
-        const value = localStorage.getItem(oldKey);
+        const value = safeStorageGet(oldKey);
         const newKey = oldKey.replace(/SESSION_[^_]+_/, `SESSION_${newSession}_`);
-        localStorage.setItem(newKey, value);
+        safeStorageSet(newKey, value);
         console.log(`🔄 Migrated: ${oldKey} → ${newKey}`);
     });
 }
@@ -208,15 +242,15 @@ function createFreshReferralData() {
 }
 
 // User Profile with Enhanced Session Management
-let userProfile = JSON.parse(localStorage.getItem(sessionKeys.userProfileKey)) || createFreshUserProfile();
+let userProfile = safeStorageGet(sessionKeys.userProfileKey) || createFreshUserProfile();
 
 // Transaction History with Session Management
-let transactionHistory = JSON.parse(localStorage.getItem(sessionKeys.transactionKey)) || [
+let transactionHistory = safeStorageGet(sessionKeys.transactionKey) || [
     { type: 'welcome', amount: 25, description: 'Welcome Bonus', timestamp: Date.now(), icon: '🎁' }
 ];
 
 // Referral System with Session Management
-let referralData = JSON.parse(localStorage.getItem(sessionKeys.referralKey)) || createFreshReferralData();
+let referralData = safeStorageGet(sessionKeys.referralKey) || createFreshReferralData();
 
 // YouTube Video State with Session Management
 let currentVideoId = null;
@@ -229,18 +263,18 @@ function getVideoStorageKey(baseKey) {
     return getSessionKey(baseKey);
 }
 
-let watchedVideoIds = JSON.parse(localStorage.getItem(getVideoStorageKey('watchedVideos'))) || [];
-let watchedInstagramVideoIds = JSON.parse(localStorage.getItem(getVideoStorageKey('watchedInstagramVideos'))) || [];
-let watchedTelegramVideoIds = JSON.parse(localStorage.getItem(getVideoStorageKey('watchedTelegramVideos'))) || [];
-let watchedXVideoIds = JSON.parse(localStorage.getItem(getVideoStorageKey('watchedXVideos'))) || [];
-let likedXTweetIds = JSON.parse(localStorage.getItem(getVideoStorageKey('likedXTweets'))) || [];
-let retweetedXTweetIds = JSON.parse(localStorage.getItem(getVideoStorageKey('retweetedXTweets'))) || [];
+let watchedVideoIds = safeStorageGet(getVideoStorageKey('watchedVideos')) || [];
+let watchedInstagramVideoIds = safeStorageGet(getVideoStorageKey('watchedInstagramVideos')) || [];
+let watchedTelegramVideoIds = safeStorageGet(getVideoStorageKey('watchedTelegramVideos')) || [];
+let watchedXVideoIds = safeStorageGet(getVideoStorageKey('watchedXVideos')) || [];
+let likedXTweetIds = safeStorageGet(getVideoStorageKey('likedXTweets')) || [];
+let retweetedXTweetIds = safeStorageGet(getVideoStorageKey('retweetedXTweets')) || [];
 
 // Follow State with Session Management
-let followedInstagramAccounts = JSON.parse(localStorage.getItem(getVideoStorageKey('followedInstagramAccounts'))) || [];
-let followedXAccounts = JSON.parse(localStorage.getItem(getVideoStorageKey('followedXAccounts'))) || [];
-let followedTelegramChannels = JSON.parse(localStorage.getItem(getVideoStorageKey('followedTelegramChannels'))) || [];
-let subscribedYouTubeChannels = JSON.parse(localStorage.getItem(getVideoStorageKey('subscribedYouTubeChannels'))) || [];
+let followedInstagramAccounts = safeStorageGet(getVideoStorageKey('followedInstagramAccounts')) || [];
+let followedXAccounts = safeStorageGet(getVideoStorageKey('followedXAccounts')) || [];
+let followedTelegramChannels = safeStorageGet(getVideoStorageKey('followedTelegramChannels')) || [];
+let subscribedYouTubeChannels = safeStorageGet(getVideoStorageKey('subscribedYouTubeChannels')) || [];
 
 // Social Tasks Data (unchanged)
 const SOCIAL_TASKS = {
@@ -402,8 +436,8 @@ function initializeTelegramIntegration() {
                 console.log('✅ Fresh Telegram user detected:', userProfile);
             }
             
-            localStorage.setItem(sessionKeys.userProfileKey, JSON.stringify(userProfile));
-            localStorage.setItem(sessionKeys.referralKey, JSON.stringify(referralData));
+            safeStorageSet(sessionKeys.userProfileKey, userProfile);
+            safeStorageSet(sessionKeys.referralKey, referralData);
         }
         
         document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#1a1a2e');
@@ -424,8 +458,8 @@ function simulateTelegramEnvironment() {
     if (isFresh) {
         userProfile = createFreshUserProfile();
         referralData = createFreshReferralData();
-        localStorage.setItem(sessionKeys.userProfileKey, JSON.stringify(userProfile));
-        localStorage.setItem(sessionKeys.referralKey, JSON.stringify(referralData));
+        safeStorageSet(sessionKeys.userProfileKey, userProfile);
+        safeStorageSet(sessionKeys.referralKey, referralData);
     }
 }
 
@@ -459,7 +493,7 @@ function processReferralJoin(referralCode) {
         status: 'pending'
     });
     
-    localStorage.setItem(sessionKeys.referralKey, JSON.stringify(referralData));
+    safeStorageSet(sessionKeys.referralKey, referralData);
     
     userPoints += 25;
     addTransaction('referral_bonus', 25, 'Welcome Bonus - Referred by ' + referrerUsername, '🎁');
@@ -485,7 +519,7 @@ function checkNewUserReferral() {
         showNotification('🎉 +25 Welcome Bonus! You were referred by a friend!', 'success');
         updateUI();
         
-        localStorage.setItem(sessionKeys.userProfileKey, JSON.stringify(userProfile));
+        safeStorageSet(sessionKeys.userProfileKey, userProfile);
         
         console.log('✅ New referred user bonus awarded');
     }
@@ -493,13 +527,13 @@ function checkNewUserReferral() {
 
 // Enhanced Load App State from Session Storage - FIXED VERSION
 function loadAppState() {
-    const savedState = localStorage.getItem(sessionKeys.miningKey);
+    const savedState = safeStorageGet(sessionKeys.miningKey);
     console.log('🔄 Loading app state from:', sessionKeys.miningKey);
     console.log('📦 Saved state:', savedState);
     
     if (savedState) {
         try {
-            const state = JSON.parse(savedState);
+            const state = savedState;
             isMining = state.isMining || false;
             miningSeconds = state.miningSeconds || 0;
             userPoints = state.userPoints || 0;
@@ -552,7 +586,7 @@ function saveAppState() {
         sessionId: new URLSearchParams(window.location.search).get('session') || 'default'
     };
     
-    localStorage.setItem(sessionKeys.miningKey, JSON.stringify(miningState));
+    safeStorageSet(sessionKeys.miningKey, miningState);
     console.log('💾 App state saved:', miningState);
 }
 
@@ -569,8 +603,8 @@ function debugStorage() {
     ];
     
     keysToCheck.forEach(key => {
-        const value = localStorage.getItem(key);
-        console.log(`Key: ${key}`, value ? JSON.parse(value) : 'NOT FOUND');
+        const value = safeStorageGet(key);
+        console.log(`Key: ${key}`, value ? value : 'NOT FOUND');
     });
 }
 
@@ -591,7 +625,7 @@ function addTransaction(type, amount, description, icon) {
         transactionHistory = transactionHistory.slice(0, 50);
     }
     
-    localStorage.setItem(sessionKeys.transactionKey, JSON.stringify(transactionHistory));
+    safeStorageSet(sessionKeys.transactionKey, transactionHistory);
     
     if (amount > 0) {
         savePointsToBot(amount, type, description);
@@ -600,12 +634,12 @@ function addTransaction(type, amount, description, icon) {
 
 // Enhanced Save Video Watched State
 function saveVideoState(storageKey, videoArray) {
-    localStorage.setItem(getVideoStorageKey(storageKey), JSON.stringify(videoArray));
+    safeStorageSet(getVideoStorageKey(storageKey), videoArray);
 }
 
 // Enhanced Save Follow State
 function saveFollowState(storageKey, followArray) {
-    localStorage.setItem(getVideoStorageKey(storageKey), JSON.stringify(followArray));
+    safeStorageSet(getVideoStorageKey(storageKey), followArray);
 }
 
 // Update UI
@@ -1005,7 +1039,7 @@ function addTestReferral() {
     
     addTransaction('referral', 50, 'Referral: ' + testUsername, '👥');
     
-    localStorage.setItem(sessionKeys.referralKey, JSON.stringify(referralData));
+    safeStorageSet(sessionKeys.referralKey, referralData);
     saveAppState();
     
     updateUI();
