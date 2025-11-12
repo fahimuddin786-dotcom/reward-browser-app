@@ -27,41 +27,63 @@ function getSessionKey(key) {
 // Check if fresh start requested
 function shouldStartFresh() {
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.has('fresh') || urlParams.has('clear_cache');
+    const hasFreshParam = urlParams.has('fresh');
+    const hasClearCache = urlParams.has('clear_cache');
+    const isNewUser = urlParams.get('newuser') === 'true';
+    
+    // Fresh start ONLY in these cases:
+    // 1. User explicitly wants clear_cache
+    // 2. It's a new referred user
+    // 3. First time with fresh parameter AND no existing data
+    return hasClearCache || isNewUser || (hasFreshParam && !hasExistingUserData());
+}
+
+// Check if user already has data in this session
+function hasExistingUserData() {
+    const existingProfile = JSON.parse(localStorage.getItem(sessionKeys.userProfileKey));
+    return existingProfile && existingProfile.telegramUsername && existingProfile.isProfileCreated;
 }
 
 // Clear all existing data for fresh start
 function clearExistingData() {
-    console.log('🧹 Clearing ALL existing data for fresh start');
+    console.log('🧹 Clearing data for fresh start');
     
-    // Get all keys from localStorage
-    const keysToRemove = [];
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.includes('TAPEARN_')) {
-            keysToRemove.push(key);
+    // Only clear if no existing user data
+    if (!hasExistingUserData()) {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.includes('TAPEARN_')) {
+                keysToRemove.push(key);
+            }
         }
+        
+        keysToRemove.forEach(key => {
+            localStorage.removeItem(key);
+            console.log('Removed:', key);
+        });
+        
+        console.log('✅ Data cleared for new user');
+    } else {
+        console.log('ℹ️ User has existing data - skipping clear');
     }
-    
-    // Remove all app-related keys
-    keysToRemove.forEach(key => {
-        localStorage.removeItem(key);
-        console.log('Removed:', key);
-    });
-    
-    // Clear session storage too
-    sessionStorage.clear();
-    
-    console.log('✅ All previous data cleared');
-    showNotification('🔄 Fresh start completed! Starting with clean data.', 'success');
 }
 
 // Initialize with session management
 function initializeSession() {
     const urlParams = new URLSearchParams(window.location.search);
     
-    if (shouldStartFresh()) {
+    // Check if user already has a profile
+    const existingProfile = JSON.parse(localStorage.getItem(getSessionKey('userProfile')));
+    
+    // Fresh start ONLY if specific conditions met
+    const shouldFreshStart = shouldStartFresh() && (!existingProfile || urlParams.has('clear_cache'));
+    
+    if (shouldFreshStart) {
+        console.log('🔄 Fresh start conditions met - clearing data');
         clearExistingData();
+    } else {
+        console.log('🔄 Loading existing session data');
     }
     
     // Generate session-specific keys
@@ -70,7 +92,7 @@ function initializeSession() {
     const sessionReferralKey = getSessionKey('referralData');
     const sessionMiningKey = getSessionKey('miningState');
     
-    console.log(`🆕 Enhanced Session initialized: ${sessionUserProfileKey}`);
+    console.log(`🆕 Session initialized: ${sessionUserProfileKey}`);
     
     return {
         userProfileKey: sessionUserProfileKey,
@@ -89,6 +111,14 @@ function createFreshUserProfile() {
     const tg = window.Telegram?.WebApp;
     const user = tg?.initDataUnsafe?.user;
     
+    // Check if profile already exists
+    const existingProfile = JSON.parse(localStorage.getItem(sessionKeys.userProfileKey));
+    if (existingProfile && existingProfile.telegramUsername && existingProfile.isProfileCreated) {
+        console.log('ℹ️ Using existing profile:', existingProfile.telegramUsername);
+        return existingProfile;
+    }
+    
+    // Create fresh profile only if no existing profile
     const freshProfile = {
         telegramUsername: user?.username || '',
         userId: urlParams.get('userid') || generateUserId(),
@@ -99,7 +129,8 @@ function createFreshUserProfile() {
         lastName: user?.last_name || '',
         sessionId: urlParams.get('session') || 'default',
         isNewUser: true,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        isProfileCreated: true // Mark that profile is created
     };
     
     console.log('🆕 Fresh user profile created:', freshProfile);
@@ -130,6 +161,12 @@ let transactionHistory = JSON.parse(localStorage.getItem(sessionKeys.transaction
 
 // Referral System with Session Management
 let referralData = JSON.parse(localStorage.getItem(sessionKeys.referralKey)) || createFreshReferralData();
+
+// Save profile immediately if it's new
+if (!localStorage.getItem(sessionKeys.userProfileKey)) {
+    localStorage.setItem(sessionKeys.userProfileKey, JSON.stringify(userProfile));
+    localStorage.setItem(sessionKeys.referralKey, JSON.stringify(referralData));
+}
 
 // YouTube Video State with Session Management
 let currentVideoId = null;
@@ -476,9 +513,9 @@ function generateReferralCode() {
     }
 }
 
-// Initialize App with Enhanced Session Management
+// IMPROVED App Initialization - Better Data Persistence
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🆕 Initializing app with enhanced session management...');
+    console.log('🆕 Initializing app with persistent session management...');
     
     initializeTelegramIntegration();
     loadAppState();
@@ -486,7 +523,13 @@ document.addEventListener('DOMContentLoaded', function() {
     checkNewUserReferral();
     updateUI();
     
-    console.log('🎯 TapEarn App Initialized - Enhanced Session System Active');
+    // Show appropriate notification
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('fresh') && hasExistingUserData()) {
+        showNotification('🔄 Session refreshed! Your data is safe.', 'success');
+    }
+    
+    console.log('🎯 TapEarn App Initialized - Persistent Session System Active');
     console.log('🔑 Session Key:', sessionKeys.userProfileKey);
     console.log('👤 User ID:', userProfile.userId);
     console.log('🔍 Current Session:', showSessionInfo());
@@ -504,20 +547,37 @@ function initializeTelegramIntegration() {
         // Get user data from Telegram
         const user = tg.initDataUnsafe.user;
         if (user) {
-            // Always create fresh profile for new sessions
             const urlParams = new URLSearchParams(window.location.search);
             const isFresh = urlParams.has('fresh') || !userProfile.telegramUsername;
             
-            if (isFresh) {
-                userProfile = createFreshUserProfile();
-                referralData = createFreshReferralData();
+            if (isFresh && !hasExistingUserData()) {
+                userProfile = {
+                    telegramUsername: user.username || '',
+                    userId: 'TG_' + user.id + '_' + Date.now(),
+                    joinDate: new Date().toISOString(),
+                    isPremium: false,
+                    level: 'Bronze',
+                    firstName: user.first_name || '',
+                    lastName: user.last_name || '',
+                    sessionId: new URLSearchParams(window.location.search).get('session') || 'default',
+                    isNewUser: true,
+                    isProfileCreated: true
+                };
                 
-                console.log('✅ Fresh Telegram user detected:', userProfile);
+                referralData = {
+                    referralCode: generateReferralCode(),
+                    referredUsers: [],
+                    totalEarned: 0,
+                    pendingReferrals: [],
+                    sessionId: new URLSearchParams(window.location.search).get('session') || 'default'
+                };
+                
+                console.log('✅ Fresh Telegram profile created:', userProfile);
+                
+                // Save immediately
+                localStorage.setItem(sessionKeys.userProfileKey, JSON.stringify(userProfile));
+                localStorage.setItem(sessionKeys.referralKey, JSON.stringify(referralData));
             }
-            
-            // Save updated profile with session key
-            localStorage.setItem(sessionKeys.userProfileKey, JSON.stringify(userProfile));
-            localStorage.setItem(sessionKeys.referralKey, JSON.stringify(referralData));
         }
         
         // Set theme
@@ -537,7 +597,7 @@ function simulateTelegramEnvironment() {
     const urlParams = new URLSearchParams(window.location.search);
     const isFresh = urlParams.has('fresh') || !userProfile.telegramUsername;
     
-    if (isFresh) {
+    if (isFresh && !hasExistingUserData()) {
         userProfile = createFreshUserProfile();
         referralData = createFreshReferralData();
         localStorage.setItem(sessionKeys.userProfileKey, JSON.stringify(userProfile));
