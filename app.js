@@ -615,29 +615,58 @@ function checkNewUserReferral() {
     }
 }
 
-// Enhanced Load App State from Session Storage
+// Enhanced Load App State from Session Storage - FIXED VERSION
 function loadAppState() {
     const savedState = localStorage.getItem(sessionKeys.miningKey);
+    console.log('🔄 Loading app state from:', sessionKeys.miningKey);
+    console.log('📦 Saved state:', savedState);
+    
     if (savedState) {
-        const state = JSON.parse(savedState);
-        isMining = state.isMining || false;
-        miningSeconds = state.miningSeconds || 0;
-        userPoints = state.userPoints || 0;
-        watchedVideos = state.watchedVideos || 0;
-        referrals = state.referrals || 0;
-        
-        if (isMining) {
-            startMining();
+        try {
+            const state = JSON.parse(savedState);
+            isMining = state.isMining || false;
+            miningSeconds = state.miningSeconds || 0;
+            userPoints = state.userPoints || 0;
+            watchedVideos = state.watchedVideos || 0;
+            referrals = state.referrals || 0;
+            
+            console.log('✅ App state loaded successfully:', {
+                userPoints: userPoints,
+                watchedVideos: watchedVideos,
+                referrals: referrals,
+                isMining: isMining
+            });
+            
+            if (isMining) {
+                startMining();
+            }
+        } catch (error) {
+            console.error('❌ Error loading app state:', error);
+            // Reset to defaults if corrupted
+            userPoints = 0;
+            watchedVideos = 0;
+            referrals = 0;
         }
+    } else {
+        console.log('📭 No saved state found, starting fresh');
+        userPoints = 0;
+        watchedVideos = 0;
+        referrals = 0;
     }
     
-    // Load watched video counts
+    // Load watched video counts from arrays
     watchedVideos = watchedVideoIds.length + watchedInstagramVideoIds.length + 
                    watchedTelegramVideoIds.length + watchedXVideoIds.length;
     referrals = referralData.referredUsers.length;
+    
+    console.log('🎯 Final loaded state:', {
+        userPoints: userPoints,
+        watchedVideos: watchedVideos,
+        referrals: referrals
+    });
 }
 
-// Enhanced Save App State to Session Storage
+// Enhanced Save App State to Session Storage - FIXED VERSION
 function saveAppState() {
     const miningState = {
         isMining: isMining,
@@ -648,8 +677,105 @@ function saveAppState() {
         lastUpdated: Date.now(),
         sessionId: new URLSearchParams(window.location.search).get('session') || 'default'
     };
+    
     localStorage.setItem(sessionKeys.miningKey, JSON.stringify(miningState));
     console.log('💾 App state saved:', miningState);
+}
+
+// Enhanced Initialize Session - FIXED VERSION
+function initializeSession() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    if (shouldStartFresh()) {
+        clearExistingData();
+    }
+    
+    // Generate session-specific keys
+    const sessionUserProfileKey = getSessionKey('userProfile');
+    const sessionTransactionKey = getSessionKey('transactionHistory');
+    const sessionReferralKey = getSessionKey('referralData');
+    const sessionMiningKey = getSessionKey('miningState');
+    
+    console.log(`🆕 Enhanced Session initialized: ${sessionUserProfileKey}`);
+    
+    return {
+        userProfileKey: sessionUserProfileKey,
+        transactionKey: sessionTransactionKey,
+        referralKey: sessionReferralKey,
+        miningKey: sessionMiningKey
+    };
+}
+
+// Enhanced Generate session-based storage keys - FIXED VERSION
+function getSessionKey(key) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session') || 'default';
+    const userId = urlParams.get('userid') || 'default_user';
+    
+    // Use only sessionId and userId for consistent keys
+    // Remove timestamp and other variables that change
+    return `TAPEARN_${key}_${sessionId}_${userId}`;
+}
+
+// Add this new function to debug storage
+function debugStorage() {
+    console.log('🔍 DEBUG STORAGE:');
+    console.log('Session Keys:', sessionKeys);
+    
+    // Check all related keys
+    const keysToCheck = [
+        sessionKeys.miningKey,
+        sessionKeys.userProfileKey,
+        sessionKeys.transactionKey,
+        sessionKeys.referralKey
+    ];
+    
+    keysToCheck.forEach(key => {
+        const value = localStorage.getItem(key);
+        console.log(`Key: ${key}`, value ? JSON.parse(value) : 'NOT FOUND');
+    });
+}
+
+// Call debug storage on load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🆕 Initializing app with enhanced session management...');
+    
+    initializeTelegramIntegration();
+    loadAppState();
+    checkReferralOnStart();
+    checkNewUserReferral();
+    updateUI();
+    
+    // Debug info
+    debugStorage();
+    
+    console.log('🎯 TapEarn App Initialized - Enhanced Session System Active');
+    console.log('🔑 Session Key:', sessionKeys.userProfileKey);
+    console.log('👤 User ID:', userProfile.userId);
+    console.log('💰 Current Points:', userPoints);
+    console.log('🔍 Current Session:', showSessionInfo());
+});
+
+// Add this to test points persistence
+function testPointsPersistence() {
+    console.log('🧪 Testing Points Persistence...');
+    console.log('Before - User Points:', userPoints);
+    
+    // Add some points
+    userPoints += 50;
+    saveAppState();
+    
+    console.log('After Adding - User Points:', userPoints);
+    console.log('Saved to:', sessionKeys.miningKey);
+    
+    // Reload from storage
+    const savedState = localStorage.getItem(sessionKeys.miningKey);
+    if (savedState) {
+        const state = JSON.parse(savedState);
+        console.log('Reloaded Points:', state.userPoints);
+    }
+    
+    showNotification('🧪 Points persistence test completed! Check console.', 'info');
 }
 
 // Enhanced Add Transaction to History
