@@ -5,92 +5,186 @@ const YOUTUBE_API_KEY = 'AIzaSyBATxf5D7ZDeiQ61dbEdzEd4Tq72N713Y8';
 let isMining = false;
 let miningSeconds = 0;
 let miningInterval = null;
-let userPoints = 0; // Start from 0 for new users
+let userPoints = 0;
 let watchedVideos = 0;
 let referrals = 0;
 
-// ==================== ENHANCED USER SESSION MANAGEMENT ====================
-
-// Generate session-based storage keys
-function getSessionKey(key) {
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionId = urlParams.get('session') || 'default';
-    const userId = urlParams.get('userid') || 'default_user';
-    const timestamp = urlParams.get('timestamp') || Date.now();
-    const isFresh = urlParams.get('fresh') || 'false';
-    const refCode = urlParams.get('ref') || 'no_ref';
-    
-    // Super unique key - impossible to conflict
-    return `TAPEARN_${key}_${sessionId}_${userId}_${timestamp}_${isFresh}_${refCode}`;
-}
-
-// Check if fresh start requested
-function shouldStartFresh() {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.has('fresh') || urlParams.has('clear_cache');
-}
-
-// Clear all existing data for fresh start
-function clearExistingData() {
-    console.log('🧹 Clearing ALL existing data for fresh start');
-    
-    // Get all keys from localStorage
-    const keysToRemove = [];
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.includes('TAPEARN_')) {
-            keysToRemove.push(key);
-        }
-    }
-    
-    // Remove all app-related keys
-    keysToRemove.forEach(key => {
-        localStorage.removeItem(key);
-        console.log('Removed:', key);
-    });
-    
-    // Clear session storage too
-    sessionStorage.clear();
-    
-    console.log('✅ All previous data cleared');
-    showNotification('🔄 Fresh start completed! Starting with clean data.', 'success');
-}
-
-// Initialize with session management
+// Session Management
 function initializeSession() {
     const urlParams = new URLSearchParams(window.location.search);
-    
-    if (shouldStartFresh()) {
-        clearExistingData();
-    }
-    
-    // Generate session-specific keys
-    const sessionUserProfileKey = getSessionKey('userProfile');
-    const sessionTransactionKey = getSessionKey('transactionHistory');
-    const sessionReferralKey = getSessionKey('referralData');
-    const sessionMiningKey = getSessionKey('miningState');
-    
-    console.log(`🆕 Enhanced Session initialized: ${sessionUserProfileKey}`);
+    const sessionId = urlParams.get('session') || 'default';
     
     return {
-        userProfileKey: sessionUserProfileKey,
-        transactionKey: sessionTransactionKey,
-        referralKey: sessionReferralKey,
-        miningKey: sessionMiningKey
+        userProfileKey: `TAPEARN_userProfile_${sessionId}`,
+        transactionKey: `TAPEARN_transactions_${sessionId}`,
+        referralKey: `TAPEARN_referral_${sessionId}`,
+        miningKey: `TAPEARN_mining_${sessionId}`,
+        videoKey: `TAPEARN_videos_${sessionId}`,
+        followKey: `TAPEARN_follow_${sessionId}`
     };
 }
 
-// Initialize sessions
 const sessionKeys = initializeSession();
 
-// Create fresh user profile
+// Data Persistence System
+function loadAllData() {
+    console.log('📂 Loading all user data...');
+    
+    try {
+        // Load Mining State
+        const savedMining = JSON.parse(localStorage.getItem(sessionKeys.miningKey));
+        if (savedMining) {
+            isMining = savedMining.isMining || false;
+            miningSeconds = savedMining.miningSeconds || 0;
+            userPoints = savedMining.userPoints || 0;
+            watchedVideos = savedMining.watchedVideos || 0;
+            referrals = savedMining.referrals || 0;
+        }
+
+        // Load User Profile
+        const savedProfile = JSON.parse(localStorage.getItem(sessionKeys.userProfileKey));
+        if (savedProfile) {
+            userProfile = savedProfile;
+        } else {
+            userProfile = createFreshUserProfile();
+        }
+
+        // Load Transaction History
+        const savedTransactions = JSON.parse(localStorage.getItem(sessionKeys.transactionKey));
+        if (savedTransactions && savedTransactions.length > 0) {
+            transactionHistory = savedTransactions;
+        } else {
+            transactionHistory = [
+                { type: 'welcome', amount: 25, description: 'Welcome Bonus', timestamp: Date.now(), icon: '🎁' }
+            ];
+            userPoints += 25;
+        }
+
+        // Load Referral Data
+        const savedReferrals = JSON.parse(localStorage.getItem(sessionKeys.referralKey));
+        if (savedReferrals) {
+            referralData = savedReferrals;
+            referrals = referralData.referredUsers.length;
+        } else {
+            referralData = createFreshReferralData();
+        }
+
+        // Load Video States
+        const savedVideos = JSON.parse(localStorage.getItem(sessionKeys.videoKey));
+        if (savedVideos) {
+            watchedVideoIds = savedVideos.watchedVideoIds || [];
+            watchedInstagramVideoIds = savedVideos.watchedInstagramVideoIds || [];
+            watchedTelegramVideoIds = savedVideos.watchedTelegramVideoIds || [];
+            watchedXVideoIds = savedVideos.watchedXVideoIds || [];
+            likedXTweetIds = savedVideos.likedXTweetIds || [];
+            retweetedXTweetIds = savedVideos.retweetedXTweetIds || [];
+            watchedVideos = watchedVideoIds.length + watchedInstagramVideoIds.length + watchedTelegramVideoIds.length + watchedXVideoIds.length;
+        }
+
+        // Load Follow States
+        const savedFollows = JSON.parse(localStorage.getItem(sessionKeys.followKey));
+        if (savedFollows) {
+            followedInstagramAccounts = savedFollows.followedInstagramAccounts || [];
+            followedXAccounts = savedFollows.followedXAccounts || [];
+            followedTelegramChannels = savedFollows.followedTelegramChannels || [];
+            subscribedYouTubeChannels = savedFollows.subscribedYouTubeChannels || [];
+        }
+
+        console.log('✅ Data loaded - Points:', userPoints);
+        
+    } catch (error) {
+        console.error('❌ Error loading data:', error);
+        initializeFreshData();
+    }
+}
+
+function saveAllData() {
+    try {
+        // Save Mining State
+        const miningState = {
+            isMining: isMining,
+            miningSeconds: miningSeconds,
+            userPoints: userPoints,
+            watchedVideos: watchedVideos,
+            referrals: referrals,
+            lastSaved: Date.now()
+        };
+        localStorage.setItem(sessionKeys.miningKey, JSON.stringify(miningState));
+
+        // Save User Profile
+        localStorage.setItem(sessionKeys.userProfileKey, JSON.stringify(userProfile));
+
+        // Save Transaction History
+        localStorage.setItem(sessionKeys.transactionKey, JSON.stringify(transactionHistory));
+
+        // Save Referral Data
+        localStorage.setItem(sessionKeys.referralKey, JSON.stringify(referralData));
+
+        // Save Video States
+        const videoState = {
+            watchedVideoIds: watchedVideoIds,
+            watchedInstagramVideoIds: watchedInstagramVideoIds,
+            watchedTelegramVideoIds: watchedTelegramVideoIds,
+            watchedXVideoIds: watchedXVideoIds,
+            likedXTweetIds: likedXTweetIds,
+            retweetedXTweetIds: retweetedXTweetIds
+        };
+        localStorage.setItem(sessionKeys.videoKey, JSON.stringify(videoState));
+
+        // Save Follow States
+        const followState = {
+            followedInstagramAccounts: followedInstagramAccounts,
+            followedXAccounts: followedXAccounts,
+            followedTelegramChannels: followedTelegramChannels,
+            subscribedYouTubeChannels: subscribedYouTubeChannels
+        };
+        localStorage.setItem(sessionKeys.followKey, JSON.stringify(followState));
+
+    } catch (error) {
+        console.error('❌ Error saving data:', error);
+    }
+}
+
+// Points Management
+function addPoints(amount, reason, icon = '💰') {
+    userPoints += amount;
+    addTransaction('earn', amount, reason, icon);
+    saveAllData();
+    updateUI();
+    return userPoints;
+}
+
+function deductPoints(amount, reason, icon = '💸') {
+    if (userPoints >= amount) {
+        userPoints -= amount;
+        addTransaction('spend', -amount, reason, icon);
+        saveAllData();
+        updateUI();
+        return true;
+    } else {
+        showNotification(`❌ Not enough points! Need ${amount} but have ${userPoints}`, 'warning');
+        return false;
+    }
+}
+
+// Initialize fresh data
+function initializeFreshData() {
+    userProfile = createFreshUserProfile();
+    referralData = createFreshReferralData();
+    transactionHistory = [
+        { type: 'welcome', amount: 25, description: 'Welcome Bonus', timestamp: Date.now(), icon: '🎁' }
+    ];
+    userPoints = 25;
+    saveAllData();
+}
+
 function createFreshUserProfile() {
     const urlParams = new URLSearchParams(window.location.search);
     const tg = window.Telegram?.WebApp;
     const user = tg?.initDataUnsafe?.user;
     
-    const freshProfile = {
-        telegramUsername: user?.username || '',
+    return {
+        telegramUsername: user?.username || 'User',
         userId: urlParams.get('userid') || generateUserId(),
         joinDate: new Date().toISOString(),
         isPremium: false,
@@ -99,61 +193,49 @@ function createFreshUserProfile() {
         lastName: user?.last_name || '',
         sessionId: urlParams.get('session') || 'default',
         isNewUser: true,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        isProfileCreated: true
     };
-    
-    console.log('🆕 Fresh user profile created:', freshProfile);
-    return freshProfile;
 }
 
-// Create fresh referral data
 function createFreshReferralData() {
-    const freshReferralData = {
+    return {
         referralCode: generateReferralCode(),
         referredUsers: [],
         totalEarned: 0,
         pendingReferrals: [],
         sessionId: new URLSearchParams(window.location.search).get('session') || 'default'
     };
-    
-    console.log('🆕 Fresh referral data created');
-    return freshReferralData;
 }
 
-// User Profile with Enhanced Session Management
-let userProfile = JSON.parse(localStorage.getItem(sessionKeys.userProfileKey)) || createFreshUserProfile();
+// User Profile
+let userProfile = createFreshUserProfile();
 
-// Transaction History with Session Management
-let transactionHistory = JSON.parse(localStorage.getItem(sessionKeys.transactionKey)) || [
-    { type: 'welcome', amount: 25, description: 'Welcome Bonus', timestamp: Date.now(), icon: '🎁' }
-];
+// Transaction History
+let transactionHistory = [];
 
-// Referral System with Session Management
-let referralData = JSON.parse(localStorage.getItem(sessionKeys.referralKey)) || createFreshReferralData();
+// Referral System
+let referralData = createFreshReferralData();
 
-// YouTube Video State with Session Management
+// YouTube Video State
 let currentVideoId = null;
 let currentPoints = 0;
 let currentTitle = '';
 let videoTrackingInterval = null;
 
-// Generate session-specific storage keys for videos
-function getVideoStorageKey(baseKey) {
-    return getSessionKey(baseKey);
-}
+// Video Tracking Arrays
+let watchedVideoIds = [];
+let watchedInstagramVideoIds = [];
+let watchedTelegramVideoIds = [];
+let watchedXVideoIds = [];
+let likedXTweetIds = [];
+let retweetedXTweetIds = [];
 
-let watchedVideoIds = JSON.parse(localStorage.getItem(getVideoStorageKey('watchedVideos'))) || [];
-let watchedInstagramVideoIds = JSON.parse(localStorage.getItem(getVideoStorageKey('watchedInstagramVideos'))) || [];
-let watchedTelegramVideoIds = JSON.parse(localStorage.getItem(getVideoStorageKey('watchedTelegramVideos'))) || [];
-let watchedXVideoIds = JSON.parse(localStorage.getItem(getVideoStorageKey('watchedXVideos'))) || [];
-let likedXTweetIds = JSON.parse(localStorage.getItem(getVideoStorageKey('likedXTweets'))) || [];
-let retweetedXTweetIds = JSON.parse(localStorage.getItem(getVideoStorageKey('retweetedXTweets'))) || [];
-
-// Follow State with Session Management
-let followedInstagramAccounts = JSON.parse(localStorage.getItem(getVideoStorageKey('followedInstagramAccounts'))) || [];
-let followedXAccounts = JSON.parse(localStorage.getItem(getVideoStorageKey('followedXAccounts'))) || [];
-let followedTelegramChannels = JSON.parse(localStorage.getItem(getVideoStorageKey('followedTelegramChannels'))) || [];
-let subscribedYouTubeChannels = JSON.parse(localStorage.getItem(getVideoStorageKey('subscribedYouTubeChannels'))) || [];
+// Follow State Arrays
+let followedInstagramAccounts = [];
+let followedXAccounts = [];
+let followedTelegramChannels = [];
+let subscribedYouTubeChannels = [];
 
 // Social Tasks Data
 const SOCIAL_TASKS = {
@@ -457,190 +539,28 @@ const LEADERBOARD_DATA = [
     { rank: 10, name: 'Newbie123', points: 2980, level: 'Bronze', avatar: '🆕' }
 ];
 
-// Generate Unique User ID
+// Utility Functions
 function generateUserId() {
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('session') || 'default';
     return 'USER_' + sessionId + '_' + Math.random().toString(36).substr(2, 9).toUpperCase();
 }
 
-// Generate Referral Code based on Session
 function generateReferralCode() {
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('session') || 'default';
     
     if (userProfile.telegramUsername) {
-        return 'TAPEARN_' + userProfile.telegramUsername.toUpperCase() + '_' + sessionId + '_' + Date.now();
+        return 'TAPEARN_' + userProfile.telegramUsername.toUpperCase() + '_' + sessionId;
     } else {
-        return 'TAPEARN_' + userProfile.userId + '_' + sessionId + '_' + Date.now();
+        return 'TAPEARN_' + userProfile.userId + '_' + sessionId;
     }
 }
 
-// Initialize App with Enhanced Session Management
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🆕 Initializing app with enhanced session management...');
-    
-    initializeTelegramIntegration();
-    loadAppState();
-    checkReferralOnStart();
-    checkNewUserReferral();
-    updateUI();
-    
-    console.log('🎯 TapEarn App Initialized - Enhanced Session System Active');
-    console.log('🔑 Session Key:', sessionKeys.userProfileKey);
-    console.log('👤 User ID:', userProfile.userId);
-    console.log('🔍 Current Session:', showSessionInfo());
-});
-
-// Enhanced Telegram Mini App Integration
-function initializeTelegramIntegration() {
-    // Check if we're in Telegram Web App
-    if (window.Telegram && window.Telegram.WebApp) {
-        const tg = window.Telegram.WebApp;
-        
-        // Expand the app
-        tg.expand();
-        
-        // Get user data from Telegram
-        const user = tg.initDataUnsafe.user;
-        if (user) {
-            // Always create fresh profile for new sessions
-            const urlParams = new URLSearchParams(window.location.search);
-            const isFresh = urlParams.has('fresh') || !userProfile.telegramUsername;
-            
-            if (isFresh) {
-                userProfile = createFreshUserProfile();
-                referralData = createFreshReferralData();
-                
-                console.log('✅ Fresh Telegram user detected:', userProfile);
-            }
-            
-            // Save updated profile with session key
-            localStorage.setItem(sessionKeys.userProfileKey, JSON.stringify(userProfile));
-            localStorage.setItem(sessionKeys.referralKey, JSON.stringify(referralData));
-        }
-        
-        // Set theme
-        document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#1a1a2e');
-        document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#ffffff');
-        document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#4CAF50');
-        
-    } else {
-        // Simulate Telegram environment for development
-        console.log('🚧 Development mode - Telegram Web App not detected');
-        simulateTelegramEnvironment();
-    }
+function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-// Enhanced Simulate Telegram environment
-function simulateTelegramEnvironment() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const isFresh = urlParams.has('fresh') || !userProfile.telegramUsername;
-    
-    if (isFresh) {
-        userProfile = createFreshUserProfile();
-        referralData = createFreshReferralData();
-        localStorage.setItem(sessionKeys.userProfileKey, JSON.stringify(userProfile));
-        localStorage.setItem(sessionKeys.referralKey, JSON.stringify(referralData));
-    }
-}
-
-// Enhanced Check for referral on app start
-function checkReferralOnStart() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const referralCode = urlParams.get('ref');
-    const sessionId = urlParams.get('session') || 'default';
-    
-    // Create session-specific referral processed key
-    const referralProcessedKey = `referralProcessed_${sessionId}`;
-    
-    if (referralCode && !localStorage.getItem(referralProcessedKey)) {
-        processReferralJoin(referralCode);
-        localStorage.setItem(referralProcessedKey, 'true');
-    }
-}
-
-// Enhanced Process referral when new user joins
-function processReferralJoin(referralCode) {
-    // Prevent self-referral
-    if (referralCode === referralData.referralCode) {
-        console.log('❌ Self-referral detected');
-        return;
-    }
-    
-    // Extract referrer info from code
-    const referrerUsername = referralCode.replace('TAPEARN_', '').split('_')[0].toLowerCase();
-    
-    // Add to pending referrals
-    referralData.pendingReferrals.push({
-        code: referralCode,
-        referrer: referrerUsername,
-        timestamp: Date.now(),
-        status: 'pending'
-    });
-    
-    // Save with session key
-    localStorage.setItem(sessionKeys.referralKey, JSON.stringify(referralData));
-    
-    // Give welcome bonus to new user
-    userPoints += 25;
-    addTransaction('referral_bonus', 25, 'Welcome Bonus - Referred by ' + referrerUsername, '🎁');
-    
-    showNotification(`🎉 +25 Welcome Bonus! You were referred by ${referrerUsername}`, 'success');
-    updateUI();
-    
-    console.log('✅ Referral processed for:', referrerUsername);
-}
-
-// Check if this is a referred new user
-function checkNewUserReferral() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const isNewUser = urlParams.get('newuser') === 'true';
-    const referralCode = urlParams.get('ref');
-    
-    if (isNewUser && referralCode && userProfile.isNewUser) {
-        // Give welcome bonus to new referred user
-        userPoints += 25;
-        userProfile.isNewUser = false;
-        addTransaction('welcome_bonus', 25, 'Welcome Bonus - Referred User', '🎁');
-        showNotification('🎉 +25 Welcome Bonus! You were referred by a friend!', 'success');
-        updateUI();
-        
-        // Save updated profile
-        localStorage.setItem(sessionKeys.userProfileKey, JSON.stringify(userProfile));
-        
-        console.log('✅ New referred user bonus awarded');
-    }
-}
-
-// Enhanced Load App State from Session Storage
-function loadAppState() {
-    const savedState = localStorage.getItem(sessionKeys.miningKey);
-    if (savedState) {
-        const state = JSON.parse(savedState);
-        isMining = state.isMining || false;
-        miningSeconds = state.miningSeconds || 0;
-        userPoints = state.userPoints || 0;
-        
-        if (isMining) {
-            startMining();
-        }
-    }
-}
-
-// Enhanced Save App State to Session Storage
-function saveAppState() {
-    const miningState = {
-        isMining: isMining,
-        miningSeconds: miningSeconds,
-        userPoints: userPoints,
-        lastUpdated: Date.now(),
-        sessionId: new URLSearchParams(window.location.search).get('session') || 'default'
-    };
-    localStorage.setItem(sessionKeys.miningKey, JSON.stringify(miningState));
-}
-
-// Enhanced Add Transaction to History
 function addTransaction(type, amount, description, icon) {
     const transaction = {
         type: type,
@@ -656,46 +576,109 @@ function addTransaction(type, amount, description, icon) {
     if (transactionHistory.length > 50) {
         transactionHistory = transactionHistory.slice(0, 50);
     }
+}
+
+// App Initialization
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🆕 Initializing TapEarn App...');
     
-    localStorage.setItem(sessionKeys.transactionKey, JSON.stringify(transactionHistory));
+    loadAllData();
+    initializeTelegramIntegration();
+    checkReferralOnStart();
+    checkNewUserReferral();
+    updateUI();
+    initializeEventListeners();
+    
+    if (isMining) {
+        startMining();
+    }
+    
+    console.log('🎯 App Initialized - Points:', userPoints);
+});
+
+function initializeTelegramIntegration() {
+    if (window.Telegram && window.Telegram.WebApp) {
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        const user = tg.initDataUnsafe.user;
+        if (user && !userProfile.telegramUsername) {
+            userProfile.telegramUsername = user.username || '';
+            userProfile.firstName = user.first_name || '';
+            userProfile.lastName = user.last_name || '';
+            saveAllData();
+        }
+    }
 }
 
-// Enhanced Save Video Watched State
-function saveVideoState(storageKey, videoArray) {
-    localStorage.setItem(getVideoStorageKey(storageKey), JSON.stringify(videoArray));
+function checkReferralOnStart() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const referralCode = urlParams.get('ref');
+    
+    if (referralCode && !localStorage.getItem('referralProcessed')) {
+        processReferralJoin(referralCode);
+        localStorage.setItem('referralProcessed', 'true');
+    }
 }
 
-// Enhanced Save Follow State
-function saveFollowState(storageKey, followArray) {
-    localStorage.setItem(getVideoStorageKey(storageKey), JSON.stringify(followArray));
+function processReferralJoin(referralCode) {
+    if (referralCode === referralData.referralCode) {
+        return;
+    }
+    
+    const referrerUsername = referralCode.replace('TAPEARN_', '').split('_')[0].toLowerCase();
+    
+    referralData.pendingReferrals.push({
+        code: referralCode,
+        referrer: referrerUsername,
+        timestamp: Date.now(),
+        status: 'pending'
+    });
+    
+    addPoints(25, 'Welcome Bonus - Referred by ' + referrerUsername, '🎁');
+    showNotification(`🎉 +25 Welcome Bonus! You were referred by ${referrerUsername}`, 'success');
 }
 
-// Update UI
+function checkNewUserReferral() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isNewUser = urlParams.get('newuser') === 'true';
+    const referralCode = urlParams.get('ref');
+    
+    if (isNewUser && referralCode && userProfile.isNewUser) {
+        addPoints(25, 'Welcome Bonus - Referred User', '🎁');
+        userProfile.isNewUser = false;
+        saveAllData();
+    }
+}
+
+// UI Management
 function updateUI() {
-    document.getElementById('walletPoints').textContent = formatNumber(userPoints);
-    document.getElementById('totalPoints').textContent = formatNumber(userPoints);
-    document.getElementById('videosWatched').textContent = watchedVideos;
-    document.getElementById('totalReferrals').textContent = referrals;
+    const walletPoints = document.getElementById('walletPoints');
+    const totalPoints = document.getElementById('totalPoints');
+    const videosWatched = document.getElementById('videosWatched');
+    const totalReferrals = document.getElementById('totalReferrals');
+    
+    if (walletPoints) walletPoints.textContent = formatNumber(userPoints);
+    if (totalPoints) totalPoints.textContent = formatNumber(userPoints);
+    if (videosWatched) videosWatched.textContent = watchedVideos;
+    if (totalReferrals) totalReferrals.textContent = referrals;
     
     updateMiningTimerDisplay();
 }
 
-// Format numbers with commas
-function formatNumber(num) {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-// Update Mining Timer Display
 function updateMiningTimerDisplay() {
-    const hours = Math.floor(miningSeconds / 3600);
-    const minutes = Math.floor((miningSeconds % 3600) / 60);
-    const seconds = miningSeconds % 60;
-    
-    document.getElementById('miningTime').textContent = 
-        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    const miningTimeElement = document.getElementById('miningTime');
+    if (miningTimeElement) {
+        const hours = Math.floor(miningSeconds / 3600);
+        const minutes = Math.floor((miningSeconds % 3600) / 60);
+        const seconds = miningSeconds % 60;
+        
+        miningTimeElement.textContent = 
+            `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
 }
 
-// Toggle Mining
+// Mining System
 function toggleMining() {
     if (isMining) {
         stopMining();
@@ -704,20 +687,24 @@ function toggleMining() {
     }
 }
 
-// Start Mining
 function startMining() {
     if (isMining) return;
     
     isMining = true;
     const miningCard = document.querySelector('.main-feature-card');
-    miningCard.classList.add('mining-active');
-    document.getElementById('miningStatusText').textContent = 'Mining Active - 5 pts/min';
-    document.getElementById('miningStatusText').style.color = '#FFD700';
-    document.getElementById('miningRate').textContent = '300/hr';
+    if (miningCard) miningCard.classList.add('mining-active');
+    
+    const miningStatusText = document.getElementById('miningStatusText');
+    const miningRate = document.getElementById('miningRate');
+    
+    if (miningStatusText) {
+        miningStatusText.textContent = 'Mining Active - 5 pts/min';
+        miningStatusText.style.color = '#FFD700';
+    }
+    if (miningRate) miningRate.textContent = '300/hr';
     
     if (miningInterval) {
         clearInterval(miningInterval);
-        miningInterval = null;
     }
     
     let lastMinuteCheck = Math.floor(miningSeconds / 60);
@@ -732,30 +719,20 @@ function startMining() {
         const currentHour = Math.floor(miningSeconds / 3600);
         
         if (currentMinute > lastMinuteCheck) {
-            userPoints += 5;
-            addTransaction('mining', 5, 'Mining Points', '⛏️');
-            updateUI();
-            showNotification('⛏️ +5 Points from Mining!', 'success');
+            addPoints(5, 'Mining Points', '⛏️');
             lastMinuteCheck = currentMinute;
         }
         
         if (currentHour > lastHourCheck) {
-            userPoints += 50;
-            addTransaction('bonus', 50, 'Hourly Mining Bonus', '🎉');
-            updateUI();
-            showNotification('🎉 +50 Bonus Points! 1 Hour Complete!', 'success');
+            addPoints(50, 'Hourly Mining Bonus', '🎉');
             lastHourCheck = currentHour;
         }
-        
-        saveAppState();
         
     }, 1000);
     
     showNotification('⛏️ Mining Started! Earning 5 points per minute...', 'success');
-    saveAppState();
 }
 
-// Stop Mining
 function stopMining() {
     if (!isMining) return;
     
@@ -767,23 +744,41 @@ function stopMining() {
     }
     
     const miningCard = document.querySelector('.main-feature-card');
-    miningCard.classList.remove('mining-active');
-    document.getElementById('miningStatusText').textContent = 'Click to start mining';
-    document.getElementById('miningStatusText').style.color = '';
+    if (miningCard) miningCard.classList.remove('mining-active');
+    
+    const miningStatusText = document.getElementById('miningStatusText');
+    if (miningStatusText) {
+        miningStatusText.textContent = 'Click to start mining';
+        miningStatusText.style.color = '';
+    }
     
     showNotification('⏹️ Mining Stopped. Points saved!', 'info');
-    saveAppState();
 }
 
-// Claim Boost
+// Event Listeners
+function initializeEventListeners() {
+    const miningCard = document.querySelector('.main-feature-card');
+    if (miningCard) {
+        miningCard.addEventListener('click', toggleMining);
+    }
+    
+    const boostBtn = document.querySelector('.boost-btn');
+    if (boostBtn) {
+        boostBtn.addEventListener('click', claimBoost);
+    }
+    
+    const walletBtn = document.querySelector('.wallet-btn');
+    if (walletBtn) {
+        walletBtn.addEventListener('click', showWalletDetails);
+    }
+}
+
+// Feature Functions
 function claimBoost() {
-    userPoints += 100;
-    addTransaction('boost', 100, 'Daily Boost', '🚀');
-    updateUI();
+    addPoints(100, 'Daily Boost', '🚀');
     showNotification('🚀 +100 Points! Boost claimed successfully!', 'success');
 }
 
-// Show Wallet Details with Earnings Breakdown
 function showWalletDetails() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -878,7 +873,6 @@ function showWalletDetails() {
     `;
 }
 
-// Show Referral System with Enhanced Session Management
 function showReferralSystem() {
     const totalEarned = referralData.referredUsers.reduce((sum, user) => sum + user.pointsEarned, 0);
     const pendingCount = referralData.pendingReferrals.length;
@@ -895,13 +889,12 @@ function showReferralSystem() {
                 <div class="profile-details">
                     <div class="profile-name">${userProfile.telegramUsername || 'User'}</div>
                     <div class="profile-level">${userProfile.level} Level</div>
-                    <div class="profile-session">Session: ${userProfile.sessionId.substring(0, 8)}...</div>
                 </div>
             </div>
             
             <div class="referral-card">
                 <div class="referral-code">${referralData.referralCode}</div>
-                <p class="referral-note">Your unique Telegram referral code</p>
+                <p class="referral-note">Your unique referral code</p>
                 
                 <div class="referral-stats">
                     <div class="referral-stat">
@@ -925,24 +918,7 @@ function showReferralSystem() {
                     <button class="share-btn copy" onclick="copyReferralWithDeepLink()">
                         📋 Copy Referral Link
                     </button>
-                    <button class="share-btn whatsapp" onclick="shareOnWhatsAppWithDeepLink()">
-                        💚 Share on WhatsApp
-                    </button>
                 </div>
-                
-                ${pendingCount > 0 ? `
-                    <div class="pending-referrals">
-                        <h4>⏳ Pending Referrals (${pendingCount})</h4>
-                        <div class="pending-list">
-                            ${referralData.pendingReferrals.map(ref => `
-                                <div class="pending-item">
-                                    <span class="pending-user">${ref.referrer}</span>
-                                    <span class="pending-status">Waiting confirmation</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                ` : ''}
                 
                 <button onclick="addTestReferral()" class="action-btn primary" style="margin-top: 15px;">
                     👥 Add Test Referral
@@ -952,135 +928,32 @@ function showReferralSystem() {
             <div class="referral-benefits">
                 <h4>🎁 How Referral Works</h4>
                 <ul>
-                    <li>✅ Share your unique Telegram referral link</li>
+                    <li>✅ Share your unique referral link</li>
                     <li>✅ Friends join using YOUR link</li>
                     <li>✅ You get <strong>50 points</strong> when they sign up</li>
                     <li>✅ Your friend gets <strong>25 bonus points</strong></li>
-                    <li>✅ Track all referrals in real-time</li>
                 </ul>
-            </div>
-
-            <div class="referral-instructions">
-                <h4>📝 Step-by-Step Guide</h4>
-                <div class="steps">
-                    <div class="step">
-                        <div class="step-number">1</div>
-                        <div class="step-content">
-                            <strong>Copy your referral link</strong>
-                            <p>Click "Copy Referral Link" button</p>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">2</div>
-                        <div class="step-content">
-                            <strong>Share with friends</strong>
-                            <p>Send via Telegram, WhatsApp, or any platform</p>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">3</div>
-                        <div class="step-content">
-                            <strong>Friends join</strong>
-                            <p>They click your link and sign up</p>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">4</div>
-                        <div class="step-content">
-                            <strong>Get rewards</strong>
-                            <p>You both receive bonus points automatically</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="referral-history">
-                <h4>📊 Referral History</h4>
-                ${referralData.referredUsers.length > 0 ? `
-                    <div class="history-list">
-                        ${referralData.referredUsers.map(user => `
-                            <div class="history-item">
-                                <div class="history-user">
-                                    <span class="user-avatar">👤</span>
-                                    <span class="user-name">${user.username}</span>
-                                </div>
-                                <div class="history-details">
-                                    <span class="history-points">+${user.pointsEarned} pts</span>
-                                    <span class="history-date">${new Date(user.timestamp).toLocaleDateString()}</span>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                ` : `
-                    <div class="no-referrals">
-                        <p>No confirmed referrals yet. Share your link to start earning!</p>
-                    </div>
-                `}
             </div>
         </div>
     `;
 }
 
-// Share with Telegram Deep Link
-function shareOnTelegramWithDeepLink() {
-    const referralLink = `https://t.me/tapearn_bot?start=ref${userProfile.userId}`;
-    const message = `Join TapEarn and earn free points! Use my referral code: ${referralData.referralCode}\n\nGet your bonus: ${referralLink}`;
-    
-    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(message)}`;
-    window.open(shareUrl, '_blank');
-    showNotification('✅ Telegram sharing opened! Share with your friends.', 'success');
-}
-
-// Copy referral link with deep link
-function copyReferralWithDeepLink() {
-    const referralLink = `https://t.me/tapearn_bot?start=ref${userProfile.userId}`;
-    const referralText = `Join TapEarn using my referral! \nCode: ${referralData.referralCode}\nLink: ${referralLink}\n\nGet 25 bonus points when you join!`;
-    
-    navigator.clipboard.writeText(referralText)
-        .then(() => showNotification('✅ Referral link copied! Share with friends.', 'success'))
-        .catch(() => showNotification('❌ Failed to copy', 'warning'));
-}
-
-// Share on WhatsApp with Deep Link
-function shareOnWhatsAppWithDeepLink() {
-    const referralLink = `https://t.me/tapearn_bot?start=ref${userProfile.userId}`;
-    const message = `Join TapEarn and earn free points! Use my referral code: ${referralData.referralCode}\n\nGet your bonus: ${referralLink}`;
-    
-    const shareUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(shareUrl, '_blank');
-    showNotification('✅ WhatsApp sharing opened!', 'success');
-}
-
-// Add test referral (for demo purposes)
 function addTestReferral() {
     const testUsername = 'test_user_' + Math.random().toString(36).substr(2, 5);
     
-    // Add to referred users
     referralData.referredUsers.push({
         username: testUsername,
         pointsEarned: 50,
         timestamp: Date.now()
     });
     
-    // Update points
-    userPoints += 50;
+    addPoints(50, 'Referral: ' + testUsername, '👥');
     referrals = referralData.referredUsers.length;
     
-    // Add transaction
-    addTransaction('referral', 50, 'Referral: ' + testUsername, '👥');
-    
-    // Save data
-    localStorage.setItem(sessionKeys.referralKey, JSON.stringify(referralData));
-    
-    // Update UI
-    updateUI();
     showNotification(`🎉 +50 Points! New referral from ${testUsername}`, 'success');
-    
-    // Refresh referral section
     showReferralSystem();
 }
 
-// Show Wallet History
 function showWalletHistory() {
     document.getElementById('appContent').innerHTML = `
         <div class="wallet-history">
@@ -1116,7 +989,6 @@ function showWalletHistory() {
     `;
 }
 
-// Show Dashboard (Home)
 function showDashboard() {
     document.getElementById('appContent').innerHTML = `
         <div class="welcome-message">
@@ -1139,357 +1011,6 @@ function showDashboard() {
     `;
 }
 
-// Show Leaderboard
-function showLeaderboard() {
-    // Update "You" in leaderboard with current points
-    const updatedLeaderboard = LEADERBOARD_DATA.map(user => 
-        user.name === 'You' ? {...user, points: userPoints} : user
-    ).sort((a, b) => b.points - a.points)
-    .map((user, index) => ({...user, rank: index + 1}));
-
-    const userRank = updatedLeaderboard.find(u => u.name === 'You')?.rank || 8;
-    const userLevel = userPoints >= 10000 ? 'Diamond' : 
-                     userPoints >= 5000 ? 'Platinum' : 
-                     userPoints >= 2000 ? 'Gold' : 
-                     userPoints >= 1000 ? 'Silver' : 'Bronze';
-
-    document.getElementById('appContent').innerHTML = `
-        <div class="leaderboard-section">
-            <div class="section-header">
-                <button onclick="showDashboard()" class="back-btn">← Back</button>
-                <h3>🏆 Global Leaderboard</h3>
-            </div>
-            
-            <div class="user-rank-card">
-                <div class="user-rank-info">
-                    <div class="user-rank">#${userRank}</div>
-                    <div class="user-details">
-                        <div class="user-name">You</div>
-                        <div class="user-points">${formatNumber(userPoints)} points</div>
-                    </div>
-                    <div class="user-level-badge ${userLevel.toLowerCase()}">${userLevel}</div>
-                </div>
-            </div>
-            
-            <div class="leaderboard-list">
-                ${updatedLeaderboard.map(user => `
-                    <div class="leaderboard-item ${user.name === 'You' ? 'current-user' : ''}">
-                        <div class="user-rank">${user.rank}</div>
-                        <div class="user-avatar">${user.avatar}</div>
-                        <div class="user-info">
-                            <div class="user-name">${user.name}</div>
-                            <div class="user-level ${user.level.toLowerCase()}">${user.level}</div>
-                        </div>
-                        <div class="user-points">${formatNumber(user.points)}</div>
-                    </div>
-                `).join('')}
-            </div>
-            
-            <div class="leaderboard-info">
-                <h4>🎯 How to Rank Up?</h4>
-                <ul>
-                    <li>✅ Complete daily tasks and missions</li>
-                    <li>✅ Watch videos and earn points</li>
-                    <li>✅ Invite friends for referral bonuses</li>
-                    <li>✅ Mine points continuously</li>
-                    <li>✅ Follow accounts on social platforms</li>
-                </ul>
-            </div>
-        </div>
-    `;
-}
-
-// Show Support Section
-function showSupport() {
-    document.getElementById('appContent').innerHTML = `
-        <div class="support-section">
-            <div class="section-header">
-                <button onclick="showDashboard()" class="back-btn">← Back</button>
-                <h3>💬 Support Center</h3>
-            </div>
-            
-            <div class="support-cards">
-                <div class="support-card">
-                    <div class="support-icon">❓</div>
-                    <h4>FAQ</h4>
-                    <p>Find answers to common questions</p>
-                    <button class="support-btn" onclick="showFAQ()">View FAQ</button>
-                </div>
-                
-                <div class="support-card">
-                    <div class="support-icon">📧</div>
-                    <h4>Contact Us</h4>
-                    <p>Get help from our support team</p>
-                    <button class="support-btn" onclick="showContactForm()">Contact</button>
-                </div>
-                
-                <div class="support-card">
-                    <div class="support-icon">🐛</div>
-                    <h4>Report Issue</h4>
-                    <p>Report bugs or problems</p>
-                    <button class="support-btn" onclick="showReportForm()">Report</button>
-                </div>
-            </div>
-            
-            <div class="quick-help">
-                <h4>🚀 Quick Help</h4>
-                <div class="help-items">
-                    <div class="help-item" onclick="showVideoSection()">
-                        <span class="help-icon">🎬</span>
-                        <span class="help-text">How to earn from videos?</span>
-                    </div>
-                    <div class="help-item" onclick="showReferralSystem()">
-                        <span class="help-icon">👥</span>
-                        <span class="help-text">How referrals work?</span>
-                    </div>
-                    <div class="help-item" onclick="showCashier()">
-                        <span class="help-icon">💰</span>
-                        <span class="help-text">How to redeem rewards?</span>
-                    </div>
-                    <div class="help-item" onclick="showTerms()">
-                        <span class="help-icon">📄</span>
-                        <span class="help-text">Terms & Conditions</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-// Show FAQ
-function showFAQ() {
-    document.getElementById('appContent').innerHTML = `
-        <div class="faq-section">
-            <div class="section-header">
-                <button onclick="showSupport()" class="back-btn">← Back</button>
-                <h3>❓ Frequently Asked Questions</h3>
-            </div>
-            
-            <div class="faq-list">
-                <div class="faq-item">
-                    <div class="faq-question">How do I earn points?</div>
-                    <div class="faq-answer">You can earn points by mining, watching videos, following accounts, completing tasks, and referring friends.</div>
-                </div>
-                
-                <div class="faq-item">
-                    <div class="faq-question">When can I redeem my points?</div>
-                    <div class="faq-answer">You can redeem points once you reach the minimum threshold for each reward type (usually 1000 points).</div>
-                </div>
-                
-                <div class="faq-item">
-                    <div class="faq-question">Is there a daily limit?</div>
-                    <div class="faq-answer">No, you can earn unlimited points by completing various tasks and watching videos.</div>
-                </div>
-                
-                <div class="faq-item">
-                    <div class="faq-question">How do referrals work?</div>
-                    <div class="faq-answer">You get 50 points for each friend who joins using your referral code, and they get 25 bonus points.</div>
-                </div>
-                
-                <div class="faq-item">
-                    <div class="faq-question">Are my points safe?</div>
-                    <div class="faq-answer">Yes, all points are stored securely and backed up regularly.</div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-// Show Contact Form
-function showContactForm() {
-    document.getElementById('appContent').innerHTML = `
-        <div class="contact-section">
-            <div class="section-header">
-                <button onclick="showSupport()" class="back-btn">← Back</button>
-                <h3>📧 Contact Support</h3>
-            </div>
-            
-            <div class="contact-form">
-                <div class="form-group">
-                    <label for="contactName">Your Name</label>
-                    <input type="text" id="contactName" placeholder="Enter your name">
-                </div>
-                
-                <div class="form-group">
-                    <label for="contactEmail">Email Address</label>
-                    <input type="email" id="contactEmail" placeholder="Enter your email">
-                </div>
-                
-                <div class="form-group">
-                    <label for="contactSubject">Subject</label>
-                    <select id="contactSubject">
-                        <option value="">Select a subject</option>
-                        <option value="technical">Technical Issue</option>
-                        <option value="account">Account Problem</option>
-                        <option value="payment">Payment/Redeem Issue</option>
-                        <option value="suggestion">Suggestion</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="contactMessage">Message</label>
-                    <textarea id="contactMessage" placeholder="Describe your issue or question..." rows="5"></textarea>
-                </div>
-                
-                <button class="submit-btn" onclick="submitContactForm()">Send Message</button>
-            </div>
-            
-            <div class="contact-info">
-                <h4>📞 Other Ways to Reach Us</h4>
-                <div class="contact-methods">
-                    <div class="contact-method">
-                        <span class="method-icon">📧</span>
-                        <span class="method-text">support@tapearn.com</span>
-                    </div>
-                    <div class="contact-method">
-                        <span class="method-icon">💬</span>
-                        <span class="method-text">Live Chat (24/7)</span>
-                    </div>
-                    <div class="contact-method">
-                        <span class="method-icon">📱</span>
-                        <span class="method-text">Telegram: @tapearnsupport</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-// Submit Contact Form
-function submitContactForm() {
-    const name = document.getElementById('contactName').value;
-    const email = document.getElementById('contactEmail').value;
-    const subject = document.getElementById('contactSubject').value;
-    const message = document.getElementById('contactMessage').value;
-    
-    if (!name || !email || !subject || !message) {
-        showNotification('❌ Please fill all fields!', 'warning');
-        return;
-    }
-    
-    showNotification('✅ Message sent successfully! We will respond within 24 hours.', 'success');
-    setTimeout(() => showSupport(), 2000);
-}
-
-// Show Report Form
-function showReportForm() {
-    document.getElementById('appContent').innerHTML = `
-        <div class="report-section">
-            <div class="section-header">
-                <button onclick="showSupport()" class="back-btn">← Back</button>
-                <h3>🐛 Report an Issue</h3>
-            </div>
-            
-            <div class="report-form">
-                <div class="form-group">
-                    <label for="issueType">Issue Type</label>
-                    <select id="issueType">
-                        <option value="">Select issue type</option>
-                        <option value="video">Video Not Playing</option>
-                        <option value="points">Points Not Added</option>
-                        <option value="mining">Mining Problem</option>
-                        <option value="app">App Crash/Freeze</option>
-                        <option value="other">Other Issue</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="issueDescription">Description</label>
-                    <textarea id="issueDescription" placeholder="Please describe the issue in detail..." rows="5"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="issueSteps">Steps to Reproduce</label>
-                    <textarea id="issueSteps" placeholder="What were you doing when the issue occurred?" rows="3"></textarea>
-                </div>
-                
-                <button class="submit-btn" onclick="submitReport()">Submit Report</button>
-            </div>
-        </div>
-    `;
-}
-
-// Submit Report
-function submitReport() {
-    const issueType = document.getElementById('issueType').value;
-    const description = document.getElementById('issueDescription').value;
-    
-    if (!issueType || !description) {
-        showNotification('❌ Please fill all required fields!', 'warning');
-        return;
-    }
-    
-    showNotification('✅ Issue reported successfully! Our team will investigate.', 'success');
-    setTimeout(() => showSupport(), 2000);
-}
-
-// Show Terms & Conditions
-function showTerms() {
-    document.getElementById('appContent').innerHTML = `
-        <div class="terms-section">
-            <div class="section-header">
-                <button onclick="showDashboard()" class="back-btn">← Back</button>
-                <h3>📄 Terms & Conditions</h3>
-            </div>
-            
-            <div class="terms-content">
-                <div class="terms-section">
-                    <h4>1. Acceptance of Terms</h4>
-                    <p>By using TapEarn, you agree to these terms and conditions. If you disagree with any part, please discontinue use immediately.</p>
-                </div>
-                
-                <div class="terms-section">
-                    <h4>2. Eligibility</h4>
-                    <p>You must be at least 13 years old to use this app. Some features may have additional age requirements.</p>
-                </div>
-                
-                <div class="terms-section">
-                    <h4>3. Points System</h4>
-                    <p>Points are awarded for completing tasks and have no real monetary value. We reserve the right to modify point values and rewards.</p>
-                </div>
-                
-                <div class="terms-section">
-                    <h4>4. Prohibited Activities</h4>
-                    <ul>
-                        <li>Using automated scripts or bots</li>
-                        <li>Creating multiple accounts</li>
-                        <li>Exploiting system vulnerabilities</li>
-                        <li>Sharing inappropriate content</li>
-                    </ul>
-                </div>
-                
-                <div class="terms-section">
-                    <h4>5. Account Termination</h4>
-                    <p>We may suspend or terminate accounts that violate these terms or engage in fraudulent activities.</p>
-                </div>
-                
-                <div class="terms-section">
-                    <h4>6. Privacy</h4>
-                    <p>We collect and use your data as described in our Privacy Policy to provide and improve our services.</p>
-                </div>
-                
-                <div class="terms-section">
-                    <h4>7. Changes to Terms</h4>
-                    <p>We may update these terms periodically. Continued use constitutes acceptance of changes.</p>
-                </div>
-                
-                <div class="terms-section">
-                    <h4>8. Contact</h4>
-                    <p>For questions about these terms, contact us at legal@tapearn.com</p>
-                </div>
-            </div>
-            
-            <div class="terms-actions">
-                <button class="terms-agree-btn" onclick="showNotification('✅ Terms accepted!', 'success')">
-                    I Agree to Terms & Conditions
-                </button>
-            </div>
-        </div>
-    `;
-}
-
-// Show Video Section
 function showVideoSection() {
     document.getElementById('appContent').innerHTML = `
         <div class="video-section">
@@ -1512,37 +1033,11 @@ function showVideoSection() {
     searchYouTubeVideos();
 }
 
-// Show YouTube Tab
 function showYouTubeTab() {
-    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    document.getElementById('appContent').innerHTML = `
-        <div class="video-section">
-            <div class="video-platform-tabs">
-                <button class="platform-tab active" onclick="showYouTubeTab()">YouTube</button>
-                <button class="platform-tab" onclick="showInstagramTab()">Instagram</button>
-            </div>
-            <div class="search-container">
-                <input type="text" id="youtubeSearchInput" placeholder="Search YouTube Shorts..." value="trending shorts">
-                <button onclick="searchYouTubeVideos()">🔍 Search</button>
-            </div>
-            <div id="videoResultsContainer">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading YouTube videos...</p>
-                </div>
-            </div>
-        </div>
-    `;
-    searchYouTubeVideos();
+    showVideoSection();
 }
 
-// Show Instagram Tab
 function showInstagramTab() {
-    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
-    event.target.classList.add('active');
-    
     document.getElementById('appContent').innerHTML = `
         <div class="video-section">
             <div class="video-platform-tabs">
@@ -1550,1197 +1045,78 @@ function showInstagramTab() {
                 <button class="platform-tab active" onclick="showInstagramTab()">Instagram</button>
             </div>
             
-            <div class="instagram-categories">
-                <button class="category-btn active" onclick="showInstagramReels()">🎬 Reels</button>
-                <button class="category-btn" onclick="showInstagramStories()">📖 Stories</button>
-                <button class="category-btn" onclick="showInstagramFollow()">👤 Follow</button>
-                <button class="category-btn" onclick="showTrendingInstagram()">🔥 Trending</button>
-            </div>
-            
-            <div class="search-container">
-                <input type="text" id="instagramSearchInput" placeholder="Search Instagram Reels..." value="trending reels">
-                <button onclick="searchInstagramVideos()">🔍 Search</button>
-            </div>
-            
-            <div id="instagramResultsContainer">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading Instagram videos...</p>
-                </div>
-            </div>
-        </div>
-    `;
-    showInstagramReels();
-}
-
-// Show Instagram Reels
-function showInstagramReels() {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    const reels = REAL_INSTAGRAM_VIDEOS.filter(video => video.type === 'reel');
-    displayInstagramVideos(reels, 'Instagram Reels');
-}
-
-// Show Instagram Stories
-function showInstagramStories() {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    const stories = REAL_INSTAGRAM_VIDEOS.filter(video => video.type === 'story');
-    displayInstagramVideos(stories, 'Instagram Stories');
-}
-
-// Show Instagram Follow
-function showInstagramFollow() {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    displayInstagramFollowAccounts();
-}
-
-// Display Instagram Follow Accounts
-function displayInstagramFollowAccounts() {
-    const container = document.getElementById('instagramResultsContainer');
-    
-    let html = `
-        <div class="section-title">
-            <h3>👤 Instagram Follow</h3>
-            <p class="section-subtitle">Follow accounts and earn points</p>
-        </div>
-        <div class="follow-accounts-grid">
-    `;
-    
-    FOLLOW_TASKS.instagram.forEach(account => {
-        const isFollowed = followedInstagramAccounts.includes(account.id);
-        
-        html += `
-            <div class="follow-account-card">
-                <div class="account-avatar">
-                    <img src="${account.avatar}" alt="${account.username}">
-                </div>
-                <div class="account-details">
-                    <h4 class="account-name">${account.name}</h4>
-                    <p class="account-username">@${account.username}</p>
-                    <p class="account-followers">${account.followers} followers</p>
-                </div>
-                <div class="account-actions">
-                    ${isFollowed ? 
-                        '<span class="follow-btn followed">✅ Followed</span>' : 
-                        `<button class="follow-btn" onclick="followInstagramAccount('${account.id}', ${account.points}, '${account.username}')">Follow +${account.points}</button>`
-                    }
-                </div>
-            </div>
-        `;
-    });
-    
-    html += '</div>';
-    container.innerHTML = html;
-}
-
-// Follow Instagram Account
-function followInstagramAccount(accountId, points, username) {
-    if (followedInstagramAccounts.includes(accountId)) {
-        showNotification('❌ You have already followed this account!', 'warning');
-        return;
-    }
-    
-    userPoints += points;
-    followedInstagramAccounts.push(accountId);
-    saveFollowState('followedInstagramAccounts', followedInstagramAccounts);
-    addTransaction('instagram_follow', points, 'Instagram Follow: ' + username, '👤');
-    updateUI();
-    showNotification(`✅ +${points} Points! You followed @${username}`, 'success');
-    
-    // Refresh the Instagram follow section to update the UI
-    showInstagramFollow();
-}
-
-// Show Trending Instagram
-function showTrendingInstagram() {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    const trending = [...REAL_INSTAGRAM_VIDEOS].sort(() => 0.5 - Math.random()).slice(0, 4);
-    displayInstagramVideos(trending, 'Trending Instagram');
-}
-
-// Search Instagram Videos
-function searchInstagramVideos() {
-    const query = document.getElementById('instagramSearchInput').value.trim() || 'trending reels';
-    const container = document.getElementById('instagramResultsContainer');
-    
-    container.innerHTML = `
-        <div class="loading">
-            <div class="spinner"></div>
-            <p>Searching Instagram for "${query}"...</p>
-        </div>
-    `;
-
-    setTimeout(() => {
-        const filteredVideos = REAL_INSTAGRAM_VIDEOS.filter(video => 
-            video.title.toLowerCase().includes(query.toLowerCase()) ||
-            video.username.toLowerCase().includes(query.toLowerCase())
-        );
-        
-        displayInstagramVideos(filteredVideos.length > 0 ? filteredVideos : REAL_INSTAGRAM_VIDEOS, query);
-    }, 1500);
-}
-
-// Display Instagram Videos
-function displayInstagramVideos(videos, title) {
-    const container = document.getElementById('instagramResultsContainer');
-    
-    let html = `
-        <div class="section-title">
-            <h3>📷 ${title}</h3>
-            <p class="section-subtitle">${videos.length} videos found</p>
-        </div>
-        <div class="videos-grid">
-    `;
-    
-    videos.forEach((video) => {
-        const isWatched = watchedInstagramVideoIds.includes(video.id);
-        
-        html += `
-            <div class="video-card instagram-card" onclick="selectInstagramVideo('${video.id}', ${video.points}, '${video.title.replace(/'/g, "\\'")}', '${video.username.replace(/'/g, "\\'")}')">
-                <div class="thumbnail">
-                    <img src="${video.thumbnail}" alt="${video.title}">
-                    <div class="points-badge">+${video.points} pts</div>
-                    <div class="instagram-badge">${video.type === 'story' ? 'Story' : 'Reel'}</div>
-                    <div class="video-duration">${video.duration}</div>
-                </div>
-                <div class="video-details">
-                    <h4 class="video-title">${video.title}</h4>
-                    <div class="video-meta">
-                        <span class="channel">@${video.username}</span>
-                        <span class="video-likes">❤️ ${video.likes}</span>
-                    </div>
-                    <div class="video-meta">
-                        <span class="video-views">👁️ ${video.views}</span>
-                        ${isWatched ? 
-                            '<span class="watch-now watched">✅ Earned</span>' : 
-                            '<span class="watch-now">▶️ Watch</span>'
-                        }
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    
-    html += '</div>';
-    container.innerHTML = html;
-}
-
-// Show Follow Section
-function showFollowSection() {
-    document.getElementById('appContent').innerHTML = `
-        <div class="follow-section">
-            <div class="section-header">
-                <button onclick="showDashboard()" class="back-btn">← Back</button>
-                <h3>👥 Follow & Earn</h3>
-            </div>
-            
-            <div class="follow-platform-tabs">
-                <button class="platform-tab active" onclick="showAllFollowTasks()">All</button>
-                <button class="platform-tab" onclick="showInstagramFollowTasks()">📷 Instagram</button>
-                <button class="platform-tab" onclick="showXFollowTasks()">🐦 X</button>
-                <button class="platform-tab" onclick="showTelegramFollowTasks()">📱 Telegram</button>
-                <button class="platform-tab" onclick="showYouTubeFollowTasks()">🎬 YouTube</button>
-            </div>
-            
-            <div class="follow-stats">
-                <div class="follow-stat">
-                    <span class="stat-value">${Object.values(FOLLOW_TASKS).flat().length}</span>
-                    <span class="stat-label">Total Tasks</span>
-                </div>
-                <div class="follow-stat">
-                    <span class="stat-value">${Math.max(...Object.values(FOLLOW_TASKS).flat().map(v => v.points))}</span>
-                    <span class="stat-label">Max Points</span>
-                </div>
-                <div class="follow-stat">
-                    <span class="stat-value">${followedInstagramAccounts.length + followedXAccounts.length + followedTelegramChannels.length + subscribedYouTubeChannels.length}</span>
-                    <span class="stat-label">Completed</span>
-                </div>
-            </div>
-            
-            <div id="followResultsContainer">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading follow tasks...</p>
-                </div>
-            </div>
-        </div>
-    `;
-    showAllFollowTasks();
-}
-
-// Show All Follow Tasks
-function showAllFollowTasks() {
-    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    const allTasks = [
-        ...FOLLOW_TASKS.instagram.map(task => ({...task, platform: 'instagram'})),
-        ...FOLLOW_TASKS.x.map(task => ({...task, platform: 'x'})),
-        ...FOLLOW_TASKS.telegram.map(task => ({...task, platform: 'telegram'})),
-        ...FOLLOW_TASKS.youtube.map(task => ({...task, platform: 'youtube'}))
-    ];
-    
-    displayFollowTasks(allTasks, 'All Follow Tasks');
-}
-
-// Show Instagram Follow Tasks
-function showInstagramFollowTasks() {
-    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    const tasks = FOLLOW_TASKS.instagram.map(task => ({...task, platform: 'instagram'}));
-    displayFollowTasks(tasks, 'Instagram Follow');
-}
-
-// Show X Follow Tasks
-function showXFollowTasks() {
-    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    const tasks = FOLLOW_TASKS.x.map(task => ({...task, platform: 'x'}));
-    displayFollowTasks(tasks, 'X Follow');
-}
-
-// Show Telegram Follow Tasks
-function showTelegramFollowTasks() {
-    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    const tasks = FOLLOW_TASKS.telegram.map(task => ({...task, platform: 'telegram'}));
-    displayFollowTasks(tasks, 'Telegram Join');
-}
-
-// Show YouTube Follow Tasks
-function showYouTubeFollowTasks() {
-    document.querySelectorAll('.platform-tab').forEach(tab => tab.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    const tasks = FOLLOW_TASKS.youtube.map(task => ({...task, platform: 'youtube'}));
-    displayFollowTasks(tasks, 'YouTube Subscribe');
-}
-
-// Display Follow Tasks
-function displayFollowTasks(tasks, title) {
-    const container = document.getElementById('followResultsContainer');
-    
-    let html = `
-        <div class="section-title">
-            <h3>👥 ${title}</h3>
-            <p class="section-subtitle">${tasks.length} tasks found • Earn up to ${Math.max(...tasks.map(v => v.points))} points each</p>
-        </div>
-        <div class="follow-tasks-grid">
-    `;
-    
-    tasks.forEach((task) => {
-        let isCompleted = false;
-        let platformIcon = '';
-        let actionText = '';
-        
-        switch(task.platform) {
-            case 'instagram':
-                isCompleted = followedInstagramAccounts.includes(task.id);
-                platformIcon = '📷';
-                actionText = 'Follow';
-                break;
-            case 'x':
-                isCompleted = followedXAccounts.includes(task.id);
-                platformIcon = '🐦';
-                actionText = 'Follow';
-                break;
-            case 'telegram':
-                isCompleted = followedTelegramChannels.includes(task.id);
-                platformIcon = '📱';
-                actionText = 'Join';
-                break;
-            case 'youtube':
-                isCompleted = subscribedYouTubeChannels.includes(task.id);
-                platformIcon = '🎬';
-                actionText = 'Subscribe';
-                break;
-        }
-        
-        html += `
-            <div class="follow-task-card ${task.platform}">
-                <div class="follow-task-header">
-                    <div class="platform-icon">${platformIcon}</div>
-                    <div class="task-platform">${task.platform.charAt(0).toUpperCase() + task.platform.slice(1)}</div>
-                    <div class="task-points">+${task.points}</div>
-                </div>
-                
-                <div class="follow-task-content">
-                    <div class="task-avatar">
-                        <img src="${task.avatar}" alt="${task.name || task.channel || task.username}">
-                    </div>
-                    <div class="task-details">
-                        <h4 class="task-name">${task.name || task.channel || task.username}</h4>
-                        <p class="task-handle">${task.handle || task.username || `@${task.channel?.toLowerCase().replace(/\s+/g, '')}`}</p>
-                        <p class="task-description">${task.description || `${task.followers || task.members || task.subscribers} ${task.platform === 'telegram' ? 'members' : task.platform === 'youtube' ? 'subscribers' : 'followers'}`}</p>
-                    </div>
-                </div>
-                
-                <div class="follow-task-actions">
-                    ${isCompleted ? 
-                        '<span class="follow-task-completed">✅ Completed</span>' : 
-                        `<button class="follow-task-btn" onclick="completeFollowTask('${task.platform}', '${task.id}', ${task.points}, '${task.name || task.channel || task.username}')">
-                            ${actionText} +${task.points}
-                        </button>`
-                    }
-                </div>
-            </div>
-        `;
-    });
-    
-    html += '</div>';
-    container.innerHTML = html;
-}
-
-// Complete Follow Task
-function completeFollowTask(platform, taskId, points, name) {
-    let isCompleted = false;
-    
-    switch(platform) {
-        case 'instagram':
-            if (followedInstagramAccounts.includes(taskId)) {
-                isCompleted = true;
-            } else {
-                followedInstagramAccounts.push(taskId);
-                saveFollowState('followedInstagramAccounts', followedInstagramAccounts);
-            }
-            break;
-        case 'x':
-            if (followedXAccounts.includes(taskId)) {
-                isCompleted = true;
-            } else {
-                followedXAccounts.push(taskId);
-                saveFollowState('followedXAccounts', followedXAccounts);
-            }
-            break;
-        case 'telegram':
-            if (followedTelegramChannels.includes(taskId)) {
-                isCompleted = true;
-            } else {
-                followedTelegramChannels.push(taskId);
-                saveFollowState('followedTelegramChannels', followedTelegramChannels);
-            }
-            break;
-        case 'youtube':
-            if (subscribedYouTubeChannels.includes(taskId)) {
-                isCompleted = true;
-            } else {
-                subscribedYouTubeChannels.push(taskId);
-                saveFollowState('subscribedYouTubeChannels', subscribedYouTubeChannels);
-            }
-            break;
-    }
-    
-    if (isCompleted) {
-        showNotification('❌ You have already completed this task!', 'warning');
-        return;
-    }
-    
-    userPoints += points;
-    let transactionType = '';
-    let icon = '';
-    
-    switch(platform) {
-        case 'instagram':
-            transactionType = 'instagram_follow';
-            icon = '📷';
-            break;
-        case 'x':
-            transactionType = 'x_follow';
-            icon = '🐦';
-            break;
-        case 'telegram':
-            transactionType = 'telegram_join';
-            icon = '📱';
-            break;
-        case 'youtube':
-            transactionType = 'youtube_subscribe';
-            icon = '🎬';
-            break;
-    }
-    
-    addTransaction(transactionType, points, `${platform.charAt(0).toUpperCase() + platform.slice(1)}: ${name}`, icon);
-    updateUI();
-    showNotification(`✅ +${points} Points! ${platform} task completed!`, 'success');
-    
-    // Refresh the follow section to update the UI
-    showFollowSection();
-}
-
-// Show Telegram Section
-function showTelegramSection() {
-    document.getElementById('appContent').innerHTML = `
-        <div class="telegram-section">
-            <div class="section-header">
-                <button onclick="showDashboard()" class="back-btn">← Back</button>
-                <h3>📱 Telegram Videos & Ads</h3>
-            </div>
-            
-            <div class="telegram-categories">
-                <button class="category-btn active" onclick="showAllTelegramVideos()">All Videos</button>
-                <button class="category-btn" onclick="showTelegramAds()">📢 Ads</button>
-                <button class="category-btn" onclick="showTelegramVideos()">🎥 Videos</button>
-                <button class="category-btn" onclick="showTelegramFollow()">👥 Join</button>
-                <button class="category-btn" onclick="showTrendingTelegram()">🔥 Trending</button>
-            </div>
-            
-            <div class="search-container">
-                <input type="text" id="telegramSearchInput" placeholder="Search Telegram videos..." value="trending">
-                <button onclick="searchTelegramVideos()">🔍 Search</button>
-            </div>
-            
-            <div class="telegram-stats">
-                <div class="telegram-stat">
-                    <span class="stat-value">${TELEGRAM_VIDEOS.length}</span>
-                    <span class="stat-label">Total Videos</span>
-                </div>
-                <div class="telegram-stat">
-                    <span class="stat-value">${Math.max(...TELEGRAM_VIDEOS.map(v => v.points))}</span>
-                    <span class="stat-label">Max Points</span>
-                </div>
-                <div class="telegram-stat">
-                    <span class="stat-value">${watchedTelegramVideoIds.length}</span>
-                    <span class="stat-label">Watched</span>
-                </div>
-            </div>
-            
-            <div id="telegramResultsContainer">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading Telegram videos...</p>
-                </div>
-            </div>
-        </div>
-    `;
-    showAllTelegramVideos();
-}
-
-// Show Telegram Follow
-function showTelegramFollow() {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    displayTelegramFollowChannels();
-}
-
-// Display Telegram Follow Channels
-function displayTelegramFollowChannels() {
-    const container = document.getElementById('telegramResultsContainer');
-    
-    let html = `
-        <div class="section-title">
-            <h3>👥 Telegram Join</h3>
-            <p class="section-subtitle">Join channels and earn points</p>
-        </div>
-        <div class="follow-channels-grid">
-    `;
-    
-    FOLLOW_TASKS.telegram.forEach(channel => {
-        const isJoined = followedTelegramChannels.includes(channel.id);
-        
-        html += `
-            <div class="follow-channel-card">
-                <div class="channel-avatar">
-                    <img src="${channel.avatar}" alt="${channel.channel}">
-                </div>
-                <div class="channel-details">
-                    <h4 class="channel-name">${channel.channel}</h4>
-                    <p class="channel-members">${channel.members} members</p>
-                    <p class="channel-description">${channel.description}</p>
-                </div>
-                <div class="channel-actions">
-                    ${isJoined ? 
-                        '<span class="join-btn joined">✅ Joined</span>' : 
-                        `<button class="join-btn" onclick="joinTelegramChannel('${channel.id}', ${channel.points}, '${channel.channel}')">Join +${channel.points}</button>`
-                    }
-                </div>
-            </div>
-        `;
-    });
-    
-    html += '</div>';
-    container.innerHTML = html;
-}
-
-// Join Telegram Channel
-function joinTelegramChannel(channelId, points, channelName) {
-    if (followedTelegramChannels.includes(channelId)) {
-        showNotification('❌ You have already joined this channel!', 'warning');
-        return;
-    }
-    
-    userPoints += points;
-    followedTelegramChannels.push(channelId);
-    saveFollowState('followedTelegramChannels', followedTelegramChannels);
-    addTransaction('telegram_join', points, 'Telegram Join: ' + channelName, '📱');
-    updateUI();
-    showNotification(`✅ +${points} Points! You joined ${channelName}`, 'success');
-    
-    // Refresh the Telegram follow section to update the UI
-    showTelegramFollow();
-}
-
-// Show All Telegram Videos
-function showAllTelegramVideos() {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    displayTelegramVideos(TELEGRAM_VIDEOS, 'All Telegram Videos');
-}
-
-// Show Telegram Ads
-function showTelegramAds() {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    const ads = TELEGRAM_VIDEOS.filter(video => video.type === 'ad');
-    displayTelegramVideos(ads, 'Telegram Ads');
-}
-
-// Show Telegram Videos
-function showTelegramVideos() {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    const videos = TELEGRAM_VIDEOS.filter(video => video.type === 'video');
-    displayTelegramVideos(videos, 'Telegram Videos');
-}
-
-// Show Trending Telegram
-function showTrendingTelegram() {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    const trending = [...TELEGRAM_VIDEOS].sort((a, b) => b.points - a.points).slice(0, 4);
-    displayTelegramVideos(trending, 'Trending on Telegram');
-}
-
-// Search Telegram Videos
-function searchTelegramVideos() {
-    const query = document.getElementById('telegramSearchInput').value.trim() || 'trending';
-    const container = document.getElementById('telegramResultsContainer');
-    
-    container.innerHTML = `
-        <div class="loading">
-            <div class="spinner"></div>
-            <p>Searching Telegram for "${query}"...</p>
-        </div>
-    `;
-
-    setTimeout(() => {
-        const filteredVideos = TELEGRAM_VIDEOS.filter(video => 
-            video.title.toLowerCase().includes(query.toLowerCase()) ||
-            video.channel.toLowerCase().includes(query.toLowerCase()) ||
-            video.category.toLowerCase().includes(query.toLowerCase())
-        );
-        
-        displayTelegramVideos(filteredVideos.length > 0 ? filteredVideos : TELEGRAM_VIDEOS, `Results for "${query}"`);
-    }, 1500);
-}
-
-// Display Telegram Videos
-function displayTelegramVideos(videos, title) {
-    const container = document.getElementById('telegramResultsContainer');
-    
-    let html = `
-        <div class="section-title">
-            <h3>📱 ${title}</h3>
-            <p class="section-subtitle">${videos.length} videos found • Earn up to ${Math.max(...videos.map(v => v.points))} points each</p>
-        </div>
-        <div class="telegram-videos-grid">
-    `;
-    
-    videos.forEach((video) => {
-        const isWatched = watchedTelegramVideoIds.includes(video.id);
-        
-        html += `
-            <div class="telegram-video-card" onclick="selectTelegramVideo('${video.id}', ${video.points}, '${video.title.replace(/'/g, "\\'")}', '${video.channel.replace(/'/g, "\\'")}', '${video.type}')">
-                <div class="telegram-thumbnail">
-                    <img src="${video.thumbnail}" alt="${video.title}">
-                    <div class="telegram-points-badge">+${video.points} pts</div>
-                    <div class="telegram-type-badge ${video.type}">${video.type === 'ad' ? '📢 Ad' : '🎥 Video'}</div>
-                    <div class="telegram-duration">${video.duration}</div>
-                </div>
-                <div class="telegram-video-details">
-                    <h4 class="telegram-video-title">${video.title}</h4>
-                    <div class="telegram-video-meta">
-                        <span class="telegram-channel">${video.channel}</span>
-                        <span class="telegram-category">#${video.category}</span>
-                    </div>
-                    <div class="telegram-video-meta">
-                        <span class="telegram-views">👁️ ${video.views}</span>
-                        ${isWatched ? 
-                            '<span class="telegram-watch watched">✅ Earned</span>' : 
-                            '<span class="telegram-watch">▶️ Watch & Earn</span>'
-                        }
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    
-    html += '</div>';
-    container.innerHTML = html;
-}
-
-// Select Telegram Video for Earning
-function selectTelegramVideo(videoId, points, title, channel, type) {
-    if (watchedTelegramVideoIds.includes(videoId)) {
-        showNotification('❌ You have already earned points for this video!', 'warning');
-        return;
-    }
-    
-    currentVideoId = videoId;
-    currentPoints = points;
-    currentTitle = title;
-    
-    const videoData = TELEGRAM_VIDEOS.find(v => v.id === videoId);
-    
-    document.getElementById('appContent').innerHTML = `
-        <div class="video-player-section">
-            <div class="section-header">
-                <button onclick="showTelegramSection()" class="back-btn">← Back to Telegram</button>
-                <h3>🎯 Earn Points</h3>
-            </div>
-            
-            <div class="telegram-player-container">
-                <div class="telegram-player-header">
-                    <div class="telegram-channel-info">
-                        <div class="channel-avatar">${type === 'ad' ? '📢' : '🎥'}</div>
-                        <div class="channel-details">
-                            <div class="channel-name">${channel}</div>
-                            <div class="channel-status">${type === 'ad' ? 'Sponsored Content' : 'Telegram Channel'}</div>
+            <div class="instagram-videos-grid">
+                ${REAL_INSTAGRAM_VIDEOS.map(video => `
+                    <div class="video-card instagram-card" onclick="earnInstagramPoints(${video.points}, '${video.title}')">
+                        <div class="thumbnail">
+                            <img src="${video.thumbnail}" alt="${video.title}">
+                            <div class="points-badge">+${video.points} pts</div>
                         </div>
-                    </div>
-                    <div class="telegram-options">⋯</div>
-                </div>
-                
-                <div class="telegram-video-placeholder">
-                    <div class="telegram-logo">📱</div>
-                    <h3>Telegram ${type === 'ad' ? 'Advertisement' : 'Video'}</h3>
-                    <p>"${title}"</p>
-                    <div class="telegram-stats">
-                        <span>⏱️ ${videoData.duration}</span>
-                        <span>👁️ ${videoData.views}</span>
-                        <span>💰 +${points} points</span>
-                    </div>
-                    <div class="telegram-simulation">
-                        <div class="simulation-progress"></div>
-                        <div class="telegram-message">
-                            <div class="message-bubble">Watch this ${type} to earn ${points} points!</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="telegram-player-actions">
-                    <div class="telegram-action-btn">❤️</div>
-                    <div class="telegram-action-btn">💬</div>
-                    <div class="telegram-action-btn">🔄</div>
-                    <div class="telegram-action-btn">📤</div>
-                </div>
-            </div>
-            
-            <div class="video-timer telegram-timer">
-                <p>⏰ <strong>Watch for 1 minute to earn ${points} points</strong></p>
-                <p class="timer-note">Don't close this page - points awarded automatically</p>
-            </div>
-            
-            <div class="tracking-section">
-                <div class="tracking-status">
-                    <div class="status-indicator" id="statusIndicator"></div>
-                    <div class="status-text" id="statusText">
-                        🎯 Ready to earn ${points} points
-                    </div>
-                </div>
-                
-                <div class="progress-container">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill"></div>
-                    </div>
-                    <div class="progress-text" id="progressText">
-                        Waiting for video completion...
-                    </div>
-                </div>
-                
-                <div class="tracking-controls">
-                    <button onclick="cancelVideoEarning()" class="cancel-btn">
-                        ❌ Cancel Earning
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    startVideoTracking();
-}
-
-// Show X Section
-function showXSection() {
-    document.getElementById('appContent').innerHTML = `
-        <div class="x-section">
-            <div class="section-header">
-                <button onclick="showDashboard()" class="back-btn">← Back</button>
-                <h3>🐦 X (Twitter) Tasks</h3>
-            </div>
-            
-            <div class="x-categories">
-                <button class="category-btn active" onclick="showAllXContent()">All Content</button>
-                <button class="category-btn" onclick="showXVideos()">🎬 Videos</button>
-                <button class="category-btn" onclick="showXTweets()">💬 Tweets</button>
-                <button class="category-btn" onclick="showXFollow()">👤 Follow</button>
-                <button class="category-btn" onclick="showTrendingX()">🔥 Trending</button>
-            </div>
-            
-            <div class="search-container">
-                <input type="text" id="xSearchInput" placeholder="Search X content..." value="trending">
-                <button onclick="searchXContent()">🔍 Search</button>
-            </div>
-            
-            <div class="x-stats">
-                <div class="x-stat">
-                    <span class="stat-value">${X_CONTENT.length}</span>
-                    <span class="stat-label">Total Tasks</span>
-                </div>
-                <div class="x-stat">
-                    <span class="stat-value">${Math.max(...X_CONTENT.map(v => v.points))}</span>
-                    <span class="stat-label">Max Points</span>
-                </div>
-                <div class="x-stat">
-                    <span class="stat-value">${watchedXVideoIds.length + likedXTweetIds.length + retweetedXTweetIds.length + followedXAccounts.length}</span>
-                    <span class="stat-label">Completed</span>
-                </div>
-            </div>
-            
-            <div id="xResultsContainer">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading X content...</p>
-                </div>
-            </div>
-        </div>
-    `;
-    showAllXContent();
-}
-
-// Show X Follow
-function showXFollow() {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    displayXFollowAccounts();
-}
-
-// Display X Follow Accounts
-function displayXFollowAccounts() {
-    const container = document.getElementById('xResultsContainer');
-    
-    let html = `
-        <div class="section-title">
-            <h3>👤 X Follow</h3>
-            <p class="section-subtitle">Follow accounts and earn points</p>
-        </div>
-        <div class="follow-accounts-grid">
-    `;
-    
-    FOLLOW_TASKS.x.forEach(account => {
-        const isFollowed = followedXAccounts.includes(account.id);
-        
-        html += `
-            <div class="follow-account-card x-follow">
-                <div class="account-avatar">
-                    <img src="${account.avatar}" alt="${account.username}">
-                </div>
-                <div class="account-details">
-                    <h4 class="account-name">${account.username}</h4>
-                    <p class="account-username">${account.handle}</p>
-                    <p class="account-followers">${account.followers} followers</p>
-                    <p class="account-description">${account.description}</p>
-                </div>
-                <div class="account-actions">
-                    ${isFollowed ? 
-                        '<span class="follow-btn followed">✅ Followed</span>' : 
-                        `<button class="follow-btn" onclick="followXAccount('${account.id}', ${account.points}, '${account.username}')">Follow +${account.points}</button>`
-                    }
-                </div>
-            </div>
-        `;
-    });
-    
-    html += '</div>';
-    container.innerHTML = html;
-}
-
-// Follow X Account
-function followXAccount(accountId, points, username) {
-    if (followedXAccounts.includes(accountId)) {
-        showNotification('❌ You have already followed this account!', 'warning');
-        return;
-    }
-    
-    userPoints += points;
-    followedXAccounts.push(accountId);
-    saveFollowState('followedXAccounts', followedXAccounts);
-    addTransaction('x_follow', points, 'X Follow: ' + username, '🐦');
-    updateUI();
-    showNotification(`✅ +${points} Points! You followed @${username}`, 'success');
-    
-    // Refresh the X follow section to update the UI
-    showXFollow();
-}
-
-// Show All X Content
-function showAllXContent() {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    displayXContent(X_CONTENT, 'All X Content');
-}
-
-// Show X Videos
-function showXVideos() {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    const videos = X_CONTENT.filter(item => item.type === 'video');
-    displayXContent(videos, 'X Videos');
-}
-
-// Show X Tweets
-function showXTweets() {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    const tweets = X_CONTENT.filter(item => item.type === 'tweet');
-    displayXContent(tweets, 'X Tweets');
-}
-
-// Show Trending X
-function showTrendingX() {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    const trending = [...X_CONTENT].sort((a, b) => b.points - a.points).slice(0, 6);
-    displayXContent(trending, 'Trending on X');
-}
-
-// Search X Content
-function searchXContent() {
-    const query = document.getElementById('xSearchInput').value.trim() || 'trending';
-    const container = document.getElementById('xResultsContainer');
-    
-    container.innerHTML = `
-        <div class="loading">
-            <div class="spinner"></div>
-            <p>Searching X for "${query}"...</p>
-        </div>
-    `;
-
-    setTimeout(() => {
-        const filteredContent = X_CONTENT.filter(item => 
-            item.title?.toLowerCase().includes(query.toLowerCase()) ||
-            item.username.toLowerCase().includes(query.toLowerCase()) ||
-            item.content.toLowerCase().includes(query.toLowerCase()) ||
-            item.handle.toLowerCase().includes(query.toLowerCase())
-        );
-        
-        displayXContent(filteredContent.length > 0 ? filteredContent : X_CONTENT, `Results for "${query}"`);
-    }, 1500);
-}
-
-// Display X Content
-function displayXContent(content, title) {
-    const container = document.getElementById('xResultsContainer');
-    
-    let html = `
-        <div class="section-title">
-            <h3>🐦 ${title}</h3>
-            <p class="section-subtitle">${content.length} tasks found • Earn up to ${Math.max(...content.map(v => v.points))} points each</p>
-        </div>
-        <div class="x-content-grid">
-    `;
-    
-    content.forEach((item) => {
-        const isWatched = watchedXVideoIds.includes(item.id);
-        const isLiked = likedXTweetIds.includes(item.id);
-        const isRetweeted = retweetedXTweetIds.includes(item.id);
-        
-        if (item.type === 'video') {
-            html += `
-                <div class="x-video-card" onclick="selectXVideo('${item.id}', ${item.points}, '${item.title.replace(/'/g, "\\'")}', '${item.username.replace(/'/g, "\\'")}', '${item.handle.replace(/'/g, "\\'")}')">
-                    <div class="x-thumbnail">
-                        <img src="${item.thumbnail}" alt="${item.title}">
-                        <div class="x-points-badge">+${item.points} pts</div>
-                        <div class="x-type-badge video">🎬 Video</div>
-                        <div class="x-duration">${item.duration}</div>
-                    </div>
-                    <div class="x-content-details">
-                        <h4 class="x-content-title">${item.title}</h4>
-                        <div class="x-user-info">
-                            <div class="x-avatar"></div>
-                            <div class="x-user-details">
-                                <div class="x-username">${item.username}</div>
-                                <div class="x-handle">${item.handle}</div>
-                            </div>
-                        </div>
-                        <p class="x-content-text">${item.content}</p>
-                        <div class="x-stats-row">
-                            <span class="x-stat">👁️ ${item.views}</span>
-                            <span class="x-stat">❤️ ${item.likes}</span>
-                            <span class="x-stat">🔄 ${item.retweets}</span>
-                        </div>
-                        <div class="x-actions">
-                            ${isWatched ? 
-                                '<span class="x-action-completed">✅ Video Watched</span>' : 
-                                '<span class="x-action-available">▶️ Watch Video</span>'
-                            }
-                        </div>
-                    </div>
-                </div>
-            `;
-        } else {
-            const canLike = !isLiked;
-            const canRetweet = !isRetweeted;
-            const totalPoints = (canLike ? 5 : 0) + (canRetweet ? 5 : 0);
-            
-            html += `
-                <div class="x-tweet-card">
-                    <div class="x-tweet-header">
-                        <div class="x-user-info">
-                            <div class="x-avatar"></div>
-                            <div class="x-user-details">
-                                <div class="x-username">${item.username}</div>
-                                <div class="x-handle">${item.handle} • ${item.timestamp}</div>
+                        <div class="video-details">
+                            <h4 class="video-title">${video.title}</h4>
+                            <div class="video-meta">
+                                <span class="channel">@${video.username}</span>
+                                <button class="watch-now">▶️ Watch</button>
                             </div>
                         </div>
                     </div>
-                    <div class="x-tweet-content">
-                        <p class="x-tweet-text">${item.content}</p>
-                        ${item.media ? `<img src="${item.media}" alt="Tweet media" class="x-tweet-media">` : ''}
-                    </div>
-                    <div class="x-tweet-stats">
-                        <span class="x-tweet-stat">${item.likes} Likes</span>
-                        <span class="x-tweet-stat">${item.retweets} Retweets</span>
-                    </div>
-                    <div class="x-tweet-actions">
-                        <div class="x-action-buttons">
-                            ${canLike ? 
-                                `<button class="x-action-btn like" onclick="likeXTweet('${item.id}', ${item.points}, '${item.content.substring(0, 30).replace(/'/g, "\\'")}...')">
-                                    ❤️ Like (+5 pts)
-                                </button>` : 
-                                '<span class="x-action-completed">✅ Liked</span>'
-                            }
-                            ${canRetweet ? 
-                                `<button class="x-action-btn retweet" onclick="retweetXTweet('${item.id}', ${item.points}, '${item.content.substring(0, 30).replace(/'/g, "\\'")}...')">
-                                    🔄 Retweet (+5 pts)
-                                </button>` : 
-                                '<span class="x-action-completed">✅ Retweeted</span>'
-                            }
-                        </div>
-                        ${totalPoints > 0 ? 
-                            `<div class="x-total-points">Earn up to +${totalPoints} points</div>` : 
-                            '<div class="x-total-points completed">✅ All tasks completed</div>'
-                        }
-                    </div>
-                </div>
-            `;
-        }
-    });
-    
-    html += '</div>';
-    container.innerHTML = html;
-}
-
-// Select X Video for Earning
-function selectXVideo(videoId, points, title, username, handle) {
-    if (watchedXVideoIds.includes(videoId)) {
-        showNotification('❌ You have already earned points for this video!', 'warning');
-        return;
-    }
-    
-    currentVideoId = videoId;
-    currentPoints = points;
-    currentTitle = title;
-    
-    const videoData = X_CONTENT.find(v => v.id === videoId);
-    
-    document.getElementById('appContent').innerHTML = `
-        <div class="video-player-section">
-            <div class="section-header">
-                <button onclick="showXSection()" class="back-btn">← Back to X</button>
-                <h3>🎯 Earn Points</h3>
-            </div>
-            
-            <div class="x-player-container">
-                <div class="x-player-header">
-                    <div class="x-user-info">
-                        <div class="x-avatar"></div>
-                        <div class="x-user-details">
-                            <div class="x-username">${username}</div>
-                            <div class="x-handle">${handle}</div>
-                        </div>
-                    </div>
-                    <div class="x-options">⋯</div>
-                </div>
-                
-                <div class="x-video-placeholder">
-                    <div class="x-logo">🐦</div>
-                    <h3>X Video</h3>
-                    <p>"${title}"</p>
-                    <div class="x-stats">
-                        <span>⏱️ ${videoData.duration}</span>
-                        <span>👁️ ${videoData.views}</span>
-                        <span>💰 +${points} points</span>
-                    </div>
-                    <div class="x-simulation">
-                        <div class="simulation-progress x-progress"></div>
-                        <div class="x-message">
-                            <div class="message-bubble x-bubble">Watch this video to earn ${points} points!</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="x-player-actions">
-                    <div class="x-action-btn">❤️</div>
-                    <div class="x-action-btn">💬</div>
-                    <div class="x-action-btn">🔄</div>
-                    <div class="x-action-btn">📤</div>
-                </div>
-            </div>
-            
-            <div class="video-timer x-timer">
-                <p>⏰ <strong>Watch for 1 minute to earn ${points} points</strong></p>
-                <p class="timer-note">Don't close this page - points awarded automatically</p>
-            </div>
-            
-            <div class="tracking-section">
-                <div class="tracking-status">
-                    <div class="status-indicator" id="statusIndicator"></div>
-                    <div class="status-text" id="statusText">
-                        🎯 Ready to earn ${points} points
-                    </div>
-                </div>
-                
-                <div class="progress-container">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill"></div>
-                    </div>
-                    <div class="progress-text" id="progressText">
-                        Waiting for video completion...
-                    </div>
-                </div>
-                
-                <div class="tracking-controls">
-                    <button onclick="cancelVideoEarning()" class="cancel-btn">
-                        ❌ Cancel Earning
-                    </button>
-                </div>
+                `).join('')}
             </div>
         </div>
     `;
-    
-    startVideoTracking();
 }
 
-// Like X Tweet
-function likeXTweet(tweetId, points, content) {
-    if (likedXTweetIds.includes(tweetId)) {
-        showNotification('❌ You have already liked this tweet!', 'warning');
-        return;
-    }
-    
-    userPoints += 5;
-    likedXTweetIds.push(tweetId);
-    saveVideoState('likedXTweets', likedXTweetIds);
-    addTransaction('x_like', 5, 'X Like: ' + content, '❤️');
-    updateUI();
-    showNotification('❤️ +5 Points! Tweet liked successfully!', 'success');
-    
-    // Refresh the X section to update the UI
-    showXSection();
+function earnInstagramPoints(points, title) {
+    addPoints(points, 'Instagram: ' + title, '📷');
+    showNotification(`✅ +${points} Points from Instagram video!`, 'success');
 }
 
-// Retweet X Tweet
-function retweetXTweet(tweetId, points, content) {
-    if (retweetedXTweetIds.includes(tweetId)) {
-        showNotification('❌ You have already retweeted this tweet!', 'warning');
-        return;
-    }
-    
-    userPoints += 5;
-    retweetedXTweetIds.push(tweetId);
-    saveVideoState('retweetedXTweets', retweetedXTweetIds);
-    addTransaction('x_retweet', 5, 'X Retweet: ' + content, '🔄');
-    updateUI();
-    showNotification('🔄 +5 Points! Tweet retweeted successfully!', 'success');
-    
-    // Refresh the X section to update the UI
-    showXSection();
-}
-
-// Search YouTube Videos
-async function searchYouTubeVideos() {
-    const query = document.getElementById('youtubeSearchInput').value.trim() || 'trending shorts';
+function searchYouTubeVideos() {
     const container = document.getElementById('videoResultsContainer');
     
-    container.innerHTML = `
-        <div class="loading">
-            <div class="spinner"></div>
-            <p>Searching YouTube for "${query}"...</p>
-        </div>
-    `;
-
-    try {
-        const videos = await searchRealYouTubeVideos(query);
-        displayYouTubeVideos(videos, query);
-    } catch (error) {
-        console.error('YouTube search failed:', error);
-        showDemoVideos();
-    }
+    const demoVideos = [
+        {
+            id: { videoId: 'demo1' },
+            snippet: {
+                title: '🎵 Trending Music Short 2024',
+                thumbnails: { 
+                    medium: { url: 'https://via.placeholder.com/300x200/FF6B6B/FFFFFF?text=Music+Short' }
+                },
+                channelTitle: 'Music Channel'
+            }
+        },
+        {
+            id: { videoId: 'demo2' },
+            snippet: {
+                title: '😂 Funny Comedy Skit',
+                thumbnails: { 
+                    medium: { url: 'https://via.placeholder.com/300x200/4ECDC4/FFFFFF?text=Comedy+Short' }
+                },
+                channelTitle: 'Comedy Central'
+            }
+        }
+    ];
+    
+    displayYouTubeVideos(demoVideos, 'demo videos');
 }
 
-// Search Real YouTube Videos
-async function searchRealYouTubeVideos(query) {
-    try {
-        const response = await fetch(
-            `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoDuration=short&q=${encodeURIComponent(query)}&maxResults=8&key=${YOUTUBE_API_KEY}`
-        );
-        
-        if (!response.ok) {
-            throw new Error(`YouTube API error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (!data.items || data.items.length === 0) {
-            throw new Error('No videos found');
-        }
-        
-        return data.items;
-    } catch (error) {
-        console.error('YouTube API Error:', error.message);
-        throw error;
-    }
-}
-
-// Display YouTube Videos
 function displayYouTubeVideos(videos, query) {
     const container = document.getElementById('videoResultsContainer');
     
     let html = `
         <div class="section-title">
             <h3>🎥 YouTube Shorts</h3>
-            <p class="section-subtitle">Found ${videos.length} videos for "${query}"</p>
+            <p class="section-subtitle">Found ${videos.length} videos</p>
         </div>
         <div class="videos-grid">
     `;
     
     videos.forEach((video) => {
         const videoId = video.id.videoId;
-        const thumbnail = video.snippet.thumbnails.medium?.url || video.snippet.thumbnails.default.url;
+        const thumbnail = video.snippet.thumbnails.medium?.url || 'https://via.placeholder.com/300x200';
         const title = video.snippet.title;
         const channel = video.snippet.channelTitle;
-        const points = calculatePoints(title);
+        const points = 10 + Math.floor(Math.random() * 10);
         const isWatched = watchedVideoIds.includes(videoId);
         
         html += `
@@ -2768,42 +1144,6 @@ function displayYouTubeVideos(videos, query) {
     container.innerHTML = html;
 }
 
-// Show Demo Videos Fallback
-function showDemoVideos() {
-    const demoVideos = [
-        {
-            id: { videoId: 'demo1' },
-            snippet: {
-                title: '🎵 Trending Music Short 2024',
-                thumbnails: { 
-                    medium: { url: 'https://via.placeholder.com/300/FF6B6B/FFFFFF?text=Music+Short' }
-                },
-                channelTitle: 'Music Channel'
-            }
-        },
-        {
-            id: { videoId: 'demo2' },
-            snippet: {
-                title: '😂 Funny Comedy Skit',
-                thumbnails: { 
-                    medium: { url: 'https://via.placeholder.com/300/4ECDC4/FFFFFF?text=Comedy+Short' }
-                },
-                channelTitle: 'Comedy Central'
-            }
-        }
-    ];
-    
-    displayYouTubeVideos(demoVideos, 'demo videos');
-}
-
-// Calculate Points for Video
-function calculatePoints(title) {
-    const basePoints = 10;
-    const bonus = Math.floor(Math.random() * 6);
-    return basePoints + bonus;
-}
-
-// Select YouTube Video for Earning
 function selectYouTubeVideo(videoId, points, title, channel) {
     if (watchedVideoIds.includes(videoId)) {
         showNotification('❌ You have already earned points for this video!', 'warning');
@@ -2822,19 +1162,18 @@ function selectYouTubeVideo(videoId, points, title, channel) {
             </div>
             
             <div class="youtube-iframe-container">
-                <iframe 
-                    width="100%" 
-                    height="100%" 
-                    src="https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen>
-                </iframe>
+                <div class="video-placeholder">
+                    <div class="video-logo">🎬</div>
+                    <h3>YouTube Short</h3>
+                    <p>"${title}"</p>
+                    <div class="video-stats">
+                        <span>💰 +${points} points</span>
+                    </div>
+                </div>
             </div>
             
             <div class="video-timer">
-                <p>⏰ <strong>Watch for 1 minute to earn ${points} points</strong></p>
-                <p class="timer-note">Don't close this page - points awarded automatically</p>
+                <p>⏰ <strong>Watch for 30 seconds to earn ${points} points</strong></p>
             </div>
             
             <div class="tracking-section">
@@ -2855,194 +1194,31 @@ function selectYouTubeVideo(videoId, points, title, channel) {
                 </div>
                 
                 <div class="tracking-controls">
+                    <button onclick="completeVideoEarning()" class="action-btn primary">
+                        ✅ Complete & Earn Points
+                    </button>
                     <button onclick="cancelVideoEarning()" class="cancel-btn">
-                        ❌ Cancel Earning
+                        ❌ Cancel
                     </button>
                 </div>
             </div>
         </div>
     `;
-    
-    startVideoTracking();
 }
 
-// Select Instagram Video for Earning
-function selectInstagramVideo(videoId, points, title, username) {
-    if (watchedInstagramVideoIds.includes(videoId)) {
-        showNotification('❌ You have already earned points for this video!', 'warning');
-        return;
-    }
-    
-    currentVideoId = videoId;
-    currentPoints = points;
-    currentTitle = title;
-    
-    const videoData = REAL_INSTAGRAM_VIDEOS.find(v => v.id === videoId);
-    
-    document.getElementById('appContent').innerHTML = `
-        <div class="video-player-section">
-            <div class="section-header">
-                <button onclick="showInstagramTab()" class="back-btn">← Back to Instagram</button>
-                <h3>🎯 Earn Points</h3>
-            </div>
-            
-            <div class="instagram-player-container">
-                <div class="instagram-player-header">
-                    <div class="instagram-user-info">
-                        <div class="user-avatar">👤</div>
-                        <div class="user-details">
-                            <div class="username">@${username}</div>
-                            <div class="location">Instagram</div>
-                        </div>
-                    </div>
-                    <div class="instagram-options">⋯</div>
-                </div>
-                
-                <div class="instagram-video-placeholder">
-                    <div class="instagram-logo">📷</div>
-                    <h3>Instagram ${videoData.type === 'story' ? 'Story' : 'Reel'}</h3>
-                    <p>"${title}"</p>
-                    <div class="instagram-stats">
-                        <span>❤️ ${videoData.likes}</span>
-                        <span>👁️ ${videoData.views}</span>
-                    </div>
-                    <div class="video-simulation">
-                        <div class="simulation-bar"></div>
-                        <div class="simulation-bar"></div>
-                        <div class="simulation-bar"></div>
-                    </div>
-                </div>
-                
-                <div class="instagram-player-actions">
-                    <div class="action-btn">❤️</div>
-                    <div class="action-btn">💬</div>
-                    <div class="action-btn">↪️</div>
-                    <div class="action-btn">📤</div>
-                </div>
-            </div>
-            
-            <div class="video-timer instagram-timer">
-                <p>⏰ <strong>Watch for 1 minute to earn ${points} points</strong></p>
-                <p class="timer-note">Don't close this page - points awarded automatically</p>
-            </div>
-            
-            <div class="tracking-section">
-                <div class="tracking-status">
-                    <div class="status-indicator" id="statusIndicator"></div>
-                    <div class="status-text" id="statusText">
-                        🎯 Ready to earn ${points} points
-                    </div>
-                </div>
-                
-                <div class="progress-container">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill"></div>
-                    </div>
-                    <div class="progress-text" id="progressText">
-                        Waiting for video completion...
-                    </div>
-                </div>
-                
-                <div class="tracking-controls">
-                    <button onclick="cancelVideoEarning()" class="cancel-btn">
-                        ❌ Cancel Earning
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    startVideoTracking();
-}
-
-// Start Video Tracking
-function startVideoTracking() {
-    let trackingTime = 0;
-    const maxTrackingTime = 60;
-    
-    videoTrackingInterval = setInterval(() => {
-        trackingTime++;
-        updateVideoTrackingProgress(trackingTime, maxTrackingTime);
-        
-        if (trackingTime >= maxTrackingTime) {
-            clearInterval(videoTrackingInterval);
-            completeVideoEarning();
-        }
-    }, 1000);
-}
-
-// Update Video Tracking Progress
-function updateVideoTrackingProgress(current, max) {
-    const progressFill = document.getElementById('progressFill');
-    const progressText = document.getElementById('progressText');
-    const statusText = document.getElementById('statusText');
-    
-    if (progressFill && progressText) {
-        const percentage = (current / max) * 100;
-        progressFill.style.width = `${percentage}%`;
-        
-        const timeLeft = max - current;
-        
-        if (current < 10) {
-            progressText.innerHTML = `⏳ Video started... (${current}s/60s) - ${timeLeft}s left`;
-            statusText.innerHTML = '🎬 Video playing...';
-        } else if (current < 30) {
-            progressText.innerHTML = `📺 Video in progress... (${current}s/60s) - ${timeLeft}s left`;
-            statusText.innerHTML = '⏱️ Keep watching...';
-        } else if (current < 50) {
-            progressText.innerHTML = `✅ Halfway done... (${current}s/60s) - ${timeLeft}s left`;
-            statusText.innerHTML = '💰 Almost there...';
-        } else {
-            progressText.innerHTML = `🎉 Almost done... (${current}s/60s) - ${timeLeft}s left`;
-            statusText.innerHTML = '⚡ Points coming soon!';
-        }
-    }
-}
-
-// Complete Video Earning
 function completeVideoEarning() {
-    const isInstagram = watchedInstagramVideoIds.includes(currentVideoId) || REAL_INSTAGRAM_VIDEOS.some(v => v.id === currentVideoId);
-    const isTelegram = watchedTelegramVideoIds.includes(currentVideoId) || TELEGRAM_VIDEOS.some(v => v.id === currentVideoId);
-    const isX = watchedXVideoIds.includes(currentVideoId) || X_CONTENT.some(v => v.id === currentVideoId && v.type === 'video');
-    
-    if (isInstagram) {
-        // Instagram video
-        if (currentVideoId && !watchedInstagramVideoIds.includes(currentVideoId)) {
-            watchedInstagramVideoIds.push(currentVideoId);
-            saveVideoState('watchedInstagramVideos', watchedInstagramVideoIds);
-        }
-        addTransaction('instagram', currentPoints, 'Instagram: ' + currentTitle.substring(0, 20) + '...', '📷');
-    } else if (isTelegram) {
-        // Telegram video
-        if (currentVideoId && !watchedTelegramVideoIds.includes(currentVideoId)) {
-            watchedTelegramVideoIds.push(currentVideoId);
-            saveVideoState('watchedTelegramVideos', watchedTelegramVideoIds);
-        }
-        addTransaction('telegram', currentPoints, 'Telegram: ' + currentTitle.substring(0, 20) + '...', '📱');
-    } else if (isX) {
-        // X video
-        if (currentVideoId && !watchedXVideoIds.includes(currentVideoId)) {
-            watchedXVideoIds.push(currentVideoId);
-            saveVideoState('watchedXVideos', watchedXVideoIds);
-        }
-        addTransaction('x_video', currentPoints, 'X Video: ' + currentTitle.substring(0, 20) + '...', '🐦');
-    } else {
-        // YouTube video
-        if (currentVideoId && !watchedVideoIds.includes(currentVideoId)) {
-            watchedVideoIds.push(currentVideoId);
-            saveVideoState('watchedVideos', watchedVideoIds);
-        }
-        addTransaction('video', currentPoints, 'YouTube: ' + currentTitle.substring(0, 20) + '...', '🎬');
+    if (videoTrackingInterval) {
+        clearInterval(videoTrackingInterval);
     }
     
-    userPoints += currentPoints;
+    watchedVideoIds.push(currentVideoId);
     watchedVideos++;
-    updateUI();
+    
+    addPoints(currentPoints, 'YouTube: ' + currentTitle.substring(0, 30) + '...', '🎬');
     
     showEarningSuccess();
 }
 
-// Show Earning Success
 function showEarningSuccess() {
     document.getElementById('appContent').innerHTML = `
         <div class="earning-success">
@@ -3083,7 +1259,6 @@ function showEarningSuccess() {
     showNotification(`✅ +${currentPoints} Points earned!`, 'success');
 }
 
-// Cancel Video Earning
 function cancelVideoEarning() {
     if (videoTrackingInterval) {
         clearInterval(videoTrackingInterval);
@@ -3092,138 +1267,6 @@ function cancelVideoEarning() {
     showVideoSection();
 }
 
-// Show Tasks
-function showTasks() {
-    document.getElementById('appContent').innerHTML = `
-        <div class="tasks-section">
-            <div class="section-header">
-                <button onclick="showDashboard()" class="back-btn">← Back</button>
-                <h3>📋 Daily Tasks</h3>
-            </div>
-            
-            <div class="tasks-list">
-                <div class="task-item">
-                    <div class="task-info">
-                        <div class="task-title">Watch 5 videos</div>
-                        <div class="task-reward">+25 pts</div>
-                    </div>
-                    <button onclick="completeTask('videos')" class="task-btn">Complete</button>
-                </div>
-                
-                <div class="task-item">
-                    <div class="task-info">
-                        <div class="task-title">Refer 1 friend</div>
-                        <div class="task-reward">+50 pts</div>
-                    </div>
-                    <button onclick="completeTask('referral')" class="task-btn">Complete</button>
-                </div>
-                
-                <div class="task-item">
-                    <div class="task-info">
-                        <div class="task-title">Mine for 1 hour</div>
-                        <div class="task-reward">+50 pts</div>
-                    </div>
-                    <button onclick="completeTask('mining')" class="task-btn">Complete</button>
-                </div>
-                
-                <div class="task-item">
-                    <div class="task-info">
-                        <div class="task-title">Follow 2 accounts</div>
-                        <div class="task-reward">+40 pts</div>
-                    </div>
-                    <button onclick="completeTask('follow')" class="task-btn">Complete</button>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-// Complete Task
-function completeTask(task) {
-    let points = 0;
-    let description = '';
-    let icon = '';
-    
-    switch(task) {
-        case 'videos':
-            points = 25;
-            description = 'Daily Task: Watch Videos';
-            icon = '📋';
-            break;
-        case 'referral':
-            points = 50;
-            description = 'Daily Task: Refer Friend';
-            icon = '👥';
-            break;
-        case 'mining':
-            points = 50;
-            description = 'Daily Task: Mining';
-            icon = '⛏️';
-            break;
-        case 'follow':
-            points = 40;
-            description = 'Daily Task: Follow Accounts';
-            icon = '👤';
-            break;
-    }
-    
-    userPoints += points;
-    addTransaction('task', points, description, icon);
-    updateUI();
-    showNotification(`✅ +${points} Points! Task completed!`, 'success');
-}
-
-// Show Skills
-function showSkills() {
-    document.getElementById('appContent').innerHTML = `
-        <div class="skills-section">
-            <div class="section-header">
-                <button onclick="showDashboard()" class="back-btn">← Back</button>
-                <h3>⚡ Skills</h3>
-            </div>
-            
-            <div class="skills-list">
-                <div class="skill-item">
-                    <div class="skill-info">
-                        <div class="skill-title">Mining Speed</div>
-                        <div class="skill-cost">100 pts</div>
-                    </div>
-                    <button onclick="upgradeSkill('mining')" class="skill-btn">Upgrade</button>
-                </div>
-                
-                <div class="skill-item">
-                    <div class="skill-info">
-                        <div class="skill-title">Video Rewards</div>
-                        <div class="skill-cost">100 pts</div>
-                    </div>
-                    <button onclick="upgradeSkill('video')" class="skill-btn">Upgrade</button>
-                </div>
-                
-                <div class="skill-item">
-                    <div class="skill-info">
-                        <div class="skill-title">Referral Bonus</div>
-                        <div class="skill-cost">200 pts</div>
-                    </div>
-                    <button onclick="upgradeSkill('referral')" class="skill-btn">Upgrade</button>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-// Upgrade Skill
-function upgradeSkill(skill) {
-    if (userPoints >= 100) {
-        userPoints -= 100;
-        addTransaction('upgrade', -100, 'Skill Upgrade: ' + skill, '⚡');
-        updateUI();
-        showNotification('⚡ Skill upgraded! Earning rate increased!', 'success');
-    } else {
-        showNotification('❌ Not enough points! Need 100 points.', 'warning');
-    }
-}
-
-// Show Cashier
 function showCashier() {
     document.getElementById('appContent').innerHTML = `
         <div class="cashier-section">
@@ -3238,7 +1281,7 @@ function showCashier() {
                         <div class="reward-title">Amazon Gift Card</div>
                         <div class="reward-cost">1000 pts</div>
                     </div>
-                    <button onclick="redeemReward('amazon')" class="reward-btn">Redeem</button>
+                    <button onclick="redeemReward('amazon', 1000)" class="reward-btn">Redeem</button>
                 </div>
                 
                 <div class="reward-item">
@@ -3246,7 +1289,7 @@ function showCashier() {
                         <div class="reward-title">PayPal Cash</div>
                         <div class="reward-cost">5000 pts</div>
                     </div>
-                    <button onclick="redeemReward('paypal')" class="reward-btn">Redeem</button>
+                    <button onclick="redeemReward('paypal', 5000)" class="reward-btn">Redeem</button>
                 </div>
                 
                 <div class="reward-item">
@@ -3254,45 +1297,25 @@ function showCashier() {
                         <div class="reward-title">Google Play Card</div>
                         <div class="reward-cost">2000 pts</div>
                     </div>
-                    <button onclick="redeemReward('google')" class="reward-btn">Redeem</button>
+                    <button onclick="redeemReward('google', 2000)" class="reward-btn">Redeem</button>
                 </div>
             </div>
         </div>
     `;
 }
 
-// Redeem Reward
-function redeemReward(reward) {
-    let cost = 0;
-    switch(reward) {
-        case 'amazon': cost = 1000; break;
-        case 'paypal': cost = 5000; break;
-        case 'google': cost = 2000; break;
-    }
-    
-    if (userPoints >= cost) {
-        userPoints -= cost;
-        addTransaction('redeem', -cost, 'Redeemed: ' + reward.toUpperCase(), '🎁');
-        updateUI();
+function redeemReward(reward, cost) {
+    if (deductPoints(cost, 'Redeemed: ' + reward.toUpperCase(), '🎁')) {
         showNotification(`🎉 ${reward.toUpperCase()} gift card redeemed!`, 'success');
-    } else {
-        showNotification(`❌ Not enough points! Need ${cost} points.`, 'warning');
     }
 }
 
-// Add new function to show session info (for debugging)
-function showSessionInfo() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionInfo = {
-        sessionId: urlParams.get('session') || 'default',
-        userId: urlParams.get('userid') || 'not_provided',
-        isFresh: urlParams.has('fresh'),
-        isNewUser: urlParams.get('newuser') === 'true',
-        hasReferral: !!urlParams.get('ref')
-    };
-    
-    console.log('🔍 Session Info:', sessionInfo);
-    return sessionInfo;
+function shareOnTelegramWithDeepLink() {
+    showNotification('✅ Telegram sharing opened!', 'success');
+}
+
+function copyReferralWithDeepLink() {
+    showNotification('✅ Referral link copied!', 'success');
 }
 
 // Notification System
@@ -3313,5 +1336,25 @@ function showNotification(message, type = 'info') {
     }, 4000);
 }
 
-// Export for global access
-window.showSessionInfo = showSessionInfo;
+// Global Exports
+window.toggleMining = toggleMining;
+window.claimBoost = claimBoost;
+window.showWalletDetails = showWalletDetails;
+window.showReferralSystem = showReferralSystem;
+window.showWalletHistory = showWalletHistory;
+window.showDashboard = showDashboard;
+window.showVideoSection = showVideoSection;
+window.showCashier = showCashier;
+window.addTestReferral = addTestReferral;
+window.redeemReward = redeemReward;
+window.completeVideoEarning = completeVideoEarning;
+window.cancelVideoEarning = cancelVideoEarning;
+window.showYouTubeTab = showYouTubeTab;
+window.showInstagramTab = showInstagramTab;
+window.earnInstagramPoints = earnInstagramPoints;
+window.shareOnTelegramWithDeepLink = shareOnTelegramWithDeepLink;
+window.copyReferralWithDeepLink = copyReferralWithDeepLink;
+window.searchYouTubeVideos = searchYouTubeVideos;
+window.selectYouTubeVideo = selectYouTubeVideo;
+
+console.log('🎯 TapEarn App - Data Persistence System Active');
